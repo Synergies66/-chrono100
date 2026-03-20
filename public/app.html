@@ -847,6 +847,34 @@ button,input,textarea,select{font-family:inherit;-webkit-appearance:none;outline
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+var _sb = supabase.createClient("https://flerfkkbzrnxreszxmcd.supabase.co", "sb_publishable_9ipOnX_DwgqDi1-z8Im4qA_EeAs7MEn");
+function loadRealMoments(map) {
+  _sb.from("moments").select("*")
+    .not("lat","is",null).not("lng","is",null)
+    .order("taken_at",{ascending:true})
+    .then(function(res) {
+      var data = res.data;
+      if (!data || data.length === 0) { console.log("no moments with GPS"); return; }
+      console.log("loaded", data.length, "moments");
+      var latlngs = data.map(function(p){ return [p.lat, p.lng]; });
+      L.polyline(latlngs, {color:"#3D6BE8",weight:2,dashArray:"8,6",opacity:.7}).addTo(map);
+      data.forEach(function(p, i) {
+        var border = i===0 ? "#22c55e" : i===data.length-1 ? "#f59e0b" : "#3D6BE8";
+        var icon = L.divIcon({
+          className: "",
+          html: "<div style=\"background:white;border:2.5px solid "+border+";border-radius:50%;width:38px;height:38px;overflow:hidden;box-shadow:0 3px 10px rgba(0,0,0,.3)\"><img src=\""+p.photo_url+"\" style=\"width:100%;height:100%;object-fit:cover\"/></div>",
+          iconSize:[38,38], iconAnchor:[19,19]
+        });
+        L.marker([p.lat,p.lng],{icon:icon}).addTo(map)
+          .bindPopup("<b>"+p.title+"</b>",{maxWidth:200});
+      });
+      if (data.length > 1) map.fitBounds(L.latLngBounds(latlngs),{padding:[40,40]});
+      else map.setView(latlngs[0], 14);
+    });
+}
+</script>
 </head>
 <body>
 <div id="app">
@@ -1694,8 +1722,9 @@ function doSearch(){ const q=document.getElementById('discInput').value.trim(); 
 // ═══ MAPS ═══
 function initLifeMap(){
   if(lifeMapObj)return;
+  setTimeout(function(){loadRealMoments(lifeMapObj);},800);
   lifeMapObj=L.map('lifeMap',{zoomControl:false,attributionControl:false}).setView([-43.532,172.636],12);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(lifeMapObj);
+  L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoibGlmZTE5ODAiLCJhIjoiY21teWx0N3M1MWV5bDJ4cHhvY2k3dzQybiJ9.HtgEuatnRizhvTfE0bq1-w', {maxZoom:19, attribution:'Mapbox'}).addTo(lifeMapObj);
 
   const pts=[
     [-43.5327,172.6368,'☕','Coffee with Emma'],
@@ -1721,7 +1750,7 @@ function initLifeMap(){
 function initCircleMap(){
   if(circleMapObj)return;
   circleMapObj=L.map('circleMap',{zoomControl:false,attributionControl:false,dragging:false,scrollWheelZoom:false}).setView([-43.532,172.636],13);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(circleMapObj);
+  L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoibGlmZTE5ODAiLCJhIjoiY21teWx0N3M1MWV5bDJ4cHhvY2k3dzQybiJ9.HtgEuatnRizhvTfE0bq1-w', {maxZoom:19, attribution:'Mapbox'}).addTo(circleMapObj);
 
   MEMBER_LOCS.forEach(m=>{
     if(!m.lat)return;
