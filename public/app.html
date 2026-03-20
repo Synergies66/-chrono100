@@ -1724,7 +1724,7 @@ function initLifeMap(){
   if(lifeMapObj)return;
   setTimeout(function(){loadRealMoments(lifeMapObj);},800);
   lifeMapObj=L.map('lifeMap',{zoomControl:false,attributionControl:false}).setView([-43.532,172.636],12);
-  L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoibGlmZTE5ODAiLCJhIjoiY21teWx0N3M1MWV5bDJ4cHhvY2k3dzQybiJ9.HtgEuatnRizhvTfE0bq1-w', {maxZoom:19, attribution:'Mapbox'}).addTo(lifeMapObj);
+  L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/256/{z}/{x}/{y}@2x?access_token=MAPBOX_TOKEN_PLACEHOLDER', {maxZoom:19, attribution:'Mapbox'}).addTo(lifeMapObj);
 
   const pts=[
     [-43.5327,172.6368,'☕','Coffee with Emma'],
@@ -1750,7 +1750,7 @@ function initLifeMap(){
 function initCircleMap(){
   if(circleMapObj)return;
   circleMapObj=L.map('circleMap',{zoomControl:false,attributionControl:false,dragging:false,scrollWheelZoom:false}).setView([-43.532,172.636],13);
-  L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoibGlmZTE5ODAiLCJhIjoiY21teWx0N3M1MWV5bDJ4cHhvY2k3dzQybiJ9.HtgEuatnRizhvTfE0bq1-w', {maxZoom:19, attribution:'Mapbox'}).addTo(circleMapObj);
+  L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/256/{z}/{x}/{y}@2x?access_token=MAPBOX_TOKEN_PLACEHOLDER', {maxZoom:19, attribution:'Mapbox'}).addTo(circleMapObj);
 
   MEMBER_LOCS.forEach(m=>{
     if(!m.lat)return;

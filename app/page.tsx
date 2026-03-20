@@ -38,7 +38,7 @@ export default function Home() {
 
   if (session) return (
     <main style={{margin:0,padding:0,height:'100vh',overflow:'hidden'}}>
-      <iframe src="/app.html" style={{width:'100%',height:'100vh',border:'none'}} />
+      <iframe src="/api/app-html" style={{width:'100%',height:'100vh',border:'none'}} />
     </main>
   )
 
