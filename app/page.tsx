@@ -1,65 +1,63 @@
-import Image from "next/image";
+'use client'
+import { useState, useEffect } from 'react'
+import { createBrowserClient } from '@supabase/ssr'
+
+const sb = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 export default function Home() {
+  const [session, setSession] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const init = async () => {
+      const { data } = await sb.auth.getSession()
+      if (data.session) {
+        setSession(data.session)
+        setLoading(false)
+        return
+      }
+      const hash = window.location.hash
+      if (hash && hash.includes('access_token')) {
+        await new Promise(r => setTimeout(r, 500))
+        const { data: d2 } = await sb.auth.getSession()
+        setSession(d2.session)
+        window.history.replaceState(null, '', window.location.pathname + window.location.search)
+      }
+      setLoading(false)
+    }
+    init()
+    sb.auth.onAuthStateChange((_e, s) => {
+      if (s) setSession(s)
+    })
+  }, [])
+
+  if (loading) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',fontSize:40}}>🕊</div>
+
+  if (session) return (
+    <main style={{margin:0,padding:0,height:'100vh',overflow:'hidden'}}>
+      <iframe src="/app.html" style={{width:'100%',height:'100vh',border:'none'}} />
+    </main>
+  )
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+    <div style={{minHeight:'100vh',background:'#f0f2f8',display:'flex',alignItems:'center',justifyContent:'center'}}>
+      <div style={{background:'white',borderRadius:24,padding:40,maxWidth:400,width:'100%',textAlign:'center',boxShadow:'0 8px 40px rgba(61,107,232,0.12)'}}>
+        <div style={{fontSize:52,marginBottom:10}}>🕊</div>
+        <div style={{fontSize:28,fontWeight:800,color:'#1a1d3a',marginBottom:6}}>Chrono100</div>
+        <div style={{fontSize:13,color:'#7880a8',marginBottom:32}}>记录你的一生，留给最重要的人</div>
+        <button
+          onClick={() => sb.auth.signInWithOAuth({
+            provider: 'google',
+            options: { redirectTo: `${window.location.origin}/auth/callback` }
+          })}
+          style={{width:'100%',padding:14,background:'white',border:'1.5px solid #e2e6f0',borderRadius:12,fontSize:15,fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+          <span style={{color:'#4285f4',fontWeight:900,fontSize:18}}>G</span>
+          用 Google 登录
+        </button>
+      </div>
     </div>
-  );
+  )
 }

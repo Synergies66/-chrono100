@@ -1,0 +1,1885 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Life · 1980</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  /* === Life App exact palette from screenshots === */
+  --lavender:#eef0f8;       /* page background */
+  --lavender2:#e8eaf5;
+  --blue:#3D6BE8;           /* primary blue */
+  --blue2:#5B8FEA;
+  --blue-light:#EEF3FD;
+  --blue-grad:linear-gradient(135deg,#4a7cf4,#6db8f5); /* avatar gradient */
+  --teal:#4BC8C8;           /* teal accent on avatars */
+  --gold:#F5B942;           /* timeline nodes */
+  --gold2:#E8A020;
+  --white:#FFFFFF;
+  --card:#FFFFFF;
+  --border:#E4E8F4;
+  --border2:#CBD2E8;
+  --ink:#1a1d3a;
+  --ink2:#3d4270;
+  --ink3:#7880a8;
+  --ink4:#b0b8d4;
+  --green:#2ECC71;
+  --green2:#27ae60;
+  --red:#E74C3C;
+  --orange:#F39C12;
+  /* reunion glow */
+  --reunion-grad:linear-gradient(135deg,rgba(245,185,66,.15),rgba(61,107,232,.1));
+  /* safe areas */
+  --st:env(safe-area-inset-top,0px);
+  --sb:env(safe-area-inset-bottom,0px);
+  --nh:56px;--th:62px;
+}
+html,body{height:100%;overflow:hidden;background:var(--lavender)}
+body{font-family:'Nunito','Noto Sans SC',sans-serif;color:var(--ink);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button,input,textarea,select{font-family:inherit;-webkit-appearance:none;outline:none;border:none;background:transparent}
+::-webkit-scrollbar{display:none}
+
+/* ═══ SHELL ═══ */
+#app{position:fixed;inset:0;display:flex;flex-direction:column}
+#pages{flex:1;overflow:hidden;position:relative}
+.page{
+  position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;background:var(--lavender);
+  transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s;will-change:transform;
+}
+.page.active{transform:translateX(0);opacity:1;z-index:2}
+.page.left{transform:translateX(-25%);opacity:0;z-index:1}
+.page.right{transform:translateX(100%);opacity:0;z-index:1}
+
+/* ═══ NAV ═══ */
+#topnav{
+  flex-shrink:0;z-index:300;
+  background:rgba(238,240,248,.95);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+.nav-inner{
+  height:calc(var(--nh) + var(--st));padding-top:var(--st);
+  display:flex;align-items:center;padding-left:18px;padding-right:18px;
+}
+.nav-menu{width:32px;height:32px;display:flex;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;flex-shrink:0}
+.nav-menu span{display:block;height:2px;background:var(--ink2);border-radius:2px;transition:all .2s}
+.nav-menu span:nth-child(1){width:20px}
+.nav-menu span:nth-child(2){width:14px}
+.nav-logo-center{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;
+}
+.nav-bird{font-size:22px}
+.nav-wordmark{font-family:'Nunito';font-size:20px;font-weight:800;color:var(--ink);letter-spacing:-.5px}
+.nav-badge{
+  background:var(--blue);color:white;
+  font-size:8px;font-weight:800;letter-spacing:.5px;
+  padding:2px 6px;border-radius:3px;align-self:center;margin-left:1px;
+}
+.nav-search{width:32px;height:32px;border-radius:50%;background:var(--white);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;box-shadow:0 1px 6px rgba(61,107,232,.12)}
+
+/* ═══ BOTTOM TAB ═══ */
+#bottomtab{
+  flex-shrink:0;
+  height:calc(var(--th) + var(--sb));padding-bottom:var(--sb);
+  background:rgba(255,255,255,.97);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-top:1px solid var(--border);
+  display:flex;align-items:stretch;z-index:200;
+}
+.btab{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:3px;cursor:pointer;padding-top:5px;position:relative;
+}
+.btab:active{opacity:.5}
+.bt-ico{
+  width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+  border-radius:8px;font-size:18px;transition:all .2s cubic-bezier(.34,1.56,.64,1);
+}
+.btab.on .bt-ico{background:var(--blue-light);transform:scale(1.08)}
+.bt-lbl{font-size:10px;font-weight:600;color:var(--ink3);transition:color .15s;letter-spacing:.1px}
+.btab.on .bt-lbl{color:var(--blue)}
+.bt-badge{
+  position:absolute;top:3px;right:calc(50% - 18px);
+  background:var(--red);color:white;font-size:9px;font-weight:800;
+  border-radius:10px;padding:1px 5px;min-width:16px;text-align:center;
+  border:2px solid var(--lavender);
+}
+
+/* ═══ SHARED ═══ */
+.pb{height:calc(var(--th) + var(--sb) + 8px)}
+.white-card{background:var(--white);border-radius:18px;overflow:hidden;box-shadow:0 2px 16px rgba(61,107,232,.06)}
+.section-title{font-size:17px;font-weight:700;color:var(--ink);padding:16px 18px 10px}
+
+/* Avatar style matching screenshots */
+.av-blue{
+  border-radius:50%;
+  background:var(--blue-grad);
+  display:flex;align-items:center;justify-content:center;
+  color:white;font-weight:700;overflow:hidden;position:relative;flex-shrink:0;
+}
+.av-blue::after{
+  content:'';position:absolute;bottom:0;right:0;
+  width:34%;height:34%;border-radius:50%;
+  background:var(--teal);
+  border:2px solid white;
+}
+.av-photo{border-radius:50%;overflow:hidden;flex-shrink:0;position:relative}
+.av-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.av-photo::after{content:'';position:absolute;bottom:0;right:0;width:34%;height:34%;border-radius:50%;background:var(--teal);border:2px solid white}
+
+/* ═══════════════════════════
+   HOME PAGE
+═══════════════════════════ */
+/* header */
+.home-header{
+  padding:16px 18px 14px;
+  background:var(--lavender);
+}
+.home-header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.home-greeting-text{font-size:22px;font-weight:800;color:var(--ink)}
+.home-greeting-sub{font-size:13px;color:var(--ink3);margin-top:2px;font-weight:500}
+.home-stats-row{display:flex;gap:10px}
+.home-stat-card{
+  flex:1;background:var(--white);border-radius:14px;padding:12px 14px;
+  box-shadow:0 2px 12px rgba(61,107,232,.07);cursor:pointer;
+  transition:transform .18s;
+}
+.home-stat-card:active{transform:scale(.97)}
+.hsc-ico{font-size:22px;margin-bottom:4px}
+.hsc-num{font-size:20px;font-weight:800;color:var(--blue);line-height:1}
+.hsc-lbl{font-size:10px;color:var(--ink3);font-weight:600;margin-top:2px}
+/* circle member row (from Image 1) */
+.circle-members-row{
+  display:flex;gap:14px;padding:14px 18px;
+  background:var(--white);border-radius:18px;margin:0 12px;
+  box-shadow:0 2px 16px rgba(61,107,232,.06);overflow-x:auto;
+}
+.cm-item{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;flex-shrink:0}
+.cm-av-wrap{
+  width:58px;height:58px;border-radius:50%;padding:2.5px;
+  background:var(--blue-grad);
+  box-shadow:0 3px 12px rgba(61,107,232,.25);
+}
+.cm-av-inner{width:100%;height:100%;border-radius:50%;background:var(--blue-light);display:flex;align-items:center;justify-content:center;font-size:24px;overflow:hidden}
+.cm-av-inner img{width:100%;height:100%;object-fit:cover}
+.cm-name{font-size:11px;font-weight:600;color:var(--ink2)}
+/* alert card */
+.alert-banner{
+  margin:12px 12px 0;border-radius:14px;overflow:hidden;
+  background:linear-gradient(135deg,#fff5f5,#ffe8e8);
+  border:1px solid #fcc;padding:13px 16px;
+  display:flex;align-items:center;gap:12px;cursor:pointer;
+}
+.alert-banner:active{opacity:.8}
+.ab-ico{font-size:24px;flex-shrink:0}
+.ab-title{font-size:13px;font-weight:700;color:var(--red)}
+.ab-sub{font-size:11px;color:#c88080;margin-top:1px}
+/* feed */
+.feed-wrap{padding:12px 12px 0}
+.feed-item{
+  background:var(--white);border-radius:18px;margin-bottom:10px;overflow:hidden;
+  box-shadow:0 2px 16px rgba(61,107,232,.06);cursor:pointer;
+}
+.feed-item:active{opacity:.88}
+.fi-inner{padding:14px 16px}
+.fi-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.fi-av{width:34px;height:34px;font-size:18px}
+.fi-author{font-size:13px;font-weight:700;color:var(--ink)}
+.fi-time{font-size:10px;color:var(--ink3);margin-top:1px;font-weight:500}
+.fi-badge{margin-left:auto;font-size:9px;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.3px}
+.fb-moment{background:#eef3ff;color:var(--blue)}
+.fb-review{background:#fff8ee;color:var(--orange)}
+.fb-reunion{background:linear-gradient(135deg,#fff8e8,#fff0f8);color:var(--gold2)}
+.fb-loc{background:#edfaf4;color:var(--green2)}
+.fi-loc-chip{
+  display:flex;align-items:center;gap:5px;
+  background:var(--lavender);border-radius:20px;
+  padding:5px 12px;margin-bottom:10px;
+  font-size:11px;color:var(--ink3);font-weight:600;
+  width:fit-content;
+}
+.fi-text{font-size:14px;color:var(--ink2);line-height:1.65;margin-bottom:10px;font-weight:500}
+.fi-imgs{display:grid;grid-template-columns:1fr 1fr;gap:3px;margin:0 -16px 10px}
+.fi-img{aspect-ratio:4/3;background:var(--lavender2);display:flex;align-items:center;justify-content:center;font-size:42px}
+.fi-foot{display:flex;gap:16px;padding-top:10px;border-top:1px solid var(--border)}
+.fi-stat{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink3);font-weight:600;cursor:pointer}
+.fi-stat:active{color:var(--blue)}
+
+/* ═══════════════════════════
+   LIFE PAGE (Image 4 & 5)
+═══════════════════════════ */
+/* year nav */
+.year-nav{
+  display:flex;align-items:center;justify-content:center;gap:16px;
+  padding:12px 18px;background:var(--lavender);
+}
+.yn-side{font-size:15px;font-weight:600;color:var(--ink4)}
+.yn-arrow{
+  width:28px;height:28px;border-radius:50%;background:var(--white);
+  display:flex;align-items:center;justify-content:center;font-size:14px;
+  color:var(--ink2);cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.08);
+}
+.yn-current{font-size:24px;font-weight:800;color:var(--ink);min-width:70px;text-align:center}
+/* week calendar (from Image 5) */
+.week-cal{
+  background:var(--white);border-radius:18px;margin:0 12px 12px;
+  padding:14px 16px;box-shadow:0 2px 16px rgba(61,107,232,.06);
+}
+.wc-days{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.wc-day{
+  display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;
+}
+.wc-day-label{font-size:11px;font-weight:600;color:var(--ink3)}
+.wc-day-num{
+  width:30px;height:30px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;color:var(--ink2);
+}
+.wc-day-num.today{background:var(--blue);color:white}
+.wc-day-num.has-event{position:relative}
+.wc-day-num.has-event::after{
+  content:'';position:absolute;bottom:1px;left:50%;transform:translateX(-50%);
+  width:4px;height:4px;border-radius:50%;background:var(--gold);
+}
+.wc-photo-strip{
+  display:flex;justify-content:flex-end;
+}
+.wc-photo{width:48px;height:48px;border-radius:12px;overflow:hidden;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.wc-photo img{width:100%;height:100%;object-fit:cover}
+.wc-photo-placeholder{background:var(--lavender);display:flex;align-items:center;justify-content:center;font-size:20px}
+/* View toggle */
+.view-toggle{
+  display:flex;margin:0 12px 12px;
+  background:var(--white);border-radius:12px;padding:3px;
+  box-shadow:0 1px 6px rgba(61,107,232,.08);
+}
+.vt{
+  flex:1;padding:8px;border-radius:10px;border:none;
+  font-size:12px;font-weight:700;color:var(--ink3);cursor:pointer;
+  transition:all .18s;display:flex;align-items:center;justify-content:center;gap:4px;
+}
+.vt.on{background:var(--blue);color:white;box-shadow:0 2px 8px rgba(61,107,232,.3)}
+/* Map view */
+.life-map-card{
+  margin:0 12px 12px;border-radius:18px;overflow:hidden;
+  height:260px;position:relative;
+  box-shadow:0 4px 20px rgba(61,107,232,.12);
+}
+#lifeMap{width:100%;height:100%}
+.life-map-overlay{
+  position:absolute;bottom:12px;left:12px;right:12px;
+  background:rgba(255,255,255,.95);backdrop-filter:blur(12px);
+  border-radius:14px;padding:12px 14px;
+  display:flex;align-items:center;gap:12px;
+  box-shadow:0 2px 12px rgba(0,0,0,.1);
+}
+.lmo-ico{font-size:26px}
+.lmo-info{flex:1}
+.lmo-title{font-size:13px;font-weight:700;color:var(--ink)}
+.lmo-sub{font-size:11px;color:var(--ink3);margin-top:1px}
+.lmo-stat{text-align:right}
+.lmo-num{font-size:20px;font-weight:800;color:var(--blue);line-height:1}
+.lmo-unit{font-size:10px;color:var(--ink3)}
+/* Timeline (from Image 5) */
+.tl-wrap{padding:0 12px}
+.tl-group-label{
+  font-size:11px;font-weight:700;color:var(--ink3);
+  letter-spacing:.5px;padding:8px 0 6px;
+  display:flex;align-items:center;gap:8px;
+}
+.tl-group-label::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--ink4)}
+.tl-row{display:flex;gap:0;margin-bottom:10px}
+/* Yellow date bubble */
+.tl-date-col{display:flex;flex-direction:column;align-items:center;width:44px;flex-shrink:0}
+.tl-bubble{
+  width:42px;height:42px;border-radius:50%;
+  background:var(--blue);color:white;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  box-shadow:0 3px 10px rgba(61,107,232,.35);line-height:1;
+}
+.tl-bubble.gold{background:linear-gradient(135deg,var(--gold),var(--gold2));box-shadow:0 3px 10px rgba(245,185,66,.4)}
+.tl-bubble .mo{font-size:8px;font-weight:700;letter-spacing:.5px;opacity:.85}
+.tl-bubble .dy{font-size:16px;font-weight:800}
+.tl-vline{width:2px;flex:1;background:linear-gradient(to bottom,var(--border),transparent);margin-top:3px;min-height:16px}
+/* Yellow dot on timeline */
+.tl-dot-col{display:flex;flex-direction:column;align-items:center;width:44px;flex-shrink:0;padding-top:4px}
+.tl-dot{width:12px;height:12px;border-radius:50%;background:var(--gold);border:3px solid white;box-shadow:0 0 0 2px var(--gold2);flex-shrink:0}
+.tl-dot-line{width:2px;flex:1;background:linear-gradient(to bottom,var(--gold2),transparent);margin-top:3px;min-height:16px}
+.tl-content{flex:1;min-width:0}
+.tl-card{
+  background:var(--white);border-radius:14px;overflow:hidden;
+  box-shadow:0 2px 12px rgba(61,107,232,.07);
+}
+.tl-card-inner{padding:12px 14px}
+.tl-card-time{font-size:11px;color:var(--ink3);font-weight:600;margin-bottom:4px}
+.tl-card-title{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:3px}
+.tl-card-meta{font-size:11px;color:var(--ink3)}
+.tl-card-photos{display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;margin-top:8px}
+.tl-photo{aspect-ratio:1;background:var(--lavender2);border-radius:6px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:22px}
+/* Reunion moment (Image 3) — glowing card */
+.reunion-card{
+  background:linear-gradient(135deg,#fffbf0 0%,#f0f4ff 100%);
+  border:1px solid rgba(245,185,66,.3);
+  position:relative;overflow:hidden;
+}
+.reunion-glow{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 60% at 50% 50%,rgba(245,185,66,.08),transparent);
+  pointer-events:none;
+}
+.reunion-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px 8px;
+}
+.reunion-title{font-size:14px;font-weight:800;color:var(--ink)}
+.reunion-subtitle{font-size:11px;color:var(--gold2);font-weight:600;margin-top:1px}
+.reunion-map-area{
+  height:90px;background:linear-gradient(135deg,#dde8f8,#c8dcf5);
+  position:relative;display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+.reunion-ray{
+  position:absolute;width:120px;height:2px;
+  background:linear-gradient(90deg,transparent,rgba(245,185,66,.8),transparent);
+  top:50%;transform:translateY(-50%) rotate(-15deg);
+  animation:rayPulse 2s ease-in-out infinite;
+}
+@keyframes rayPulse{0%,100%{opacity:.4;transform:translateY(-50%) rotate(-15deg) scaleX(.8)}50%{opacity:1;transform:translateY(-50%) rotate(-15deg) scaleX(1.2)}}
+.reunion-av{
+  width:40px;height:40px;border-radius:50%;background:white;
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+  box-shadow:0 3px 12px rgba(0,0,0,.15);position:absolute;
+}
+.reunion-av-left{left:22%;top:50%;transform:translateY(-50%)}
+.reunion-av-right{right:22%;top:50%;transform:translateY(-50%)}
+.reunion-dist{font-size:10px;color:var(--ink3);text-align:center;padding:6px 14px 10px;font-weight:600}
+
+/* Stats view */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 12px;margin-bottom:12px}
+.stat-block{background:var(--white);border-radius:16px;padding:16px;text-align:center;box-shadow:0 2px 12px rgba(61,107,232,.06)}
+.stat-block-ico{font-size:30px;margin-bottom:6px}
+.stat-block-num{font-size:28px;font-weight:800;color:var(--blue);line-height:1}
+.stat-block-lbl{font-size:10px;color:var(--ink3);font-weight:600;margin-top:3px}
+
+/* ═══════════════════════════
+   CIRCLE PAGE (Image 1 & 2)
+═══════════════════════════ */
+/* Subtabs */
+.circle-tabs{
+  display:flex;padding:0 18px;background:var(--lavender);
+  border-bottom:1px solid var(--border);overflow-x:auto;
+}
+.ct{
+  flex-shrink:0;padding:10px 16px;border:none;
+  font-size:13px;font-weight:700;color:var(--ink3);cursor:pointer;
+  border-bottom:2.5px solid transparent;transition:all .18s;white-space:nowrap;
+}
+.ct.on{color:var(--blue);border-bottom-color:var(--blue)}
+/* Location card (Image 2 style) */
+.loc-map-card{
+  margin:12px;border-radius:18px;overflow:hidden;
+  box-shadow:0 4px 20px rgba(61,107,232,.12);
+}
+#circleMap{height:200px;width:100%}
+.loc-info-section{background:var(--white);padding:14px 16px}
+.loc-sharing-row{
+  display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;
+}
+.loc-sharing-title{font-size:15px;font-weight:700;color:var(--ink)}
+.loc-toggle-wrap{display:flex;align-items:center;gap:8px}
+.toggle{
+  width:44px;height:24px;border-radius:12px;
+  background:var(--blue);position:relative;cursor:pointer;
+  transition:background .2s;box-shadow:0 2px 6px rgba(61,107,232,.3);
+}
+.toggle.off{background:var(--border2)}
+.toggle-knob{
+  position:absolute;top:2px;right:2px;
+  width:20px;height:20px;border-radius:50%;
+  background:white;box-shadow:0 1px 4px rgba(0,0,0,.2);
+  transition:right .2s;
+}
+.toggle.off .toggle-knob{right:auto;left:2px}
+.toggle-text{font-size:11px;font-weight:700;color:var(--blue)}
+.toggle-text.off{color:var(--ink3)}
+.loc-sharing-note{font-size:11px;color:var(--ink3);margin-bottom:14px;line-height:1.5}
+/* Member list */
+.mem-list{}
+.mem-row{
+  display:flex;align-items:center;gap:12px;
+  padding:11px 0;border-bottom:1px solid var(--border);
+}
+.mem-row:last-child{border:none}
+.mem-av{width:44px;height:44px;font-size:20px}
+.mem-info{flex:1}
+.mem-name{font-size:14px;font-weight:700;color:var(--ink)}
+.mem-sub{font-size:11px;color:var(--ink3);margin-top:1px;font-weight:500}
+.mem-status{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.mem-badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px}
+.mb-near{background:#edfbf4;color:var(--green2)}
+.mb-home{background:var(--blue-light);color:var(--blue)}
+.mb-away{background:#fff8ee;color:var(--orange)}
+.mb-warn{background:#fff0f0;color:var(--red)}
+.mem-time{font-size:9px;color:var(--ink4);font-weight:600}
+.mem-battery{display:flex;align-items:center;gap:3px}
+.bat-bar{display:flex;gap:1.5px}
+.bat-seg{width:6px;height:8px;border-radius:1px;background:var(--red)}
+.bat-seg.full{background:var(--green)}
+/* Safety button */
+.safety-btn{
+  margin:12px;padding:14px;border-radius:14px;
+  background:linear-gradient(135deg,var(--blue),var(--blue2));
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  color:white;font-size:14px;font-weight:800;cursor:pointer;
+  box-shadow:0 4px 16px rgba(61,107,232,.35);
+}
+.safety-btn:active{opacity:.85}
+/* Family location card from Image 1 */
+.feature-card{
+  margin:12px;background:var(--white);border-radius:18px;overflow:hidden;
+  box-shadow:0 2px 16px rgba(61,107,232,.06);cursor:pointer;
+}
+.feature-card:active{opacity:.88}
+.fc-inner{display:flex;align-items:center;gap:14px;padding:16px}
+.fc-ico-wrap{
+  width:52px;height:52px;border-radius:14px;
+  background:var(--blue-light);
+  display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;
+}
+.fc-title{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:2px}
+.fc-sub{font-size:11px;color:var(--ink3);font-weight:500}
+.fc-arr{font-size:18px;color:var(--ink4);margin-left:auto}
+.fc-preview-row{padding:0 16px 14px;display:flex;gap:6px;align-items:center}
+.fc-av-sm{width:30px;height:30px;border-radius:50%;background:var(--blue-grad);display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid white;margin-left:-6px}
+.fc-av-sm:first-child{margin-left:0}
+.fc-sharing-count{font-size:11px;color:var(--ink3);margin-left:6px;font-weight:600}
+.loc-radar{
+  width:60px;height:60px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,#e8f0fe,#c5d8fc);
+  display:flex;align-items:center;justify-content:center;font-size:28px;
+  position:relative;overflow:hidden;
+}
+.loc-radar::after{
+  content:'';position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(rgba(61,107,232,.2) 0deg 90deg,transparent 90deg);
+  animation:radarSpin 3s linear infinite;
+}
+@keyframes radarSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+/* ═══════════════════════════
+   CHAT PAGE (Private Messages)
+═══════════════════════════ */
+.chat-list-wrap{background:var(--lavender)}
+.chat-search-wrap{padding:10px 14px;background:var(--white);border-bottom:1px solid var(--border);margin-bottom:8px}
+.chat-search-inner{
+  display:flex;align-items:center;gap:8px;
+  background:var(--lavender);border-radius:12px;padding:9px 14px;
+}
+.chat-list-bg{background:var(--white);border-radius:18px;margin:0 12px;overflow:hidden;box-shadow:0 2px 16px rgba(61,107,232,.06)}
+.chat-row{
+  display:flex;align-items:center;gap:12px;
+  padding:13px 16px;border-bottom:1px solid var(--border);cursor:pointer;
+}
+.chat-row:last-child{border:none}
+.chat-row:active{background:var(--lavender)}
+.ch-av-wrap{position:relative;flex-shrink:0}
+.ch-av{width:48px;height:48px;font-size:22px}
+.ch-online{
+  position:absolute;bottom:1px;right:1px;
+  width:12px;height:12px;border-radius:50%;
+  background:var(--green);border:2.5px solid white;
+}
+.ch-info{flex:1;min-width:0}
+.ch-name{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:2px}
+.ch-preview{font-size:12px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.ch-right{text-align:right;flex-shrink:0}
+.ch-time{font-size:10px;color:var(--ink4);margin-bottom:4px;font-weight:600}
+.ch-badge{background:var(--blue);color:white;font-size:10px;font-weight:800;border-radius:12px;padding:2px 8px;min-width:18px;text-align:center;display:inline-block}
+/* CHAT ROOM */
+.chatroom{
+  position:absolute;inset:0;background:var(--lavender);
+  display:flex;flex-direction:column;
+  transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);
+  z-index:50;
+}
+.chatroom.open{transform:translateX(0)}
+.cr-nav{
+  flex-shrink:0;background:rgba(238,240,248,.96);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  height:calc(52px + var(--st));padding-top:var(--st);
+  display:flex;align-items:center;padding-left:14px;padding-right:14px;gap:10px;
+}
+.cr-back{width:32px;height:32px;border-radius:50%;background:var(--white);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.08);flex-shrink:0}
+.cr-center{flex:1;display:flex;flex-direction:column;align-items:center}
+.cr-name-text{font-size:15px;font-weight:800;color:var(--ink)}
+.cr-status-text{font-size:10px;color:var(--green);font-weight:600;margin-top:1px}
+.cr-actions{display:flex;gap:8px}
+.cr-action{width:32px;height:32px;border-radius:50%;background:var(--white);display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.08)}
+.cr-messages{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px;display:flex;flex-direction:column;gap:8px}
+.msg-row{display:flex;gap:8px;max-width:88%}
+.msg-row.mine{flex-direction:row-reverse;align-self:flex-end}
+.msg-row .msg-av-sm{width:28px;height:28px;border-radius:50%;background:var(--blue-grad);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;margin-top:2px}
+.msg-bubble{
+  background:var(--white);border-radius:18px 18px 18px 5px;
+  padding:10px 14px;box-shadow:0 2px 8px rgba(61,107,232,.08);
+}
+.msg-row.mine .msg-bubble{
+  background:linear-gradient(135deg,var(--blue),var(--blue2));
+  color:white;border-radius:18px 18px 5px 18px;
+  box-shadow:0 3px 12px rgba(61,107,232,.3);
+}
+.msg-text{font-size:14px;line-height:1.55;font-weight:500}
+.msg-time{font-size:9px;margin-top:4px;opacity:.55;text-align:right;font-weight:600}
+/* Special: Life1980 restaurant card in chat */
+.msg-biz-card{
+  background:var(--white);border-radius:14px;margin:4px 0;
+  padding:12px 14px;border:1px solid var(--border);
+  box-shadow:0 2px 8px rgba(61,107,232,.07);
+}
+.msg-biz-header{font-size:10px;font-weight:800;color:var(--blue);margin-bottom:6px;display:flex;align-items:center;gap:4px;letter-spacing:.3px;text-transform:uppercase}
+.msg-biz-name{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:2px}
+.msg-biz-sub{font-size:11px;color:var(--ink3)}
+.msg-biz-score{font-size:18px;font-weight:800;color:var(--gold2);margin-left:auto}
+.cr-input-bar{
+  flex-shrink:0;
+  padding:10px 14px;padding-bottom:calc(10px + var(--sb));
+  background:rgba(255,255,255,.97);border-top:1px solid var(--border);
+  display:flex;gap:8px;align-items:flex-end;
+}
+.cr-plus{width:36px;height:36px;border-radius:50%;background:var(--lavender);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;flex-shrink:0}
+.cr-input-wrap{
+  flex:1;background:var(--lavender);border-radius:20px;
+  display:flex;align-items:center;padding:8px 14px;gap:8px;
+  transition:box-shadow .18s;
+}
+.cr-input-wrap:focus-within{box-shadow:0 0 0 2px var(--blue)}
+.cr-input{flex:1;font-size:14px;color:var(--ink);resize:none;max-height:80px;background:transparent;font-weight:500}
+.cr-input::placeholder{color:var(--ink4)}
+.cr-emoji{font-size:18px;cursor:pointer}
+.cr-send{
+  width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(135deg,var(--blue),var(--blue2));
+  display:flex;align-items:center;justify-content:center;
+  color:white;font-size:16px;cursor:pointer;flex-shrink:0;
+  box-shadow:0 3px 10px rgba(61,107,232,.4);
+  transition:transform .18s;
+}
+.cr-send:active{transform:scale(.9)}
+
+/* ═══════════════════════════
+   INSIGHT PAGE (Image 8)
+═══════════════════════════ */
+.insight-search{padding:12px 14px;background:var(--lavender)}
+.insight-search-inner{
+  display:flex;align-items:center;gap:8px;
+  background:var(--white);border-radius:14px;padding:10px 16px;
+  box-shadow:0 2px 8px rgba(61,107,232,.06);
+}
+.insight-tabs{display:flex;gap:0;padding:0 18px;border-bottom:1px solid var(--border)}
+.it{flex-shrink:0;padding:9px 14px;border:none;font-size:13px;font-weight:700;color:var(--ink3);cursor:pointer;border-bottom:2.5px solid transparent;transition:all .15s;white-space:nowrap}
+.it.on{color:var(--blue);border-bottom-color:var(--blue)}
+.insight-section{padding:16px 14px 6px;font-size:14px;font-weight:700;color:var(--ink)}
+.insight-card{
+  margin:0 12px 10px;background:var(--white);border-radius:16px;
+  display:flex;align-items:center;gap:14px;padding:16px;
+  box-shadow:0 2px 12px rgba(61,107,232,.06);cursor:pointer;
+  transition:transform .18s;
+}
+.insight-card:active{transform:scale(.98)}
+.insight-card-ico{font-size:28px;flex-shrink:0}
+.insight-card-text{font-size:14px;font-weight:600;color:var(--ink);flex:1}
+.insight-card-arr{font-size:16px;color:var(--ink4)}
+.reflect-btn{
+  margin:24px 12px;padding:16px;border-radius:16px;
+  background:var(--white);text-align:center;
+  font-size:16px;font-weight:700;color:var(--blue);
+  box-shadow:0 2px 12px rgba(61,107,232,.08);cursor:pointer;
+  border:1px solid var(--blue-light);transition:all .18s;
+}
+.reflect-btn:active{background:var(--blue-light)}
+
+/* ═══════════════════════════
+   DISCOVER PAGE (Life1980)
+═══════════════════════════ */
+.disc-hero{
+  background:linear-gradient(160deg,#1a2d6b 0%,#2d4fc0 60%,#3d6be8 100%);
+  padding:22px 18px 20px;position:relative;overflow:hidden;
+}
+.disc-hero-bg{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse 70% 60% at 85% 30%,rgba(100,160,255,.2),transparent);
+}
+.disc-kicker{font-family:'DM Mono','Nunito';font-size:9px;color:rgba(255,255,255,.45);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:8px;position:relative;z-index:1}
+.disc-title{font-size:24px;font-weight:800;color:white;line-height:1.2;margin-bottom:5px;position:relative;z-index:1}
+.disc-title em{color:#7EB3FF;font-style:normal}
+.disc-sub{font-size:12px;color:rgba(255,255,255,.5);margin-bottom:16px;position:relative;z-index:1;line-height:1.6;font-weight:500}
+.disc-search{
+  display:flex;background:white;border-radius:12px;overflow:hidden;
+  position:relative;z-index:1;
+}
+.disc-search-input{flex:1;padding:12px 14px;font-size:14px;color:var(--ink);font-weight:500}
+.disc-search-input::placeholder{color:var(--ink4)}
+.disc-search-btn{padding:0 18px;background:var(--blue);color:white;font-size:13px;font-weight:800;cursor:pointer;flex-shrink:0}
+.disc-cats{display:flex;gap:8px;overflow-x:auto;padding:12px 14px;background:var(--white);border-bottom:1px solid var(--border)}
+.disc-cat{flex-shrink:0;padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--white);font-size:12px;font-weight:700;color:var(--ink3);cursor:pointer;transition:all .15s;white-space:nowrap}
+.disc-cat.on{border-color:var(--blue);color:var(--blue);background:var(--blue-light)}
+/* Featured card */
+.disc-feat{
+  margin:12px;border-radius:18px;overflow:hidden;
+  background:linear-gradient(160deg,#1a2d6b,#2d4fc0);
+  padding:18px;cursor:pointer;
+  box-shadow:0 4px 20px rgba(45,79,192,.3);
+}
+.disc-feat:active{opacity:.9}
+.df-kicker{font-size:9px;font-weight:800;color:rgba(255,255,255,.5);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.df-emoji{font-size:52px;display:block;margin-bottom:10px}
+.df-name{font-size:20px;font-weight:800;color:white;margin-bottom:3px}
+.df-desc{font-size:12px;color:rgba(255,255,255,.55);line-height:1.6;margin-bottom:12px;font-weight:500}
+.df-foot{display:flex;align-items:center;justify-content:space-between}
+.df-score{font-size:24px;font-weight:800;color:#7EB3FF}
+.df-arr{width:28px;height:28px;border-radius:50%;border:1.5px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.6);font-size:13px}
+/* Biz list */
+.disc-biz-list{background:var(--white);border-radius:18px;margin:0 12px;overflow:hidden;box-shadow:0 2px 16px rgba(61,107,232,.06)}
+.disc-biz-row{
+  display:flex;align-items:center;gap:12px;padding:13px 16px;
+  border-bottom:1px solid var(--border);cursor:pointer;
+}
+.disc-biz-row:last-child{border:none}
+.disc-biz-row:active{background:var(--lavender)}
+.dbr-rank{font-size:18px;font-weight:800;color:var(--border2);width:22px;text-align:center;flex-shrink:0}
+.dbr-rank.g{color:var(--gold2)}
+.dbr-ico{width:52px;height:52px;border-radius:12px;background:var(--lavender2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px}
+.dbr-info{flex:1;min-width:0}
+.dbr-name{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dbr-meta{font-size:10px;color:var(--ink3);font-weight:600;margin-bottom:5px}
+.dbr-tags{display:flex;gap:4px;flex-wrap:wrap}
+.dbr-tag{font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px}
+.dt-open{background:#edfbf4;color:var(--green2)}
+.dt-cn{background:var(--blue-light);color:var(--blue)}
+.dt-pay{background:#fff8ee;color:var(--orange)}
+.dbr-score{text-align:right;flex-shrink:0}
+.dbr-score-num{font-size:20px;font-weight:800;color:var(--gold2);line-height:1}
+.dbr-cnt{font-size:9px;color:var(--ink3);margin-top:2px;font-weight:600}
+
+/* ═══ AUTH SHEET ═══ */
+.auth-overlay{position:fixed;inset:0;z-index:999;background:rgba(26,29,58,.5);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .24s}
+.auth-overlay.open{opacity:1;pointer-events:all}
+.auth-sheet{width:100%;max-width:520px;background:white;border-radius:22px 22px 0 0;padding-bottom:calc(24px + var(--sb));transform:translateY(100%);transition:transform .32s cubic-bezier(.4,0,.2,1);max-height:90vh;overflow-y:auto}
+.auth-overlay.open .auth-sheet{transform:translateY(0)}
+.ash-handle{display:flex;justify-content:center;padding:12px 0 6px}
+.ash-bar{width:40px;height:4px;border-radius:2px;background:var(--border)}
+.ash-logo{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:4px}
+.ash-bird{font-size:28px}
+.ash-wordmark{font-size:22px;font-weight:800;color:var(--ink)}
+.ash-sub{text-align:center;font-size:12px;color:var(--ink3);margin-bottom:0;font-weight:600}
+.ash-mode-row{display:flex;margin:16px 20px 0;background:var(--lavender);border-radius:12px;padding:3px}
+.ash-mode-btn{flex:1;padding:9px;border-radius:10px;border:none;font-size:13px;font-weight:800;color:var(--ink3);cursor:pointer;transition:all .18s}
+.ash-mode-btn.on{background:var(--blue);color:white;box-shadow:0 2px 8px rgba(61,107,232,.3)}
+.ash-body{padding:18px 20px}
+.af-g{margin-bottom:14px}
+.af-lbl{font-size:12px;font-weight:800;color:var(--ink2);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.af-input{width:100%;border:1.5px solid var(--border2);border-radius:12px;padding:12px 14px;font-size:15px;font-weight:500;transition:border-color .18s;background:white;color:var(--ink)}
+.af-input:focus{border-color:var(--blue)}
+.af-input::placeholder{color:var(--ink4)}
+.phone-row{display:flex;gap:8px}
+.cc-sel{width:90px;flex-shrink:0;border:1.5px solid var(--border2);border-radius:12px;padding:12px 8px;font-size:13px;background:white;color:var(--ink)}
+.sms-row{display:flex;gap:8px}
+.sms-btn{flex-shrink:0;padding:12px 13px;border:1.5px solid var(--border2);border-radius:12px;background:white;font-size:12px;font-weight:800;color:var(--ink2);cursor:pointer}
+.sms-btn:disabled{color:var(--ink4)}
+.sms-btn:not(:disabled):active{background:var(--blue-light);border-color:var(--blue);color:var(--blue)}
+.ash-submit{width:100%;padding:14px;border-radius:14px;background:linear-gradient(135deg,var(--blue),var(--blue2));color:white;border:none;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(61,107,232,.3);margin-top:6px;transition:all .18s}
+.ash-submit:active{opacity:.85;transform:scale(.99)}
+.div-row{display:flex;align-items:center;gap:10px;margin:16px 0}
+.div-line{flex:1;height:1px;background:var(--border)}
+.div-txt{font-size:11px;color:var(--ink3);white-space:nowrap;font-weight:700}
+.social-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.social-btn{padding:12px;border:1.5px solid var(--border);border-radius:12px;background:white;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;color:var(--ink2);transition:all .15s}
+.social-btn:active{background:var(--lavender)}
+.sw{grid-column:span 2}
+
+/* ═══ CAMERA PANEL ═══ */
+.cam-overlay{
+  position:fixed;inset:0;z-index:990;
+  background:rgba(0,0,0,.6);
+  display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .24s;
+}
+.cam-overlay.open{opacity:1;pointer-events:all}
+.cam-sheet{
+  width:100%;max-width:520px;
+  background:var(--ink);
+  border-radius:24px 24px 0 0;
+  padding-bottom:calc(20px + var(--sb));
+  transform:translateY(100%);
+  transition:transform .32s cubic-bezier(.4,0,.2,1);
+  overflow:hidden;
+}
+.cam-overlay.open .cam-sheet{transform:translateY(0)}
+.cam-handle-wrap{display:flex;justify-content:center;padding:10px 0 6px}
+.cam-handle-bar{width:40px;height:3px;border-radius:2px;background:rgba(255,255,255,.2)}
+.cam-header{padding:0 20px 14px;text-align:center}
+.cam-title{font-size:16px;font-weight:800;color:white;margin-bottom:3px}
+.cam-subtitle{font-size:11px;color:rgba(255,255,255,.4);font-weight:500}
+/* Viewfinder */
+.cam-viewfinder{
+  width:calc(100% - 32px);margin:0 16px;
+  aspect-ratio:3/4;border-radius:16px;
+  overflow:hidden;position:relative;background:#111;
+  max-height:42vh;
+}
+.cam-vf-bg{
+  width:100%;height:100%;
+  background:linear-gradient(160deg,#1a2a3a 0%,#0d1a28 100%);
+  position:relative;display:flex;align-items:center;justify-content:center;
+}
+/* Grid lines */
+.cam-vf-line{position:absolute;background:rgba(255,255,255,.08)}
+.cam-vf-line.h1{top:33.3%;left:0;right:0;height:1px}
+.cam-vf-line.h2{top:66.6%;left:0;right:0;height:1px}
+.cam-vf-line.v1{left:33.3%;top:0;bottom:0;width:1px}
+.cam-vf-line.v2{left:66.6%;top:0;bottom:0;width:1px}
+/* Corner brackets */
+.cam-vf-corner{
+  position:absolute;width:20px;height:20px;
+  border-color:rgba(255,255,255,.6);border-style:solid;
+}
+.cam-vf-corner.tl{top:12px;left:12px;border-width:2px 0 0 2px;border-radius:3px 0 0 0}
+.cam-vf-corner.tr{top:12px;right:12px;border-width:2px 2px 0 0;border-radius:0 3px 0 0}
+.cam-vf-corner.bl{bottom:32px;left:12px;border-width:0 0 2px 2px;border-radius:0 0 0 3px}
+.cam-vf-corner.br{bottom:32px;right:12px;border-width:0 2px 2px 0;border-radius:0 0 3px 0}
+.cam-vf-label{
+  position:absolute;bottom:10px;left:0;right:0;text-align:center;
+  font-size:11px;color:rgba(255,255,255,.55);font-weight:600;
+  letter-spacing:.3px;
+}
+/* Photo taken state */
+.cam-photo-taken{
+  width:100%;height:100%;
+  background:linear-gradient(160deg,#1c3a2a,#0a1f30);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+}
+.cam-photo-emoji{font-size:80px;animation:popIn .4s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes popIn{from{transform:scale(0) rotate(-10deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+.cam-photo-shine{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse 60% 40% at 50% 40%,rgba(255,255,255,.12),transparent);
+  animation:shineFade 1s ease-out both;
+}
+@keyframes shineFade{from{opacity:1}to{opacity:0}}
+/* Mode selector */
+.cam-modes{
+  display:flex;gap:0;margin:14px 16px 0;
+  background:rgba(255,255,255,.06);border-radius:12px;padding:3px;
+}
+.cam-mode{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  gap:4px;padding:10px 4px;border-radius:10px;cursor:pointer;
+  transition:all .18s;
+}
+.cam-mode.on{background:rgba(255,255,255,.12)}
+.cam-mode:active{opacity:.6}
+.cm-ico{font-size:18px}
+.cm-lbl{font-size:10px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.3px}
+.cam-mode.on .cm-lbl{color:white}
+/* Controls */
+.cam-controls{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 36px 8px;
+}
+.cam-ctrl-btn{
+  width:44px;height:44px;border-radius:50%;
+  background:rgba(255,255,255,.1);
+  display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;
+  transition:all .18s;
+}
+.cam-ctrl-btn:active{background:rgba(255,255,255,.2);transform:scale(.92)}
+.cam-shutter{
+  width:68px;height:68px;border-radius:50%;
+  border:3.5px solid rgba(255,255,255,.8);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:transform .18s;
+}
+.cam-shutter:active{transform:scale(.9)}
+.cam-shutter-inner{
+  width:54px;height:54px;border-radius:50%;background:white;
+  transition:all .15s;
+}
+.cam-shutter:active .cam-shutter-inner{background:rgba(255,255,255,.7);transform:scale(.9)}
+/* After shot */
+.cam-after{padding:14px 16px 0}
+.cam-after-title{font-size:13px;font-weight:800;color:rgba(255,255,255,.7);margin-bottom:12px;text-align:center;letter-spacing:.3px;text-transform:uppercase}
+.cam-after-opts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.cam-after-opt{
+  background:rgba(255,255,255,.07);border-radius:12px;
+  padding:12px 6px;text-align:center;cursor:pointer;
+  transition:all .18s;border:1px solid rgba(255,255,255,.08);
+}
+.cam-after-opt:active{background:rgba(255,255,255,.15);transform:scale(.96)}
+.cao-ico{font-size:22px;margin-bottom:5px}
+.cao-lbl{font-size:11px;font-weight:800;color:white;margin-bottom:2px}
+.cao-sub{font-size:9px;color:rgba(255,255,255,.35);font-weight:500}
+.cam-retake{
+  text-align:center;padding:12px;
+  font-size:13px;font-weight:700;color:rgba(255,255,255,.4);
+  cursor:pointer;letter-spacing:.3px;
+}
+.cam-retake:active{color:rgba(255,255,255,.8)}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:calc(var(--th) + var(--sb) + 16px);left:50%;
+  transform:translateX(-50%) translateY(12px);
+  background:rgba(26,29,58,.92);color:white;border-radius:100px;
+  padding:10px 22px;font-size:13px;font-weight:700;
+  box-shadow:0 4px 24px rgba(0,0,0,.2);opacity:0;
+  transition:all .26s;z-index:998;pointer-events:none;
+  white-space:nowrap;max-width:86vw;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ╔══ TOP NAV ══╗ -->
+  <div id="topnav">
+    <div class="nav-inner">
+      <div class="nav-menu" onclick="toast('菜单即将上线')">
+        <span></span><span></span>
+      </div>
+      <div class="nav-logo-center" onclick="goto('home')">
+        <span class="nav-bird">🕊</span>
+        <span class="nav-wordmark">Life</span>
+        <span class="nav-badge">1980</span>
+      </div>
+      <div class="nav-search" onclick="toast('搜索功能即将上线')">🔍</div>
+    </div>
+  </div>
+
+  <!-- ╔══ PAGES ══╗ -->
+  <div id="pages">
+
+    <!-- ████ HOME ████ -->
+    <div class="page active" id="p-home">
+      <div class="home-header">
+        <div class="home-header-top">
+          <div>
+            <div class="home-greeting-text">早上好，Emily 👋</div>
+            <div class="home-greeting-sub">家人都平安 · 基督城 · 晴 18°C</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div id="cameraBtn" onclick="openCamera()" style="width:42px;height:42px;border-radius:50%;background:var(--white);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;box-shadow:0 3px 12px rgba(61,107,232,.14);transition:transform .18s;border:1.5px solid var(--border)">📷</div>
+            <div id="homeAvatar" onclick="requireAuth(()=>toast('个人主页即将上线'))" style="width:42px;height:42px;border-radius:50%;background:var(--blue-grad);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;box-shadow:0 3px 12px rgba(61,107,232,.25)">👩</div>
+          </div>
+        </div>
+        <div class="home-stats-row">
+          <div class="home-stat-card" onclick="goto('circle')">
+            <div class="hsc-ico">👨‍👩‍👧</div>
+            <div class="hsc-num">4</div>
+            <div class="hsc-lbl">家人在线</div>
+          </div>
+          <div class="home-stat-card" onclick="goto('life')">
+            <div class="hsc-ico">🗺</div>
+            <div class="hsc-num">12</div>
+            <div class="hsc-lbl">本月足迹</div>
+          </div>
+          <div class="home-stat-card" onclick="goto('chat')">
+            <div class="hsc-ico">💬</div>
+            <div class="hsc-num">3</div>
+            <div class="hsc-lbl">未读消息</div>
+          </div>
+          <div class="home-stat-card" onclick="goto('discover')">
+            <div class="hsc-ico">🍜</div>
+            <div class="hsc-num">8</div>
+            <div class="hsc-lbl">附近好店</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Circle members strip -->
+      <div style="margin:12px 12px 0">
+        <div class="circle-members-row" id="homeMembersRow"></div>
+      </div>
+
+      <!-- Alert -->
+      <div class="alert-banner" onclick="goto('circle')">
+        <div class="ab-ico">⚠️</div>
+        <div style="flex:1">
+          <div class="ab-title">Grandpa · 电量低 · 失联1小时</div>
+          <div class="ab-sub">最后位置：Riccarton Rd · 点此查看位置</div>
+        </div>
+        <div style="font-size:16px;color:#c88080">›</div>
+      </div>
+
+      <!-- Feed -->
+      <div style="padding:12px 0 0">
+        <div class="section-title" style="padding-bottom:6px">最新动态</div>
+        <div id="homeFeed" style="padding:0 12px"></div>
+      </div>
+      <div class="pb"></div>
+    </div>
+
+    <!-- ████ LIFE · 足迹 ████ -->
+    <div class="page right" id="p-life">
+      <div class="year-nav">
+        <div class="yn-side">1990</div>
+        <div class="yn-arrow" onclick="toast('切换到上一年')">‹</div>
+        <div class="yn-current">2024</div>
+        <div class="yn-arrow" onclick="toast('切换到下一年')">›</div>
+        <div class="yn-side">2040</div>
+      </div>
+
+      <!-- Week calendar -->
+      <div class="week-cal">
+        <div class="wc-days" id="weekDays"></div>
+        <div class="wc-photo-strip">
+          <div class="wc-photo wc-photo-placeholder">🥟</div>
+        </div>
+      </div>
+
+      <!-- View toggle -->
+      <div class="view-toggle">
+        <button class="vt on" onclick="setView(this,'map')">🗺 轨迹地图</button>
+        <button class="vt" onclick="setView(this,'list')">📋 时间轴</button>
+        <button class="vt" onclick="setView(this,'stats')">📊 统计</button>
+      </div>
+
+      <!-- MAP VIEW -->
+      <div id="lifeMapView">
+        <div class="life-map-card">
+          <div id="lifeMap"></div>
+          <div class="life-map-overlay">
+            <div class="lmo-ico">🗺</div>
+            <div class="lmo-info">
+              <div class="lmo-title">2024 年足迹</div>
+              <div class="lmo-sub">12地点 · 新西兰 + 马尔代夫</div>
+            </div>
+            <div class="lmo-stat">
+              <div class="lmo-num">2,840</div>
+              <div class="lmo-unit">公里</div>
+            </div>
+          </div>
+        </div>
+        <div class="section-title">本月记录</div>
+        <div class="tl-wrap" id="trajectoryItems"></div>
+      </div>
+
+      <!-- LIST VIEW -->
+      <div id="lifeListView" style="display:none">
+        <div class="tl-wrap" id="timelineItems"></div>
+      </div>
+
+      <!-- STATS VIEW -->
+      <div id="lifeStatsView" style="display:none;padding-top:8px">
+        <div class="stats-grid">
+          <div class="stat-block"><div class="stat-block-ico">🌍</div><div class="stat-block-num">12</div><div class="stat-block-lbl">去过的地方</div></div>
+          <div class="stat-block"><div class="stat-block-ico">✈️</div><div class="stat-block-num">2,840</div><div class="stat-block-lbl">旅行公里</div></div>
+          <div class="stat-block"><div class="stat-block-ico">📸</div><div class="stat-block-num">354</div><div class="stat-block-lbl">本月照片</div></div>
+          <div class="stat-block"><div class="stat-block-ico">❤️</div><div class="stat-block-num">48h</div><div class="stat-block-lbl">陪伴家人</div></div>
+        </div>
+        <div style="margin:0 12px;background:white;border-radius:16px;padding:16px;box-shadow:0 2px 12px rgba(61,107,232,.06)">
+          <div style="font-size:13px;font-weight:800;margin-bottom:12px;color:var(--ink)">🏆 本月亮点</div>
+          <div style="background:var(--blue-light);border-radius:12px;padding:12px;display:flex;gap:10px;align-items:center;margin-bottom:8px">
+            <span style="font-size:20px">❤️</span>
+            <div><div style="font-size:13px;font-weight:700">与家人共度时间最多的月份</div><div style="font-size:11px;color:var(--ink3);margin-top:1px">比上月增加 34%</div></div>
+          </div>
+          <div style="background:#edfbf4;border-radius:12px;padding:12px;display:flex;gap:10px;align-items:center">
+            <span style="font-size:20px">🏝️</span>
+            <div><div style="font-size:13px;font-weight:700">首次到访马尔代夫</div><div style="font-size:11px;color:var(--ink3);margin-top:1px">家庭旅行 · 2024年3月</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="pb"></div>
+    </div>
+
+    <!-- ████ CIRCLE · 家人圈 ████ -->
+    <div class="page right" id="p-circle">
+      <div class="circle-tabs">
+        <button class="ct on" onclick="setCircleTab(this,'family')">Family</button>
+        <button class="ct" onclick="setCircleTab(this,'friends')">Close Friends</button>
+        <button class="ct" onclick="setCircleTab(this,'groups')">Groups</button>
+        <button class="ct" onclick="setCircleTab(this,'moments')">Moments</button>
+      </div>
+
+      <!-- Family tab content -->
+      <div id="circleFamily">
+        <!-- Members row -->
+        <div class="circle-members-row" style="margin:12px;border-radius:18px;box-shadow:0 2px 16px rgba(61,107,232,.06)" id="circleMembersRow"></div>
+
+        <!-- Feature: Family Location -->
+        <div class="feature-card" onclick="showFamilyLocation()">
+          <div class="fc-inner">
+            <div class="loc-radar">🌐</div>
+            <div style="flex:1">
+              <div class="fc-title">Family Location</div>
+              <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
+                <span style="font-size:10px;font-weight:700;color:white;background:var(--blue);padding:2px 8px;border-radius:20px">ON</span>
+                <span style="font-size:11px;color:var(--ink3)">3 members sharing - last update 2 min</span>
+              </div>
+            </div>
+            <div class="fc-arr">›</div>
+          </div>
+          <div class="fc-preview-row">
+            <div class="fc-av-sm" style="margin-left:0">👩‍🦱</div>
+            <div class="fc-av-sm">🧑</div>
+            <div class="fc-av-sm">👨</div>
+            <div class="fc-sharing-count">3 members sharing</div>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="feature-card" onclick="toast('📝 Notes 功能即将上线')">
+          <div class="fc-inner">
+            <div class="fc-ico-wrap">✉️</div>
+            <div>
+              <div class="fc-title">Notes</div>
+              <div class="fc-sub">Today: 2 notes - 1 waiting</div>
+            </div>
+            <div class="fc-arr">›</div>
+          </div>
+        </div>
+
+        <!-- Family Album -->
+        <div class="feature-card" onclick="toast('📸 Family Album 即将上线')">
+          <div class="fc-inner">
+            <div class="fc-ico-wrap">🖼</div>
+            <div>
+              <div class="fc-title">Family Album</div>
+              <div class="fc-sub">354 photos this month</div>
+            </div>
+            <div class="fc-arr">›</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Family Location full view (slides in) -->
+      <div id="familyLocView" style="display:none">
+        <!-- Mini map -->
+        <div class="loc-map-card">
+          <div id="circleMap"></div>
+          <div class="loc-info-section">
+            <div class="loc-sharing-row">
+              <div class="loc-sharing-title">Family Location Sharing</div>
+              <div class="loc-toggle-wrap">
+                <div class="toggle" id="locToggle" onclick="toggleLoc()"><div class="toggle-knob"></div></div>
+                <div class="toggle-text" id="locText">ON</div>
+              </div>
+            </div>
+            <div class="loc-sharing-note">Individual member tracking is only shared with the family, secured and encrypted.</div>
+            <div class="mem-list" id="memberLocList"></div>
+          </div>
+        </div>
+        <div class="safety-btn" onclick="toast('🛡 Safety Options 即将上线')">
+          🛡️ Safety Options
+        </div>
+        <div style="padding:6px 12px;cursor:pointer" onclick="hideFamilyLocation()">
+          <div style="background:white;border-radius:12px;padding:11px 16px;text-align:center;font-size:13px;font-weight:700;color:var(--ink3);box-shadow:0 1px 6px rgba(0,0,0,.06)">← 返回家人圈</div>
+        </div>
+      </div>
+      <div class="pb"></div>
+    </div>
+
+    <!-- ████ CHAT · 消息 ████ -->
+    <div class="page right" id="p-chat">
+      <div class="chat-search-wrap">
+        <div class="chat-search-inner">
+          <span style="font-size:15px;color:var(--ink3)">🔍</span>
+          <input placeholder="搜索聊天…" style="flex:1;font-size:14px;color:var(--ink);font-weight:500">
+        </div>
+      </div>
+      <div style="padding:0 0 0">
+        <div class="chat-list-bg" id="chatListEl"></div>
+      </div>
+      <div class="pb"></div>
+
+      <!-- Chat Room (slides over) -->
+      <div class="chatroom" id="chatRoom">
+        <div class="cr-nav">
+          <div class="cr-back" onclick="closeChat()">‹</div>
+          <div class="cr-center">
+            <div class="cr-name-text" id="crName">妈妈</div>
+            <div class="cr-status-text">● Online</div>
+          </div>
+          <div class="cr-actions">
+            <div class="cr-action" onclick="toast('📞 语音通话即将上线')">📞</div>
+            <div class="cr-action" onclick="toast('📹 视频通话即将上线')">📹</div>
+            <div class="cr-action" onclick="goto('circle')">📍</div>
+          </div>
+        </div>
+        <div class="cr-messages" id="crMsgs"></div>
+        <div class="cr-input-bar">
+          <div class="cr-plus" onclick="toast('附件功能即将上线')">＋</div>
+          <div class="cr-input-wrap">
+            <textarea class="cr-input" id="crInput" rows="1" placeholder="发送消息…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"></textarea>
+            <div class="cr-emoji">😊</div>
+          </div>
+          <div class="cr-send" onclick="sendMsg()">↑</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ████ INSIGHT ████ -->
+    <div class="page right" id="p-insight">
+      <div class="insight-search">
+        <div class="insight-search-inner">
+          <span style="font-size:15px;color:var(--ink3)">🔍</span>
+          <input placeholder="Search" style="flex:1;font-size:14px;color:var(--ink);font-weight:500">
+        </div>
+      </div>
+      <div class="insight-tabs">
+        <button class="it on" onclick="setInsightTab(this)">Family</button>
+        <button class="it" onclick="setInsightTab(this)">Close Friends</button>
+        <button class="it" onclick="setInsightTab(this)">Groups</button>
+      </div>
+      <div class="insight-section">This Month:</div>
+      <div class="insight-card" onclick="toast('💙 家人陪伴详情')">
+        <div class="insight-card-ico">💙</div>
+        <div class="insight-card-text">You spent 12 hours with family</div>
+        <div class="insight-card-arr">›</div>
+      </div>
+      <div class="insight-card" onclick="toast('🌙 睡眠分析')">
+        <div class="insight-card-ico">🌙</div>
+        <div class="insight-card-text">Your sleep improved 8%</div>
+        <div class="insight-card-arr">›</div>
+      </div>
+      <div class="insight-card" onclick="goto('life')">
+        <div class="insight-card-ico">📍</div>
+        <div class="insight-card-text">You traveled 230 km</div>
+        <div class="insight-card-arr">›</div>
+      </div>
+      <div class="insight-card" onclick="toast('🍜 探店记录')">
+        <div class="insight-card-ico">🍜</div>
+        <div class="insight-card-text">Visited 5 new restaurants</div>
+        <div class="insight-card-arr">›</div>
+      </div>
+      <div class="reflect-btn" onclick="toast('✨ Reflect 功能即将上线')">Reflect</div>
+      <div class="pb"></div>
+    </div>
+
+    <!-- ████ DISCOVER · Life1980 ████ -->
+    <div class="page right" id="p-discover">
+      <div class="disc-hero">
+        <div class="disc-hero-bg"></div>
+        <div class="disc-kicker">Life1980 · 基督城华人生活指南</div>
+        <div class="disc-title">找到<em>最值得</em>的<br>那一家</div>
+        <div class="disc-sub">AI 实时搜索 · 真实华人点评 · 零广告排名</div>
+        <div class="disc-search">
+          <input class="disc-search-input" placeholder="搜索餐厅、商家…" id="discInput" onkeydown="if(event.key==='Enter')doSearch()">
+          <div class="disc-search-btn" onclick="doSearch()">搜索</div>
+        </div>
+      </div>
+      <div class="disc-cats" id="discCats"></div>
+      <div class="disc-feat" onclick="toast('查看详情 → 好味道川菜馆')">
+        <div class="df-kicker">🔥 本周编辑推荐 · Sydenham</div>
+        <span class="df-emoji">🍲</span>
+        <div class="df-name">好味道川菜馆</div>
+        <div class="df-desc">基督城最正宗的川菜，花椒味道让人在异乡流泪。老板是成都人，全程普通话服务，感觉就像回家。</div>
+        <div class="df-foot">
+          <div class="df-score">9.3 / 10</div>
+          <div class="df-arr">→</div>
+        </div>
+      </div>
+      <div style="padding:16px 14px 6px;font-size:17px;font-weight:800;color:var(--ink)">🏆 基督城口碑榜</div>
+      <div class="disc-biz-list" id="discBizList"></div>
+      <div class="pb"></div>
+    </div>
+
+  </div>
+
+  <!-- ╔══ BOTTOM TABS ══╗ -->
+  <div id="bottomtab">
+    <button class="btab on" data-p="home" onclick="goto('home')">
+      <div class="bt-ico">🏠</div><div class="bt-lbl">Home</div>
+    </button>
+    <button class="btab" data-p="life" onclick="goto('life')">
+      <div class="bt-ico">🕊</div><div class="bt-lbl">Life</div>
+    </button>
+    <button class="btab" data-p="circle" onclick="goto('circle')">
+      <div class="bt-ico">👥</div><div class="bt-lbl">Circle</div>
+      <div class="bt-badge">1</div>
+    </button>
+    <button class="btab" data-p="insight" onclick="goto('insight')">
+      <div class="bt-ico">✨</div><div class="bt-lbl">Insight</div>
+    </button>
+    <button class="btab" data-p="discover" onclick="goto('discover')">
+      <div class="bt-ico">🍜</div><div class="bt-lbl">Discover</div>
+    </button>
+  </div>
+</div>
+
+<!-- CAMERA PANEL -->
+<div class="cam-overlay" id="camOverlay" onclick="if(event.target===this)closeCamera()">
+  <div class="cam-sheet">
+    <div class="cam-handle-wrap"><div class="cam-handle-bar"></div></div>
+    <div class="cam-header">
+      <div class="cam-title">📷 拍照记录</div>
+      <div class="cam-subtitle">记录这一刻，自动加入你的生活轨迹</div>
+    </div>
+    <div class="cam-viewfinder">
+      <div class="cam-vf-bg" id="camVfBg">
+        <div class="cam-vf-grid">
+          <div class="cam-vf-line h1"></div><div class="cam-vf-line h2"></div>
+          <div class="cam-vf-line v1"></div><div class="cam-vf-line v2"></div>
+        </div>
+        <div class="cam-vf-corner tl"></div><div class="cam-vf-corner tr"></div>
+        <div class="cam-vf-corner bl"></div><div class="cam-vf-corner br"></div>
+        <div class="cam-vf-label" id="camLocLabel">📍 基督城 · 正在定位…</div>
+      </div>
+      <div class="cam-photo-taken" id="camPhotoTaken" style="display:none">
+        <div class="cam-photo-emoji" id="camPhotoEmoji">🍲</div>
+        <div class="cam-photo-shine"></div>
+      </div>
+    </div>
+    <div class="cam-modes" id="camModes">
+      <div class="cam-mode on" onclick="setCamMode(this,'moment')"><div class="cm-ico">✨</div><div class="cm-lbl">Moment</div></div>
+      <div class="cam-mode" onclick="setCamMode(this,'life')"><div class="cm-ico">🗺</div><div class="cm-lbl">足迹</div></div>
+      <div class="cam-mode" onclick="setCamMode(this,'food')"><div class="cm-ico">🍜</div><div class="cm-lbl">探店</div></div>
+      <div class="cam-mode" onclick="setCamMode(this,'family')"><div class="cm-ico">👨‍👩‍👧</div><div class="cm-lbl">家人</div></div>
+    </div>
+    <div class="cam-controls" id="camControls">
+      <div class="cam-ctrl-btn" onclick="toast('相册功能即将上线')">🖼</div>
+      <div class="cam-shutter" onclick="takePhoto()"><div class="cam-shutter-inner"></div></div>
+      <div class="cam-ctrl-btn" onclick="toast('切换镜头')">🔄</div>
+    </div>
+    <div class="cam-after" id="camAfter" style="display:none">
+      <div class="cam-after-title">保存到哪里？</div>
+      <div class="cam-after-opts">
+        <div class="cam-after-opt" onclick="savePhoto('moment')"><div class="cao-ico">✨</div><div class="cao-lbl">Moments</div><div class="cao-sub">分享给家人</div></div>
+        <div class="cam-after-opt" onclick="savePhoto('life')"><div class="cao-ico">🗺</div><div class="cao-lbl">足迹</div><div class="cao-sub">加入轨迹</div></div>
+        <div class="cam-after-opt" onclick="savePhoto('album')"><div class="cao-ico">📸</div><div class="cao-lbl">相册</div><div class="cao-sub">仅自己可见</div></div>
+        <div class="cam-after-opt" onclick="savePhoto('review')"><div class="cao-ico">🍜</div><div class="cao-lbl">探店点评</div><div class="cao-sub">附到商家</div></div>
+      </div>
+      <div class="cam-retake" onclick="retakePhoto()">重拍</div>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH -->
+<div class="auth-overlay" id="authOverlay" onclick="if(event.target===this)closeAuth()">
+  <div class="auth-sheet">
+    <div class="ash-handle"><div class="ash-bar"></div></div>
+    <div class="ash-logo"><span class="ash-bird">🕊</span><span class="ash-wordmark">Life 1980</span></div>
+    <div class="ash-sub">全球华人生活 · 家人 · 足迹 · 发现</div>
+    <div class="ash-mode-row">
+      <button class="ash-mode-btn on" onclick="switchAuthMode('login',this)">登录</button>
+      <button class="ash-mode-btn" onclick="switchAuthMode('register',this)">注册账号</button>
+    </div>
+    <div class="ash-body">
+      <div id="authLogin">
+        <div class="af-g">
+          <div class="af-lbl">手机号 <span style="font-size:10px;font-weight:500;color:var(--ink3)">演示验证码：888888</span></div>
+          <div class="phone-row">
+            <select class="cc-sel"><option>🇳🇿 +64</option><option>🇦🇺 +61</option><option>🇨🇳 +86</option><option>🇬🇧 +44</option></select>
+            <input class="af-input" type="tel" placeholder="手机号码" id="authPhone" style="flex:1">
+          </div>
+        </div>
+        <div class="af-g">
+          <div class="af-lbl">验证码</div>
+          <div class="sms-row">
+            <input class="af-input" type="text" placeholder="6位验证码" id="authCode" style="flex:1">
+            <button class="sms-btn" id="smsBtnEl" onclick="sendSMS()">发送验证码</button>
+          </div>
+        </div>
+        <button class="ash-submit" onclick="doLogin()">登录</button>
+        <div class="div-row"><div class="div-line"></div><div class="div-txt">或第三方登录</div><div class="div-line"></div></div>
+        <div class="social-grid">
+          <button class="social-btn sw" onclick="socialLogin('wechat')"><span style="color:#07c160;font-size:18px">●</span> 微信一键登录</button>
+          <button class="social-btn" onclick="socialLogin('google')"><span style="color:#4285f4;font-weight:900;font-size:16px">G</span> Google</button>
+          <button class="social-btn" onclick="socialLogin('apple')">🍎 Apple</button>
+        </div>
+      </div>
+      <div id="authReg" style="display:none">
+        <div class="af-g"><div class="af-lbl">昵称</div><input class="af-input" type="text" placeholder="取个好听的名字" id="authName"></div>
+        <div class="af-g">
+          <div class="af-lbl">手机号</div>
+          <div class="phone-row">
+            <select class="cc-sel"><option>🇳🇿 +64</option><option>🇦🇺 +61</option><option>🇨🇳 +86</option></select>
+            <input class="af-input" type="tel" placeholder="手机号码" style="flex:1">
+          </div>
+        </div>
+        <div class="af-g">
+          <div class="af-lbl">验证码 <span style="font-size:10px;font-weight:500;color:var(--ink3)">演示：888888</span></div>
+          <div class="sms-row"><input class="af-input" type="text" placeholder="6位验证码" style="flex:1"><button class="sms-btn" onclick="sendSMS()">发送</button></div>
+        </div>
+        <button class="ash-submit" onclick="doReg()">创建账号</button>
+        <div class="div-row"><div class="div-line"></div><div class="div-txt">或</div><div class="div-line"></div></div>
+        <div class="social-grid">
+          <button class="social-btn sw" onclick="socialLogin('wechat')"><span style="color:#07c160;font-size:18px">●</span> 微信一键注册</button>
+          <button class="social-btn" onclick="socialLogin('google')"><span style="color:#4285f4;font-weight:900;font-size:16px">G</span> Google</button>
+          <button class="social-btn" onclick="socialLogin('apple')">🍎 Apple</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══ DATA ═══
+const MEMBERS = [
+  {n:'Mom',e:'👩',status:'online',loc:'At home'},
+  {n:'Dad',e:'👨',status:'away',loc:'Downtown'},
+  {n:'Alex',e:'🧑',status:'online',loc:'Nearby'},
+  {n:'Jason',e:'👦',status:'online',loc:'School'},
+];
+const MEMBER_LOCS = [
+  {n:'Alex',e:'🧑',sub:'Last update 8 min - Nearby',badge:'near',bt:'Nearby',time:'8 min ago',lat:-43.5302,lng:172.6408},
+  {n:'Emma',e:'👩',sub:'Just now',badge:'home',bt:'Just now',time:'Just now',lat:-43.5250,lng:172.6300},
+  {n:'Mom',e:'👩‍🦱',sub:'8 min ago · At home',badge:'home',bt:'2 min ago',time:'2 1min ago',lat:-43.5384,lng:172.6373},
+  {n:'Dad',e:'👨',sub:'Today at 10:15 AM',badge:'away',bt:'Today 10:15',time:'',lat:-43.5327,lng:172.6368},
+  {n:'Grandpa',e:'👴',sub:'Low battery · Last seen 1 hour ago',badge:'warn',bt:'⚠️ 失联',time:'',lat:-43.5289,lng:172.6337,lowBat:true},
+];
+const CHATS = [
+  {n:'Mom',e:'👩‍🦱',online:true,preview:"I'm making dumplings tonight! Come home soon 🥟❤️",time:'6:42 PM',unread:2,
+   msgs:[
+    {mine:false,text:'Alex，你在哪里呀？你快到了吗？'},
+    {mine:true,text:'妈，我快到了！还有20分钟'},
+    {mine:false,text:'好的，我在包饺子，你最喜欢的猪肉白菜馅 🥟'},
+    {mine:true,text:'太棒了！！！最爱你包的饺子'},
+    {mine:false,text:"I'm making dumplings tonight! Come home soon 🥟❤️"},
+   ],biz:true},
+  {n:'Dad',e:'👨',online:false,preview:'周末一起去 Hagley Park 走走？',time:'Yesterday',unread:0,
+   msgs:[{mine:false,text:'周末有空吗？'},{mine:true,text:'有的，怎么了'},{mine:false,text:'周末一起去 Hagley Park 走走？我想做红烧肉'}]},
+  {n:'Family Chat',e:'👨‍👩‍👧',online:true,preview:'Mom: I made pasta for dinner tonight 😊',time:'2 min ago',unread:5,
+   msgs:[{mine:false,text:'大家晚上都回来吃饭吗？',u:'妈妈'},{mine:false,text:'我回！',u:'Jason'},{mine:true,text:'我也回，6点前到'},{mine:false,text:'I made pasta for dinner tonight, please come home hungry 😊',u:'妈妈'}]},
+  {n:'Alex',e:'🧑',online:true,preview:'那家川菜怎么样？好吃吗',time:'2h ago',unread:1,
+   msgs:[{mine:false,text:'你昨天去的那家川菜怎么样？'},{mine:true,text:'超好吃！9.3分，麻婆豆腐很正宗，老板是成都人'},{mine:false,text:'哦！在哪里？'}]},
+  {n:'Jason',e:'👦',online:false,preview:'放学了，在等公交',time:'4h ago',unread:0,
+   msgs:[{mine:false,text:'放学了，在等公交 🚌'},{mine:true,text:'好的，注意安全！到家告诉我'}]},
+];
+const TRAJ = [
+  {mon:'MAR',day:'20',gold:false,title:'Coffee with Emma',time:'10:00 AM',loc:'Starbucks · Auckland',e:'☕',photos:0},
+  {mon:'MAR',day:'20',gold:true,title:'Groceries Picked Up',time:'4:30 PM',loc:'Asia Foods · Riccarton',e:'🛒',photos:0},
+  {mon:'MAR',day:'18',gold:false,title:'Family Dinner',time:'7:03 PM',loc:'Home · Christchurch',e:'🍽️',photos:5},
+  {mon:'MAR',day:'15',gold:true,title:'Family Trip - Maldives',time:'All day',loc:'Kalabathi Island, Maldives',e:'🏝️',photos:42},
+];
+const FEED = [
+  {e:'👩‍🦱',author:'Mom',time:'Today · 6:42 PM',badge:'reunion',badgeTxt:'相聚时刻',
+   isReunion:true,dist:'18 km',
+   text:'We reunited – distance traveled: 18 km 🌟',likes:12,cmts:3},
+  {e:'👩‍🦱',author:'Mom',time:'Today · 6:42 PM',badge:'moment',badgeTxt:'Moment',
+   text:"I'm making dumplings tonight! Come home soon 🥟🍜❤️",likes:8,cmts:2},
+  {e:'🧑',author:'Alex',time:'Yesterday',badge:'review',badgeTxt:'探店',
+   text:"发现了基督城最正宗的川菜！好味道川菜馆 9.3分 🍲 麻婆豆腐的花椒味道让我在异乡流泪",likes:18,cmts:5,imgs:['🍲','🥩']},
+  {e:'👨',author:'Dad',time:'2 days ago',badge:'loc',badgeTxt:'轨迹',
+   text:'今天骑车去了 Hagley Park，风景太美了 🚴 以后要常来',likes:15,cmts:3,imgs:['🚴','🌿']},
+];
+const BIZ = [
+  {id:1,name:'好味道川菜馆',cat:'川菜',e:'🍲',score:9.3,cnt:847,price:'NZ$35–55',open:true,zh:true,wx:true},
+  {id:2,name:'福满楼港式点心',cat:'港式',e:'🥟',score:9.1,cnt:1203,price:'NZ$28–45',open:true,zh:true,wx:false},
+  {id:3,name:'王医生中医诊所',cat:'中医',e:'🏥',score:9.2,cnt:456,price:'NZ$60–90',open:true,zh:true,wx:false},
+  {id:4,name:'鸿运火锅城',cat:'火锅',e:'🫕',score:8.9,cnt:673,price:'NZ$50–70',open:true,zh:true,wx:true},
+  {id:5,name:'亚洲超市 Asia Foods',cat:'超市',e:'🏪',score:8.8,cnt:987,price:'',open:true,zh:true,wx:false},
+  {id:6,name:'珍珠奶茶 Bubblicious',cat:'奶茶',e:'🧋',score:8.7,cnt:2341,price:'NZ$8–14',open:false,zh:true,wx:false},
+];
+const DISC_CATS = ['全部','🍜 中餐','🫕 火锅','🧋 奶茶','🏪 超市','🏥 中医','💇 美发','🎓 补习'];
+
+// ═══ STATE ═══
+const PO=['home','life','circle','chat','insight','discover'];
+let cur='home', prev='home', user=null, authCb=null;
+let locOn=true, circleTab='family', activeChatIdx=0;
+let lifeMapObj=null, circleMapObj=null, smsT=null;
+
+// ═══ NAVIGATION ═══
+function goto(name){
+  if(name===cur)return;
+  const c=document.getElementById('p-'+cur);
+  const n=document.getElementById('p-'+name);
+  if(!n)return;
+  const fwd=PO.indexOf(name)>PO.indexOf(cur);
+  n.classList.remove('left','right');
+  n.classList.add(fwd?'right':'left');
+  n.offsetHeight;
+  c.classList.add(fwd?'left':'right');
+  c.classList.remove('active');
+  n.classList.remove('left','right');
+  n.classList.add('active');
+  prev=cur; cur=name;
+  document.querySelectorAll('.btab[data-p]').forEach(t=>t.classList.toggle('on',t.dataset.p===name));
+  if(name==='life')setTimeout(initLifeMap,80);
+  if(name==='circle')setTimeout(initCircleMap,80);
+  window.scrollTo(0,0);
+}
+
+// ═══ BUILD HOME ═══
+function buildHome(){
+  // Members row
+  document.getElementById('homeMembersRow').innerHTML = MEMBERS.map(m=>`
+    <div class="cm-item" onclick="openChat(${CHATS.findIndex(c=>c.n===m.n)||0})">
+      <div class="cm-av-wrap"><div class="cm-av-inner">${m.e}</div></div>
+      <div class="cm-name">${m.n}</div>
+    </div>`).join('') +
+    `<div class="cm-item" onclick="toast('邀请家人即将上线')">
+      <div class="cm-av-wrap" style="background:var(--border2);"><div class="cm-av-inner" style="background:var(--lavender2)">＋</div></div>
+      <div class="cm-name" style="color:var(--ink4)">Add</div>
+    </div>`;
+
+  // Feed
+  document.getElementById('homeFeed').innerHTML = FEED.map(f=>{
+    if(f.isReunion) return `
+      <div class="feed-item">
+        <div class="tl-card reunion-card">
+          <div class="reunion-glow"></div>
+          <div class="reunion-header">
+            <div>
+              <div class="reunion-title">Reunion Moment 🌟</div>
+              <div class="reunion-subtitle">We reunited – distance traveled: ${f.dist}</div>
+            </div>
+          </div>
+          <div class="reunion-map-area">
+            <div class="reunion-ray"></div>
+            <div class="reunion-av reunion-av-left">👨</div>
+            <div class="reunion-av reunion-av-right">👩‍🦱</div>
+          </div>
+          <div class="reunion-dist">📍 City ave</div>
+        </div>
+        <div class="fi-inner">
+          <div class="fi-foot">
+            <div class="fi-stat">❤️ ${f.likes}</div>
+            <div class="fi-stat">💬 ${f.cmts}</div>
+          </div>
+        </div>
+      </div>`;
+    return `
+      <div class="feed-item">
+        <div class="fi-inner">
+          <div class="fi-head">
+            <div class="fi-av av-blue" style="width:34px;height:34px;font-size:16px">${f.e}</div>
+            <div><div class="fi-author">${f.author}</div><div class="fi-time">${f.time}</div></div>
+            <div class="fi-badge fb-${f.badge}">${f.badgeTxt}</div>
+          </div>
+          <div class="fi-text">${f.text}</div>
+          ${f.imgs?.length?`<div class="fi-imgs">${f.imgs.map(i=>`<div class="fi-img">${i}</div>`).join('')}</div>`:''}
+          <div class="fi-foot">
+            <div class="fi-stat">❤️ ${f.likes}</div>
+            <div class="fi-stat">💬 ${f.cmts}</div>
+            <div class="fi-stat" style="margin-left:auto">↗ 分享</div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ═══ BUILD CIRCLE ═══
+function buildCircle(){
+  document.getElementById('circleMembersRow').innerHTML = MEMBERS.map(m=>`
+    <div class="cm-item" onclick="toast('查看 ${m.n} 的主页')">
+      <div class="cm-av-wrap"><div class="cm-av-inner">${m.e}</div></div>
+      <div class="cm-name">${m.n}</div>
+    </div>`).join('') +
+    `<div class="cm-item"><div class="cm-av-wrap" style="background:var(--border2)"><div class="cm-av-inner" style="background:var(--lavender2)">＋</div></div><div class="cm-name" style="color:var(--ink4)">Add</div></div>`;
+
+  document.getElementById('memberLocList').innerHTML = MEMBER_LOCS.map(m=>`
+    <div class="mem-row">
+      <div class="mem-av av-blue" style="width:44px;height:44px;font-size:20px">${m.e}</div>
+      <div class="mem-info">
+        <div class="mem-name">${m.n}</div>
+        <div class="mem-sub">${m.sub}</div>
+      </div>
+      <div class="mem-status">
+        <div class="mem-badge mb-${m.badge}">${m.bt}</div>
+        ${m.lowBat?`<div class="mem-battery"><div class="bat-bar">${[1,2,3,4,5].map(i=>`<div class="bat-seg"></div>`).join('')}</div></div>`:''}
+        ${m.time?`<div class="mem-time">${m.time}</div>`:''}
+      </div>
+    </div>`).join('');
+}
+
+function showFamilyLocation(){
+  document.getElementById('circleFamily').style.display='none';
+  document.getElementById('familyLocView').style.display='block';
+  setTimeout(initCircleMap,60);
+}
+function hideFamilyLocation(){
+  document.getElementById('familyLocView').style.display='none';
+  document.getElementById('circleFamily').style.display='block';
+}
+function toggleLoc(){
+  locOn=!locOn;
+  const tr=document.getElementById('locToggle');
+  const tx=document.getElementById('locText');
+  tr.classList.toggle('off',!locOn);
+  tx.textContent=locOn?'ON':'OFF';
+  tx.className='toggle-text'+(locOn?'':' off');
+  toast(locOn?'📍 位置共享已开启':'📍 位置共享已关闭');
+}
+
+// ═══ BUILD LIFE ═══
+function buildLife(){
+  // Week calendar
+  const days=['S','M','T','W','T','F','S'];
+  const nums=[17,18,19,20,21,22,23];
+  const today=3; // Wednesday (index 3 = day 20)
+  const hasDot=[false,false,true,false,true,false,true];
+  document.getElementById('weekDays').innerHTML=days.map((d,i)=>`
+    <div class="wc-day">
+      <div class="wc-day-label">${d}</div>
+      <div class="wc-day-num${i===today?' today':''}${hasDot[i]?' has-event':''}">${nums[i]}</div>
+    </div>`).join('');
+
+  // Trajectory
+  document.getElementById('trajectoryItems').innerHTML = TRAJ.map(t=>`
+    <div class="tl-row">
+      <div class="tl-date-col">
+        <div class="tl-bubble${t.gold?' gold':''}">
+          <span class="mo">${t.mon}</span>
+          <span class="dy">${t.day}</span>
+        </div>
+        <div class="tl-vline"></div>
+      </div>
+      <div class="tl-content" style="margin-left:12px;padding-bottom:10px">
+        <div class="tl-card">
+          <div class="tl-card-inner">
+            <div class="tl-card-time">⏰ ${t.time}</div>
+            <div class="tl-card-title">${t.e} ${t.title}</div>
+            <div class="tl-card-meta">📍 ${t.loc}</div>
+            ${t.photos>0?`<div class="tl-card-stats" style="margin-top:8px"><div class="tl-stat">📸 ${t.photos} stay photos</div></div>`:''}
+          </div>
+          ${t.photos>=4?`<div class="tl-card-photos"><div class="tl-photo">🏝️</div><div class="tl-photo">🌊</div><div class="tl-photo">🐚</div></div>`:''}
+        </div>
+      </div>
+    </div>`).join('');
+
+  // Timeline (list view)
+  document.getElementById('timelineItems').innerHTML = `
+    <div class="tl-group-label">Today · 2024</div>` +
+    TRAJ.slice(0,2).map(t=>`
+      <div class="tl-row">
+        <div class="tl-date-col">
+          <div class="tl-bubble${t.gold?' gold':''}"><span class="mo">${t.mon}</span><span class="dy">${t.day}</span></div>
+          <div class="tl-vline"></div>
+        </div>
+        <div class="tl-content" style="margin-left:12px;padding-bottom:10px">
+          <div class="tl-card"><div class="tl-card-inner">
+            <div class="tl-card-title">${t.e} ${t.title}</div>
+            <div class="tl-card-meta">${t.time} · ${t.loc}</div>
+          </div></div>
+        </div>
+      </div>`).join('') +
+    `<div class="tl-group-label" style="margin-top:4px">Last 7 Days</div>` +
+    TRAJ.slice(2).map(t=>`
+      <div class="tl-row">
+        <div class="tl-date-col">
+          <div class="tl-bubble${t.gold?' gold':''}"><span class="mo">${t.mon}</span><span class="dy">${t.day}</span></div>
+          <div class="tl-vline"></div>
+        </div>
+        <div class="tl-content" style="margin-left:12px;padding-bottom:10px">
+          <div class="tl-card">
+            <div class="tl-card-inner">
+              <div class="tl-card-title">${t.e} ${t.title}</div>
+              <div class="tl-card-meta">${t.time} · ${t.loc}</div>
+              ${t.photos>0?`<div style="margin-top:5px;font-size:11px;color:var(--ink3)">📸 ${t.photos} stay photos</div>`:''}
+            </div>
+            ${t.photos>=4?`<div class="tl-card-photos"><div class="tl-photo">🏝️</div><div class="tl-photo">🌊</div><div class="tl-photo">🐚</div></div>`:''}
+          </div>
+        </div>
+      </div>`).join('');
+}
+
+function setView(btn,view){
+  document.querySelectorAll('.vt').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('lifeMapView').style.display=view==='map'?'block':'none';
+  document.getElementById('lifeListView').style.display=view==='list'?'block':'none';
+  document.getElementById('lifeStatsView').style.display=view==='stats'?'block':'none';
+  if(view==='map'&&!lifeMapObj)setTimeout(initLifeMap,60);
+}
+
+// ═══ BUILD CHAT ═══
+function buildChatList(){
+  document.getElementById('chatListEl').innerHTML = CHATS.map((c,i)=>`
+    <div class="chat-row" onclick="openChat(${i})">
+      <div class="ch-av-wrap">
+        <div class="ch-av av-blue" style="width:48px;height:48px;font-size:22px">${c.e}</div>
+        ${c.online?'<div class="ch-online"></div>':''}
+      </div>
+      <div class="ch-info">
+        <div class="ch-name">${c.n}</div>
+        <div class="ch-preview">${c.preview}</div>
+      </div>
+      <div class="ch-right">
+        <div class="ch-time">${c.time}</div>
+        ${c.unread>0?`<div class="ch-badge">${c.unread}</div>`:''}
+      </div>
+    </div>`).join('');
+}
+
+function openChat(idx){
+  activeChatIdx=idx;
+  const c=CHATS[idx];
+  document.getElementById('crName').textContent=c.n;
+  const msgs=document.getElementById('crMsgs');
+  msgs.innerHTML=c.msgs.map(m=>`
+    <div class="msg-row${m.mine?' mine':''}">
+      ${!m.mine?`<div class="msg-av-sm">${c.e}</div>`:''}
+      <div class="msg-bubble">
+        <div class="msg-text">${m.text}</div>
+        <div class="msg-time">${m.mine?'Sent':'✓'}</div>
+      </div>
+    </div>`).join('');
+  if(c.biz){
+    msgs.innerHTML+=`
+      <div style="margin:6px 0 6px 36px">
+        <div class="msg-biz-card">
+          <div class="msg-biz-header">🍜 Life1980 推荐</div>
+          <div style="display:flex;align-items:center">
+            <div style="flex:1">
+              <div class="msg-biz-name">好味道川菜馆</div>
+              <div class="msg-biz-sub">川菜 · 265 Moorhouse Ave · 普通话服务</div>
+            </div>
+            <div class="msg-biz-score">9.3</div>
+          </div>
+        </div>
+      </div>`;
+  }
+  setTimeout(()=>{msgs.scrollTop=msgs.scrollHeight},50);
+  document.getElementById('chatRoom').classList.add('open');
+}
+
+function closeChat(){ document.getElementById('chatRoom').classList.remove('open'); }
+
+function sendMsg(){
+  const inp=document.getElementById('crInput');
+  const txt=inp.value.trim();
+  if(!txt)return;
+  const msgs=document.getElementById('crMsgs');
+  msgs.innerHTML+=`<div class="msg-row mine"><div class="msg-bubble"><div class="msg-text">${txt}</div><div class="msg-time">刚刚</div></div></div>`;
+  inp.value='';
+  setTimeout(()=>{msgs.scrollTop=msgs.scrollHeight},30);
+  setTimeout(()=>{
+    const rs=["好的 ❤️","嗯嗯！","收到，马上","哈哈好的 😊","等你哦~"];
+    const r=rs[Math.floor(Math.random()*rs.length)];
+    msgs.innerHTML+=`<div class="msg-row"><div class="msg-av-sm">${CHATS[activeChatIdx].e}</div><div class="msg-bubble"><div class="msg-text">${r}</div><div class="msg-time">刚刚</div></div></div>`;
+    msgs.scrollTop=msgs.scrollHeight;
+  },900+Math.random()*800);
+}
+
+// ═══ BUILD DISCOVER ═══
+function buildDiscover(){
+  document.getElementById('discCats').innerHTML = DISC_CATS.map((c,i)=>
+    `<div class="disc-cat${i===0?' on':''}" onclick="tapDC(this)">${c}</div>`).join('');
+  document.getElementById('discBizList').innerHTML = BIZ.map((b,i)=>`
+    <div class="disc-biz-row" onclick="toast('查看详情 → ${b.name}')">
+      <div class="dbr-rank${i<3?' g':''}">${i+1}</div>
+      <div class="dbr-ico">${b.e}</div>
+      <div class="dbr-info">
+        <div class="dbr-name">${b.name}</div>
+        <div class="dbr-meta">${b.cat}${b.price?' · '+b.price:''}</div>
+        <div class="dbr-tags">
+          <div class="dbr-tag ${b.open?'dt-open':''}">${b.open?'营业中':'休息'}</div>
+          ${b.zh?'<div class="dbr-tag dt-cn">普通话</div>':''}
+          ${b.wx?'<div class="dbr-tag dt-pay">微信支付</div>':''}
+        </div>
+      </div>
+      <div class="dbr-score">
+        <div class="dbr-score-num">${b.score}</div>
+        <div class="dbr-cnt">${b.cnt}条</div>
+      </div>
+    </div>`).join('');
+}
+
+function tapDC(el){ document.querySelectorAll('.disc-cat').forEach(x=>x.classList.remove('on')); el.classList.add('on'); }
+function doSearch(){ const q=document.getElementById('discInput').value.trim(); if(q)toast(`🔍 AI搜索「${q}」中…`); }
+
+// ═══ MAPS ═══
+function initLifeMap(){
+  if(lifeMapObj)return;
+  lifeMapObj=L.map('lifeMap',{zoomControl:false,attributionControl:false}).setView([-43.532,172.636],12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(lifeMapObj);
+
+  const pts=[
+    [-43.5327,172.6368,'☕','Coffee with Emma'],
+    [-43.5302,172.6408,'🛒','Groceries'],
+    [-43.5220,172.5810,'🌿','Hagley Park'],
+    [-43.5250,172.6300,'🍽️','Family Dinner'],
+    [-35.0,173.0,'🏝️','Maldives Trip'],
+  ];
+  const latlngs=pts.slice(0,4).map(p=>[p[0],p[1]]);
+  L.polyline(latlngs,{color:'#3D6BE8',weight:2,dashArray:'8,6',opacity:.6}).addTo(lifeMapObj);
+
+  pts.forEach(([lat,lng,ico,name])=>{
+    const icon=L.divIcon({
+      className:'',
+      html:`<div style="background:white;border:2.5px solid #3D6BE8;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 3px 10px rgba(61,107,232,.3)">${ico}</div>`,
+      iconSize:[34,34],iconAnchor:[17,17],
+    });
+    L.marker([lat,lng],{icon}).addTo(lifeMapObj)
+      .bindPopup(`<div style="font-family:'Nunito',sans-serif;font-size:12px;font-weight:700">${ico} ${name}</div>`,{maxWidth:150});
+  });
+}
+
+function initCircleMap(){
+  if(circleMapObj)return;
+  circleMapObj=L.map('circleMap',{zoomControl:false,attributionControl:false,dragging:false,scrollWheelZoom:false}).setView([-43.532,172.636],13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(circleMapObj);
+
+  MEMBER_LOCS.forEach(m=>{
+    if(!m.lat)return;
+    const color=m.badge==='warn'?'#E74C3C':m.badge==='home'?'#3D6BE8':'#2ECC71';
+    const icon=L.divIcon({
+      className:'',
+      html:`<div style="background:${color};border:3px solid white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 3px 12px rgba(0,0,0,.2)">${m.e}</div>`,
+      iconSize:[36,36],iconAnchor:[18,18],
+    });
+    L.marker([m.lat,m.lng],{icon}).addTo(circleMapObj)
+      .bindPopup(`<div style="font-family:'Nunito',sans-serif;font-size:12px;font-weight:700">${m.e} ${m.n}</div>`);
+  });
+
+  // Safety zone circle
+  L.circle([-43.5302,172.6408],{radius:600,color:'#3D6BE8',fillColor:'#3D6BE8',fillOpacity:.08,weight:1.5}).addTo(circleMapObj);
+}
+
+// ═══ CIRCLE TABS ═══
+function setCircleTab(el,tab){
+  document.querySelectorAll('.ct').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  if(tab==='moments') toast('Moments 功能即将上线');
+  else if(tab==='groups') goto('chat');
+  else if(tab==='friends') toast('Close Friends 即将上线');
+}
+function setInsightTab(el){ document.querySelectorAll('.it').forEach(t=>t.classList.remove('on')); el.classList.add('on'); }
+
+// ═══ AUTH ═══
+function openAuth(){ document.getElementById('authOverlay').classList.add('open'); }
+function closeAuth(){ document.getElementById('authOverlay').classList.remove('open'); authCb=null; }
+function requireAuth(cb){ if(user){cb();return;} authCb=cb; openAuth(); }
+function switchAuthMode(mode,btn){
+  document.querySelectorAll('.ash-mode-btn').forEach(t=>t.classList.remove('on')); btn.classList.add('on');
+  document.getElementById('authLogin').style.display=mode==='login'?'block':'none';
+  document.getElementById('authReg').style.display=mode==='register'?'block':'none';
+}
+function sendSMS(){
+  const btn=document.getElementById('smsBtnEl'); btn.disabled=true; let s=60; btn.textContent=s+'s';
+  clearInterval(smsT);
+  smsT=setInterval(()=>{ s--; btn.textContent=s+'s'; if(s<=0){clearInterval(smsT);btn.disabled=false;btn.textContent='重新发送'; }},1000);
+  toast('📱 验证码已发送（演示：请输入 888888）');
+}
+function doLogin(){
+  const p=document.getElementById('authPhone').value;
+  const c=document.getElementById('authCode').value;
+  if(!p){toast('请输入手机号');return;}
+  if(c&&c!=='888888'){toast('验证码错误，演示请输入 888888');return;}
+  setUser({name:'Emily',phone:p});
+}
+function doReg(){
+  const n=document.getElementById('authName').value.trim();
+  if(!n){toast('请输入昵称');return;}
+  setUser({name:n});
+}
+function socialLogin(p){ setUser({name:{wechat:'微信用户',google:'Google用户',apple:'Apple用户'}[p]}); }
+function setUser(u){
+  user=u; closeAuth(); updateAvatar();
+  toast(`🎉 欢迎，${u.name}！`);
+  if(authCb){const cb=authCb;authCb=null;setTimeout(cb,350);}
+}
+function updateAvatar(){
+  const el=document.getElementById('homeAvatar');
+  if(user) el.textContent=user.name[0];
+}
+
+
+// ═══ CAMERA ═══
+let camMode = 'moment';
+let photoTaken = false;
+const CAM_EMOJIS = {
+  moment:['✨','🌅','🌸','🌿','☀️','🌙'],
+  life:['🗺','🚗','✈️','🏔','🌊','🏙'],
+  food:['🍲','🥟','🫕','🧋','🍜','🍱'],
+  family:['❤️','👨‍👩‍👧','🤗','😊','🥰','👩‍🦱'],
+};
+
+function openCamera(){
+  photoTaken = false;
+  document.getElementById('camOverlay').classList.add('open');
+  document.getElementById('camVfBg').style.display = 'flex';
+  document.getElementById('camPhotoTaken').style.display = 'none';
+  document.getElementById('camControls').style.display = 'flex';
+  document.getElementById('camAfter').style.display = 'none';
+  document.getElementById('camModes').style.display = 'flex';
+  // Simulate GPS
+  setTimeout(() => {
+    const locs = ['📍 基督城 · Sydenham','📍 Riccarton Mall','📍 Hagley Park','📍 Christchurch CBD'];
+    document.getElementById('camLocLabel').textContent = locs[Math.floor(Math.random()*locs.length)];
+  }, 800);
+}
+
+function closeCamera(){
+  document.getElementById('camOverlay').classList.remove('open');
+}
+
+function setCamMode(el, mode){
+  document.querySelectorAll('.cam-mode').forEach(m => m.classList.remove('on'));
+  el.classList.add('on');
+  camMode = mode;
+}
+
+function takePhoto(){
+  // Flash effect
+  const vf = document.getElementById('camVfBg');
+  vf.style.background = 'white';
+  setTimeout(() => { vf.style.background = ''; }, 80);
+
+  // Show photo
+  const emojis = CAM_EMOJIS[camMode];
+  const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+  document.getElementById('camPhotoEmoji').textContent = emoji;
+
+  setTimeout(() => {
+    document.getElementById('camVfBg').style.display = 'none';
+    document.getElementById('camPhotoTaken').style.display = 'flex';
+    document.getElementById('camControls').style.display = 'none';
+    document.getElementById('camModes').style.display = 'none';
+    document.getElementById('camAfter').style.display = 'block';
+    photoTaken = true;
+  }, 120);
+}
+
+function retakePhoto(){
+  photoTaken = false;
+  document.getElementById('camVfBg').style.display = 'flex';
+  document.getElementById('camPhotoTaken').style.display = 'none';
+  document.getElementById('camControls').style.display = 'flex';
+  document.getElementById('camAfter').style.display = 'none';
+  document.getElementById('camModes').style.display = 'flex';
+}
+
+function savePhoto(dest){
+  closeCamera();
+  const msgs = {
+    moment:'✨ 已分享到 Moments，家人可以看到',
+    life:'🗺 已加入今日足迹轨迹',
+    album:'📸 已保存到相册',
+    review:'🍜 正在跳转到写点评…',
+  };
+  toast(msgs[dest] || '✓ 已保存');
+  if(dest === 'review') setTimeout(() => goto('discover'), 1200);
+  if(dest === 'life') setTimeout(() => goto('life'), 1200);
+}
+
+// ═══ TOAST ═══
+let _tt;
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(_tt); _tt=setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ═══ INIT ═══
+buildHome();
+buildCircle();
+buildLife();
+buildChatList();
+buildDiscover();
+</script>
+</body>
+</html>
