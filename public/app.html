@@ -1791,7 +1791,35 @@ function doReg(){
   if(!n){toast('请输入昵称');return;}
   setUser({name:n});
 }
-function socialLogin(p){ setUser({name:{wechat:'微信用户',google:'Google用户',apple:'Apple用户'}[p]}); }
+function socialLogin(p){
+  if(p==='google'){
+    _sb.auth.signInWithOAuth({
+      provider:'google',
+      options:{ redirectTo: window.location.origin }
+    });
+    return;
+  }
+  setUser({name:{wechat:'微信用户',apple:'Apple用户'}[p]||p});
+}
+
+async function initAuth(){
+  const { data:{ session } } = await _sb.auth.getSession();
+  if(session){
+    user = { name: session.user.user_metadata?.full_name || session.user.email, id: session.user.id };
+    updateAvatar();
+    loadTRAJ();
+  }
+  _sb.auth.onAuthStateChange((_event, session)=>{
+    if(session){
+      user = { name: session.user.user_metadata?.full_name || session.user.email, id: session.user.id };
+      updateAvatar();
+      loadTRAJ();
+    } else {
+      user = null;
+      updateAvatar();
+    }
+  });
+}
 function setUser(u){
   user=u; closeAuth(); updateAvatar();
   toast(`🎉 欢迎，${u.name}！`);
@@ -1890,7 +1918,7 @@ function toast(msg){
 }
 
 // ═══ INIT ═══
-buildHome();
+buildHome(); initAuth();
 buildCircle();
 buildLife();
 buildChatList();

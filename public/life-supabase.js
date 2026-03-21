@@ -11,7 +11,9 @@ function getSBToken() {
   try {
     const s = localStorage.getItem('sb-flerfkkbzrnxreszxmcd-auth-token');
     const p = JSON.parse(s);
-    return { token: p?.access_token || SB_KEY, userId: p?.user?.id || null };
+    const token = p?.access_token || SB_KEY;
+    const userId = p?.user?.id || null;
+    return { token, userId };
   } catch(e) { return { token: SB_KEY, userId: null }; }
 }
 
