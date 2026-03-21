@@ -21,6 +21,8 @@ async function loadTRAJ() {
   let { token, userId } = getSBToken();
   // 优先用全局 user 对象（Google OAuth 登录后）
   if (!userId && typeof user !== 'undefined' && user?.id) { userId = user.id; }
+  // 未登录直接返回空
+  
   try {
     const res = await fetch(
       `${SB_URL}/rest/v1/moments?user_id=eq.${userId}&order=taken_at.desc&select=*`,

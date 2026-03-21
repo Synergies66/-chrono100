@@ -1792,6 +1792,7 @@ function doReg(){
   setUser({name:n});
 }
 function socialLogin(p){
+  if(p==='wechat'||p==='apple'){toast('请使用 Google 登录');return;}
   if(p==='google'){
     _sb.auth.signInWithOAuth({
       provider:'google',
@@ -1821,6 +1822,7 @@ async function initAuth(){
   });
 }
 function setUser(u){
+  if(!u?.id){toast('请使用 Google 登录');return;}
   user=u; closeAuth(); updateAvatar();
   toast(`🎉 欢迎，${u.name}！`);
   if(authCb){const cb=authCb;authCb=null;setTimeout(cb,350);}
