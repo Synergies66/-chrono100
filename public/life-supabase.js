@@ -19,7 +19,8 @@ function getSBToken() {
 
 async function loadTRAJ() {
   let { token, userId } = getSBToken();
-  if (!userId) { userId = "7b7636de-a021-425b-8cd5-725a06aa795c"; }
+  // 优先用全局 user 对象（Google OAuth 登录后）
+  if (!userId && typeof user !== 'undefined' && user?.id) { userId = user.id; }
   try {
     const res = await fetch(
       `${SB_URL}/rest/v1/moments?user_id=eq.${userId}&order=taken_at.desc&select=*`,

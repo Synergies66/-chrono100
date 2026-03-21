@@ -1945,12 +1945,9 @@ buildDiscover();
     const pct = document.getElementById('lifeProgressPct')
     const prog = document.getElementById('lifeProgressBar')
     bar.style.display = 'block'
-    const SUPABASE_URL = 'https://flerfkkbzrnxreszxmcd.supabase.co'
-    const ANON_KEY = 'sb_publishable_9ipOnX_DwgqDi1-z8Im4qA_EeAs7MEn'
-    const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm')
-    const sb = createClient(SUPABASE_URL, ANON_KEY)
+    const sb = _sb
     const { data: { user } } = await sb.auth.getUser()
-    if (!user) { bar.style.display='none'; alert('Please login first'); return }
+    if (!user) { bar.style.display='none'; requireAuth(()=>lifeImportPhotos(files)); return }
     const exifrMod = await import('https://cdn.jsdelivr.net/npm/exifr/dist/full.esm.js')
     const exifr = exifrMod.default
     const total = files.length
@@ -1973,14 +1970,14 @@ buildDiscover();
       const { error: upErr } = await sb.storage.from('moments').upload(path, file)
       if (upErr) { done++; continue }
       const { data: urlData } = sb.storage.from('moments').getPublicUrl(path)
-      const title = takenAt.toLocaleDateString('zh-CN', { year:'numeric', month:'long', day:'numeric' }) + '的记忆'
+      const title = takenAt.toLocaleDateString('zh-CN', { year:'numeric', month:'long', day:'numeric' }) + ' · ' + takenAt.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})
       await sb.from('moments').insert({ user_id: user.id, title, taken_at: takenAt.toISOString(), lat, lng, photo_url: urlData.publicUrl })
       done++
     }
     prog.style.width = '100%'
     pct.textContent = '100%'
     txt.textContent = `完成！导入 ${done} 张照片`
-    setTimeout(() => { bar.style.display='none'; loadLifeMoments && loadLifeMoments() }, 2000)
+    setTimeout(() => { bar.style.display='none'; loadTRAJ && loadTRAJ() }, 2000)
   }
 
   function lifeShowAddModal() {
@@ -2017,12 +2014,9 @@ buildDiscover();
     const title = document.getElementById('lam-title').value
     const date = document.getElementById('lam-date').value
     if (!title) { alert('请填写标题'); return }
-    const SUPABASE_URL = 'https://flerfkkbzrnxreszxmcd.supabase.co'
-    const ANON_KEY = 'sb_publishable_9ipOnX_DwgqDi1-z8Im4qA_EeAs7MEn'
-    const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm')
-    const sb = createClient(SUPABASE_URL, ANON_KEY)
+    const sb = _sb
     const { data: { user } } = await sb.auth.getUser()
-    if (!user) { alert('Please login first'); return }
+    if (!user) { requireAuth(lifeSaveManual); return }
     let photo_url = ''
     if (window._lamPhoto) {
       const path = `${user.id}/${Date.now()}_${window._lamPhoto.name}`
@@ -2035,7 +2029,7 @@ buildDiscover();
     await sb.from('moments').insert({ user_id: user.id, title, taken_at: new Date(date).toISOString(), lat: null, lng: null, photo_url })
     document.getElementById('lifeAddModal').remove()
     window._lamPhoto = null
-    loadLifeMoments && loadLifeMoments()
+    loadTRAJ && loadTRAJ()
   }
 
 </script>
