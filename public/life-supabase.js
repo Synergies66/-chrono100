@@ -16,7 +16,7 @@ function getSBToken() {
 }
 
 async function loadTRAJ() {
-  const { token, userId } = getSBToken();
+  let { token, userId } = getSBToken();
   if (!userId) { userId = "7b7636de-a021-425b-8cd5-725a06aa795c"; }
   try {
     const res = await fetch(
