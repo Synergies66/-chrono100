@@ -1792,7 +1792,7 @@ function doReg(){
 async function socialLoginEmail() {
   const email = prompt('请输入你的邮箱地址：')
   if (!email) return
-  const { error } = await _sb.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin } })
+  const { error } = await _sb.auth.signInWithOtp({ email, options: { emailRedirectTo: 'https://chrono100.com' } })
   if (error) { alert('发送失败：' + error.message); return }
   alert('✅ 登录链接已发送到 ' + email + '，请检查邮箱点击链接登录！')
   closeAuth()
