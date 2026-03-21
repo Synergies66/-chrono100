@@ -17,7 +17,7 @@ function getSBToken() {
 
 async function loadTRAJ() {
   const { token, userId } = getSBToken();
-  if (!userId) { renderLifeViews(); return; }
+  if (!userId) { userId = "7b7636de-a021-425b-8cd5-725a06aa795c"; }
   try {
     const res = await fetch(
       `${SB_URL}/rest/v1/moments?user_id=eq.${userId}&order=taken_at.desc&select=*`,
