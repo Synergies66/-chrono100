@@ -1599,13 +1599,7 @@ function buildLife(){
 
   // Timeline (list view)
   renderLifeViews();
-            </div>
-            ${t.photos>=4?`<div class="tl-card-photos"><div class="tl-photo">🏝️</div><div class="tl-photo">🌊</div><div class="tl-photo">🐚</div></div>`:''}
-          </div>
-        </div>
-      </div>`).join('');
 }
-
 function setView(btn,view){
   document.querySelectorAll('.vt').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
