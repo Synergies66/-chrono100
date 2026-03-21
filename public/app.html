@@ -1408,110 +1408,12 @@ const CHATS = [
   {n:'Jason',e:'👦',online:false,preview:'放学了，在等公交',time:'4h ago',unread:0,
    msgs:[{mine:false,text:'放学了，在等公交 🚌'},{mine:true,text:'好的，注意安全！到家告诉我'}]},
 ];
-let TRAJ = [];
-const SB_URL = 'https://flerfkkbzrnxreszxmcd.supabase.co';
-const SB_KEY = 'sb_publishable_9ipOnX_DwgqDi1-z8Im4qA_EeAs7MEn';
-const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-
-async function loadTRAJ() {
-  const stored = localStorage.getItem('sb-flerfkkbzrnxreszxmcd-auth-token');
-  let token = SB_KEY, userId = null;
-  if (stored) { try { const p=JSON.parse(stored); token=p?.access_token||SB_KEY; userId=p?.user?.id||null; } catch(e){} }
-  if (!userId) { renderLifeViews(); return; }
-  try {
-    const res = await fetch(`${SB_URL}/rest/v1/moments?user_id=eq.${userId}&order=taken_at.desc&select=*`,
-      { headers:{ apikey:SB_KEY, Authorization:`Bearer ${token}` }});
-    const rows = await res.json();
-    TRAJ = rows.map(r => {
-      const d = r.taken_at ? new Date(r.taken_at) : new Date();
-      const raw = (r.title||'').trim();
-      const isUUID = /^[0-9A-F\-]{20,}$/i.test(raw.replace(/\.[^.]+$/,''));
-      return { id:r.id, _date:d, mon:MONTHS[d.getMonth()], day:String(d.getDate()).padStart(2,'0'),
-        gold:false, title:isUUID||!raw?'未命名记录':raw,
-        time:d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}),
-        loc:r.location_name||(r.lat&&r.lng?`${(+r.lat).toFixed(3)},${(+r.lng).toFixed(3)}`:'未设置位置'),
-        e:r.photo_url?'📷':'📌', photos:r.photo_url?1:0,
-        lat:r.lat?+r.lat:null, lng:r.lng?+r.lng:null,
-        photo_url:r.photo_url||null, needsLoc:!r.lat||!r.lng };
-    });
-  } catch(err) { console.error('loadTRAJ:',err); TRAJ=[]; }
-  renderLifeViews();
-}
-
-async function saveMomentLocation(id, lat, lng, name) {
-  const stored = localStorage.getItem('sb-flerfkkbzrnxreszxmcd-auth-token');
-  let token = SB_KEY;
-  try { token=JSON.parse(stored)?.access_token||SB_KEY; } catch(e){}
-  await fetch(`${SB_URL}/rest/v1/moments?id=eq.${id}`,{
-    method:'PATCH',
-    headers:{ apikey:SB_KEY, Authorization:`Bearer ${token}`, 'Content-Type':'application/json', Prefer:'return=minimal' },
-    body:JSON.stringify({lat,lng,location_name:name})
-  });
-  loadTRAJ();
-}
-
-function promptLocation(id, title) {
-  const ov = document.createElement('div');
-  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;display:flex;align-items:center;justify-content:center';
-  ov.innerHTML=`<div style="background:#1c1c2e;border-radius:16px;padding:24px;width:320px;color:#fff">
-    <div style="font-size:16px;font-weight:700;margin-bottom:4px">📍 设置位置</div>
-    <div style="font-size:12px;color:#888;margin-bottom:16px">${title}</div>
-    <input id="_locName" placeholder="地点名称（如：Auckland CBD）"
-      style="width:100%;box-sizing:border-box;padding:10px;border-radius:10px;border:1px solid #333;background:#111;color:#fff;font-size:14px;margin-bottom:10px"/>
-    <button id="_gpsBtn" style="width:100%;padding:10px;border-radius:10px;border:none;background:#6c63ff;color:#fff;font-size:14px;cursor:pointer;margin-bottom:8px">🌐 使用当前位置</button>
-    <button id="_saveBtn" style="width:100%;padding:10px;border-radius:10px;border:none;background:#3a3a5c;color:#fff;font-size:14px;cursor:pointer;margin-bottom:8px">✅ 保存</button>
-    <button id="_skipBtn" style="width:100%;padding:10px;border-radius:10px;border:none;background:transparent;color:#555;font-size:13px;cursor:pointer">跳过</button>
-  </div>`;
-  document.body.appendChild(ov);
-  let _lat=null,_lng=null;
-  document.getElementById('_gpsBtn').onclick=()=>navigator.geolocation.getCurrentPosition(p=>{
-    _lat=p.coords.latitude;_lng=p.coords.longitude;
-    const ni=document.getElementById('_locName');
-    if(!ni.value)ni.value=`${_lat.toFixed(4)}, ${_lng.toFixed(4)}`;
-  },()=>alert('无法获取GPS，请手动输入'));
-  document.getElementById('_saveBtn').onclick=async()=>{
-    const name=document.getElementById('_locName').value.trim();
-    if(!name){alert('请输入地点名称');return;}
-    ov.remove(); await saveMomentLocation(id,_lat||0,_lng||0,name);
-  };
-  document.getElementById('_skipBtn').onclick=()=>ov.remove();
-}
-
-function renderLifeViews() {
-  const tlEl = document.getElementById('timelineItems');
-  if (!tlEl) return;
-  if (!TRAJ.length) {
-    tlEl.innerHTML='<div style="text-align:center;color:#555;padding:48px 20px;line-height:2">暂无记录<br><span style="font-size:12px">点击上方按钮添加第一条记忆</span></div>';
-    return;
-  }
-  const now=new Date(), todayStr=now.toDateString();
-  const week=new Date(now); week.setDate(now.getDate()-7);
-  const groups=[
-    {label:'Today · '+now.getFullYear(), items:TRAJ.filter(t=>t._date.toDateString()===todayStr)},
-    {label:'Last 7 Days', items:TRAJ.filter(t=>t._date<now&&t._date>=week)},
-    {label:'Earlier',     items:TRAJ.filter(t=>t._date<week)},
-  ].filter(g=>g.items.length);
-  tlEl.innerHTML=groups.map(g=>
-    `<div class="tl-group-label" style="margin-top:4px">${g.label}</div>`+
-    g.items.map(t=>`
-    <div class="tl-row">
-      <div class="tl-date-col">
-        <div class="tl-bubble${t.gold?' gold':''}"><span class="mo">${t.mon}</span><span class="dy">${t.day}</span></div>
-        <div class="tl-vline"></div>
-      </div>
-      <div class="tl-content" style="margin-left:12px;padding-bottom:10px">
-        <div class="tl-card"><div class="tl-card-inner">
-          ${t.photo_url?`<img src="${t.photo_url}" style="width:100%;max-height:150px;object-fit:cover;border-radius:8px;margin-bottom:8px;display:block">`:''}
-          <div class="tl-card-title">${t.e} ${t.title}</div>
-          <div class="tl-card-meta">${t.time} · ${t.loc}
-            ${t.needsLoc?`<span onclick="promptLocation('${t.id}','${t.title.replace(/'/g,"\\'")}')
-              " style="color:#6c63ff;cursor:pointer;font-size:11px;margin-left:4px">＋设置位置</span>`:''}
-          </div>
-        </div></div>
-      </div>
-    </div>`).join('')
-  ).join('');
-}
+const TRAJ = [
+  {mon:'MAR',day:'20',gold:false,title:'Coffee with Emma',time:'10:00 AM',loc:'Starbucks · Auckland',e:'☕',photos:0},
+  {mon:'MAR',day:'20',gold:true,title:'Groceries Picked Up',time:'4:30 PM',loc:'Asia Foods · Riccarton',e:'🛒',photos:0},
+  {mon:'MAR',day:'18',gold:false,title:'Family Dinner',time:'7:03 PM',loc:'Home · Christchurch',e:'🍽️',photos:5},
+  {mon:'MAR',day:'15',gold:true,title:'Family Trip - Maldives',time:'All day',loc:'Kalabathi Island, Maldives',e:'🏝️',photos:42},
+];
 const FEED = [
   {e:'👩‍🦱',author:'Mom',time:'Today · 6:42 PM',badge:'reunion',badgeTxt:'相聚时刻',
    isReunion:true,dist:'18 km',
@@ -1555,7 +1457,7 @@ function goto(name){
   n.classList.add('active');
   prev=cur; cur=name;
   document.querySelectorAll('.btab[data-p]').forEach(t=>t.classList.toggle('on',t.dataset.p===name));
-  if(name==='life'){loadTRAJ();setTimeout(initLifeMap,80);}
+  if(name==='life')setTimeout(initLifeMap,80);
   if(name==='circle')setTimeout(initCircleMap,80);
   window.scrollTo(0,0);
 }
@@ -1700,7 +1602,96 @@ function buildLife(){
     </div>`).join('');
 
   // Timeline (list view)
-  renderLifeViews();
+  document.getElementById('timelineItems').innerHTML = `
+    <div class="tl-group-label">Today · ' + new Date().getFullYear() + '</div>` +
+    TRAJ.slice(0,2).map(t=>`
+      <div class="tl-row">
+        <div class="tl-date-col">
+          <div class="tl-bubble${t.gold?' gold':''}"><span class="mo">${t.mon}</span><span class="dy">${t.day}</span></div>
+          <div class="tl-vline"></div>
+        </div>
+        <div class="tl-content" style="margin-left:12px;padding-bottom:10px">
+          <div class="tl-card"><div class="tl-card-inner">
+            <div class="tl-card-title">${t.e} ${t.title}</div>
+            <div class="tl-card-meta">${t.time} · ${t.loc}</div>
+          </div></div>
+        </div>
+      </div>`).join('') +
+    `<div class="tl-group-label" style="margin-top:4px">Last 7 Days</div>` +
+    TRAJ.slice(2).map(t=>`
+      <div class="tl-row">
+        <div class="tl-date-col">
+          <div class="tl-bubble${t.gold?' gold':''}"><span class="mo">${t.mon}</span><span class="dy">${t.day}</span></div>
+          <div class="tl-vline"></div>
+        </div>
+        <div class="tl-content" style="margin-left:12px;padding-bottom:10px">
+          <div class="tl-card">
+            <div class="tl-card-inner">
+              <div class="tl-card-title">${t.e} ${t.title}</div>
+              <div class="tl-card-meta">${t.time} · ${t.loc}</div>
+              ${t.photos>0?`<div style="margin-top:5px;font-size:11px;color:var(--ink3)">📸 ${t.photos} stay photos</div>`:''}
+            </div>
+            ${t.photos>=4?`<div class="tl-card-photos"><div class="tl-photo">🏝️</div><div class="tl-photo">🌊</div><div class="tl-photo">🐚</div></div>`:''}
+          </div>
+        </div>
+      </div>`).join('');
+}
+
+function setView(btn,view){
+  document.querySelectorAll('.vt').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('lifeMapView').style.display=view==='map'?'block':'none';
+  document.getElementById('lifeListView').style.display=view==='list'?'block':'none';
+  document.getElementById('lifeStatsView').style.display=view==='stats'?'block':'none';
+  if(view==='map'&&!lifeMapObj)setTimeout(initLifeMap,60);
+}
+
+// ═══ BUILD CHAT ═══
+function buildChatList(){
+  document.getElementById('chatListEl').innerHTML = CHATS.map((c,i)=>`
+    <div class="chat-row" onclick="openChat(${i})">
+      <div class="ch-av-wrap">
+        <div class="ch-av av-blue" style="width:48px;height:48px;font-size:22px">${c.e}</div>
+        ${c.online?'<div class="ch-online"></div>':''}
+      </div>
+      <div class="ch-info">
+        <div class="ch-name">${c.n}</div>
+        <div class="ch-preview">${c.preview}</div>
+      </div>
+      <div class="ch-right">
+        <div class="ch-time">${c.time}</div>
+        ${c.unread>0?`<div class="ch-badge">${c.unread}</div>`:''}
+      </div>
+    </div>`).join('');
+}
+
+function openChat(idx){
+  activeChatIdx=idx;
+  const c=CHATS[idx];
+  document.getElementById('crName').textContent=c.n;
+  const msgs=document.getElementById('crMsgs');
+  msgs.innerHTML=c.msgs.map(m=>`
+    <div class="msg-row${m.mine?' mine':''}">
+      ${!m.mine?`<div class="msg-av-sm">${c.e}</div>`:''}
+      <div class="msg-bubble">
+        <div class="msg-text">${m.text}</div>
+        <div class="msg-time">${m.mine?'Sent':'✓'}</div>
+      </div>
+    </div>`).join('');
+  if(c.biz){
+    msgs.innerHTML+=`
+      <div style="margin:6px 0 6px 36px">
+        <div class="msg-biz-card">
+          <div class="msg-biz-header">🍜 Life1980 推荐</div>
+          <div style="display:flex;align-items:center">
+            <div style="flex:1">
+              <div class="msg-biz-name">好味道川菜馆</div>
+              <div class="msg-biz-sub">川菜 · 265 Moorhouse Ave · 普通话服务</div>
+            </div>
+            <div class="msg-biz-score">9.3</div>
+          </div>
+        </div>
+      </div>`;
   }
   setTimeout(()=>{msgs.scrollTop=msgs.scrollHeight},50);
   document.getElementById('chatRoom').classList.add('open');
