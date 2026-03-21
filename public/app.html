@@ -1344,9 +1344,8 @@ function loadRealMoments(map) {
         <button class="ash-submit" onclick="doLogin()">登录</button>
         <div class="div-row"><div class="div-line"></div><div class="div-txt">或第三方登录</div><div class="div-line"></div></div>
         <div class="social-grid">
-          <button class="social-btn sw" onclick="socialLogin('wechat')"><span style="color:#07c160;font-size:18px">●</span> 微信一键登录</button>
-          <button class="social-btn" onclick="socialLogin('google')"><span style="color:#4285f4;font-weight:900;font-size:16px">G</span> Google</button>
-          <button class="social-btn" onclick="socialLogin('apple')">🍎 Apple</button>
+              <button class="social-btn" onclick="socialLogin('google')"><span style="color:#4285f4;font-weight:900;font-size:16px">G</span> Google 登录</button>
+          <button class="social-btn" onclick="socialLoginEmail()">📧 邮件登录（Magic Link）</button>
         </div>
       </div>
       <div id="authReg" style="display:none">
@@ -1365,9 +1364,8 @@ function loadRealMoments(map) {
         <button class="ash-submit" onclick="doReg()">创建账号</button>
         <div class="div-row"><div class="div-line"></div><div class="div-txt">或</div><div class="div-line"></div></div>
         <div class="social-grid">
-          <button class="social-btn sw" onclick="socialLogin('wechat')"><span style="color:#07c160;font-size:18px">●</span> 微信一键注册</button>
-          <button class="social-btn" onclick="socialLogin('google')"><span style="color:#4285f4;font-weight:900;font-size:16px">G</span> Google</button>
-          <button class="social-btn" onclick="socialLogin('apple')">🍎 Apple</button>
+              <button class="social-btn" onclick="socialLogin('google')"><span style="color:#4285f4;font-weight:900;font-size:16px">G</span> Google 登录</button>
+          <button class="social-btn" onclick="socialLoginEmail()">📧 邮件登录（Magic Link）</button>
         </div>
       </div>
     </div>
@@ -1791,6 +1789,15 @@ function doReg(){
   if(!n){toast('请输入昵称');return;}
   setUser({name:n});
 }
+async function socialLoginEmail() {
+  const email = prompt('请输入你的邮箱地址：')
+  if (!email) return
+  const { error } = await _sb.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin } })
+  if (error) { alert('发送失败：' + error.message); return }
+  alert('✅ 登录链接已发送到 ' + email + '，请检查邮箱点击链接登录！')
+  closeAuth()
+}
+
 function socialLogin(p){
   if(p==='wechat'||p==='apple'){toast('请使用 Google 登录');return;}
   if(p==='google'){
