@@ -875,6 +875,7 @@ function loadRealMoments(map) {
     });
 }
 </script>
+<script src="/life-supabase.js"></script>
 </head>
 <body>
 <div id="app">
@@ -1408,12 +1409,7 @@ const CHATS = [
   {n:'Jason',e:'👦',online:false,preview:'放学了，在等公交',time:'4h ago',unread:0,
    msgs:[{mine:false,text:'放学了，在等公交 🚌'},{mine:true,text:'好的，注意安全！到家告诉我'}]},
 ];
-const TRAJ = [
-  {mon:'MAR',day:'20',gold:false,title:'Coffee with Emma',time:'10:00 AM',loc:'Starbucks · Auckland',e:'☕',photos:0},
-  {mon:'MAR',day:'20',gold:true,title:'Groceries Picked Up',time:'4:30 PM',loc:'Asia Foods · Riccarton',e:'🛒',photos:0},
-  {mon:'MAR',day:'18',gold:false,title:'Family Dinner',time:'7:03 PM',loc:'Home · Christchurch',e:'🍽️',photos:5},
-  {mon:'MAR',day:'15',gold:true,title:'Family Trip - Maldives',time:'All day',loc:'Kalabathi Island, Maldives',e:'🏝️',photos:42},
-];
+let TRAJ = []; // loaded from Supabase via life-supabase.js
 const FEED = [
   {e:'👩‍🦱',author:'Mom',time:'Today · 6:42 PM',badge:'reunion',badgeTxt:'相聚时刻',
    isReunion:true,dist:'18 km',
@@ -1457,7 +1453,7 @@ function goto(name){
   n.classList.add('active');
   prev=cur; cur=name;
   document.querySelectorAll('.btab[data-p]').forEach(t=>t.classList.toggle('on',t.dataset.p===name));
-  if(name==='life')setTimeout(initLifeMap,80);
+  if(name==='life'){loadTRAJ();setTimeout(initLifeMap,80);}
   if(name==='circle')setTimeout(initCircleMap,80);
   window.scrollTo(0,0);
 }
@@ -1602,34 +1598,7 @@ function buildLife(){
     </div>`).join('');
 
   // Timeline (list view)
-  document.getElementById('timelineItems').innerHTML = `
-    <div class="tl-group-label">Today · ' + new Date().getFullYear() + '</div>` +
-    TRAJ.slice(0,2).map(t=>`
-      <div class="tl-row">
-        <div class="tl-date-col">
-          <div class="tl-bubble${t.gold?' gold':''}"><span class="mo">${t.mon}</span><span class="dy">${t.day}</span></div>
-          <div class="tl-vline"></div>
-        </div>
-        <div class="tl-content" style="margin-left:12px;padding-bottom:10px">
-          <div class="tl-card"><div class="tl-card-inner">
-            <div class="tl-card-title">${t.e} ${t.title}</div>
-            <div class="tl-card-meta">${t.time} · ${t.loc}</div>
-          </div></div>
-        </div>
-      </div>`).join('') +
-    `<div class="tl-group-label" style="margin-top:4px">Last 7 Days</div>` +
-    TRAJ.slice(2).map(t=>`
-      <div class="tl-row">
-        <div class="tl-date-col">
-          <div class="tl-bubble${t.gold?' gold':''}"><span class="mo">${t.mon}</span><span class="dy">${t.day}</span></div>
-          <div class="tl-vline"></div>
-        </div>
-        <div class="tl-content" style="margin-left:12px;padding-bottom:10px">
-          <div class="tl-card">
-            <div class="tl-card-inner">
-              <div class="tl-card-title">${t.e} ${t.title}</div>
-              <div class="tl-card-meta">${t.time} · ${t.loc}</div>
-              ${t.photos>0?`<div style="margin-top:5px;font-size:11px;color:var(--ink3)">📸 ${t.photos} stay photos</div>`:''}
+  renderLifeViews();
             </div>
             ${t.photos>=4?`<div class="tl-card-photos"><div class="tl-photo">🏝️</div><div class="tl-photo">🌊</div><div class="tl-photo">🐚</div></div>`:''}
           </div>
