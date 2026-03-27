@@ -1,7 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  async rewrites() {
+    return [
+      {
+        source: "/",
+        destination: "/chrono100-v10.html",
+      },
+    ];
+  },
 };
 
 export default nextConfig;
