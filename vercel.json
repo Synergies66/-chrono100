@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/chrono100-v10.html" }
+  ]
+}
