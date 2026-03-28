@@ -7099,20 +7099,36 @@ function setVisibility(v) {
 }
 
 function savePhotoToAlbum(file) {
+  if (!file) return;
   try {
+    // iOS Safari: use Web Share API — user taps "存储图像" to save to Photos
+    if (navigator.share && /iphone|ipad|ipod/i.test(navigator.userAgent)) {
+      var shareFile = new File([file], 'CHRONO100_' + new Date().getTime() + '.jpg', { type: file.type });
+      navigator.share({ files: [shareFile], title: 'CHRONO100 照片' })
+        .then(function() { toast('📸 照片已保存到相册！'); })
+        .catch(function(e) { if (e.name !== 'AbortError') _savePhotoFallback(file); });
+      return;
+    }
+    _savePhotoFallback(file);
+  } catch(e) {
+    console.warn('savePhotoToAlbum error:', e);
+    _savePhotoFallback(file);
+  }
+}
+
+function _savePhotoFallback(file) {
+  try {
+    // Android / desktop: download to device
     var url = URL.createObjectURL(file);
     var a = document.createElement('a');
-    var ext = (file.type === 'image/png') ? '.png' : '.jpg';
     a.href = url;
-    a.download = 'CHRONO100_' + new Date().getTime() + ext;
+    a.download = 'CHRONO100_' + new Date().getTime() + '.jpg';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     setTimeout(function() { URL.revokeObjectURL(url); }, 3000);
-    toast('📸 照片已保存到相册！');
-  } catch(e) {
-    console.warn('savePhotoToAlbum error:', e);
-  }
+    toast('📸 照片已下载，请手动存入相册');
+  } catch(e) { console.warn('_savePhotoFallback error:', e); }
 }
 
 function previewEvPhotos(files) {
