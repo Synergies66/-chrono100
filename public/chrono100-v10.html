@@ -1357,7 +1357,7 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
         <!-- 系统相机：iOS/Android 自动存相册，同时传给 App -->
         <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:11px;border-radius:12px;background:var(--blue2);color:#fff;font-size:13px;font-weight:600;cursor:pointer">
           📷 拍照存相册
-          <input type="file" accept="image/*" capture="environment" id="evCameraInput" style="display:none" onchange="previewEvPhotos(this.files)">
+          <input type="file" accept="image/*" capture="environment" id="evCameraInput" style="display:none" onchange="if(this.files&&this.files[0])savePhotoToAlbum(this.files[0]);previewEvPhotos(this.files)">
         </label>
         <!-- 从相册选已有照片 -->
         <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:11px;border-radius:12px;background:var(--bg);color:var(--ink);font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border)">
@@ -1453,7 +1453,7 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
         <!-- 拍照 — 系统相机，自动存相册 -->
         <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:10px;border-radius:12px;background:var(--blue2);color:#fff;font-size:12px;font-weight:600;cursor:pointer">
           📷 拍照存相册
-          <input type="file" accept="image/*" capture="environment" style="display:none" onchange="previewMomentImages(this.files)">
+          <input type="file" accept="image/*" capture="environment" style="display:none" onchange="if(this.files&&this.files[0])savePhotoToAlbum(this.files[0]);previewMomentImages(this.files)">
         </label>
         <!-- 从相册选已拍好的 -->
         <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:10px;border-radius:12px;background:var(--bg);color:var(--ink);font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--border)">
@@ -6315,6 +6315,7 @@ var _navCamFile = null; // the photo file from system camera
 function navCamReceive(file) {
   if (!file) return;
   _navCamFile = file;
+  savePhotoToAlbum(file);
 
   // Show local preview + destination picker
   var localSrc = URL.createObjectURL(file);
@@ -7095,6 +7096,23 @@ function setVisibility(v) {
   document.querySelectorAll('.vis-btn').forEach(function(b) { b.classList.remove('active'); });
   var btn = document.getElementById('vis-' + v);
   if (btn) btn.classList.add('active');
+}
+
+function savePhotoToAlbum(file) {
+  try {
+    var url = URL.createObjectURL(file);
+    var a = document.createElement('a');
+    var ext = (file.type === 'image/png') ? '.png' : '.jpg';
+    a.href = url;
+    a.download = 'CHRONO100_' + new Date().getTime() + ext;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function() { URL.revokeObjectURL(url); }, 3000);
+    toast('📸 照片已保存到相册！');
+  } catch(e) {
+    console.warn('savePhotoToAlbum error:', e);
+  }
 }
 
 function previewEvPhotos(files) {
