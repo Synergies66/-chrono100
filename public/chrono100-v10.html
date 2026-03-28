@@ -660,6 +660,19 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <!-- OneSignal Push Notification SDK -->
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <script>
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function(OneSignal) {
+      await OneSignal.init({
+        appId: "9920dc6d-a99e-46b9-9dcf-3a44bd684e6a",
+        safari_web_id: "web.onesignal.auto.1c6f5b2e-9920dc6d",
+        notifyButton: { enable: false },
+        allowLocalhostAsSecureOrigin: true,
+      });
+    });
+  </script>
 </head>
 <body>
 
@@ -1331,34 +1344,37 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
   </div>
 </div>
 
-<!-- ════ CALL SCREEN (Jitsi Meet) ════ -->
-<div id="callScreen" style="position:fixed;inset:0;z-index:500;background:#000;display:none;flex-direction:column">
-  <!-- Header -->
-  <div style="flex-shrink:0;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);display:flex;align-items:center;padding:var(--st) 14px 10px;gap:12px;height:calc(52px + var(--st))">
-    <div id="callScreenAv" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#4A8AE0,#88B8F0);font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0">👩‍🦱</div>
-    <div style="flex:1">
-      <div id="callScreenName" style="font-size:15px;font-weight:600;color:#fff">Mom</div>
-      <div id="callScreenStatus" style="font-size:11px;color:rgba(255,255,255,.5)">正在连接…</div>
-    </div>
-    <div onclick="endCall()" style="width:44px;height:44px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;box-shadow:0 4px 14px rgba(220,69,69,.5)">📵</div>
-  </div>
-  <!-- Jitsi container -->
-  <div id="jitsiContainer" style="flex:1;position:relative;overflow:hidden">
-    <!-- Jitsi iframe injected here by JS -->
-    <div id="callConnecting" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(160deg,#1A2E60,#2D5FA8)">
-      <div id="callAvBig" style="width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,#4A8AE0,#88B8F0);font-size:42px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;box-shadow:0 0 0 8px rgba(255,255,255,.1),0 0 0 16px rgba(255,255,255,.05)">👩‍🦱</div>
-      <div id="callNameBig" style="font-size:24px;font-weight:700;color:#fff;margin-bottom:6px">Mom</div>
-      <div style="font-size:12px;color:rgba(255,255,255,.45)">正在连接 · 请稍候…</div>
-      <div style="margin-top:20px;display:flex;gap:8px">
-        <div style="width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.4);animation:spDot .9s ease-in-out infinite"></div>
-        <div style="width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.4);animation:spDot .9s .2s ease-in-out infinite"></div>
-        <div style="width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.4);animation:spDot .9s .4s ease-in-out infinite"></div>
+<!-- ════ CALL SCREEN (Agora RTC) ════ -->
+<div id="callScreen" style="position:fixed;inset:0;z-index:500;background:#0a0f1e;display:none;flex-direction:column">
+  <!-- Remote video (full screen) -->
+  <div id="agoraRemoteContainer" style="position:absolute;inset:0;background:#0a0f1e;display:flex;align-items:center;justify-content:center">
+    <!-- remote video track injected here -->
+    <div id="callConnecting" style="display:flex;flex-direction:column;align-items:center;justify-content:center">
+      <div id="callAvBig" style="width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,#4A8AE0,#88B8F0);font-size:44px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;box-shadow:0 0 0 10px rgba(255,255,255,.07),0 0 0 20px rgba(255,255,255,.03)">👩‍🦱</div>
+      <div id="callNameBig" style="font-size:22px;font-weight:700;color:#fff;margin-bottom:8px">家人</div>
+      <div id="callConnectingLabel" style="font-size:13px;color:rgba(255,255,255,.4)">正在连接…</div>
+      <div style="margin-top:18px;display:flex;gap:8px">
+        <div style="width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.35);animation:spDot .9s ease-in-out infinite"></div>
+        <div style="width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.35);animation:spDot .9s .2s ease-in-out infinite"></div>
+        <div style="width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.35);animation:spDot .9s .4s ease-in-out infinite"></div>
       </div>
     </div>
   </div>
-  <!-- Bottom hint -->
-  <div style="flex-shrink:0;padding:10px;background:rgba(0,0,0,.7);text-align:center;font-size:10px;color:rgba(255,255,255,.4)">
-    由 Jitsi Meet 提供 · 传输加密 · 挂断后自动退出
+  <!-- Local video (PiP) -->
+  <div id="agoraLocalContainer" style="position:absolute;top:calc(var(--st)+12px);right:12px;width:90px;height:130px;border-radius:14px;overflow:hidden;background:#1a2332;border:2px solid rgba(255,255,255,.15);box-shadow:0 4px 20px rgba(0,0,0,.5);z-index:10"></div>
+  <!-- Top bar -->
+  <div style="position:absolute;top:0;left:0;right:0;z-index:20;padding:var(--st) 14px 12px;background:linear-gradient(to bottom,rgba(0,0,0,.7),transparent);display:flex;align-items:center;gap:10px">
+    <div id="callScreenAv" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#4A8AE0,#88B8F0);font-size:16px;display:flex;align-items:center;justify-content:center">😊</div>
+    <div style="flex:1">
+      <div id="callScreenName" style="font-size:14px;font-weight:600;color:#fff">家人</div>
+      <div id="callScreenStatus" style="font-size:11px;color:rgba(255,255,255,.5)">正在连接…</div>
+    </div>
+  </div>
+  <!-- Bottom controls -->
+  <div style="position:absolute;bottom:0;left:0;right:0;z-index:20;padding:16px 0 36px;background:linear-gradient(to top,rgba(0,0,0,.8),transparent);display:flex;justify-content:center;gap:24px;align-items:center">
+    <button id="callMuteBtn" onclick="toggleCallMute()" style="width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,.15);border:none;font-size:22px;cursor:pointer;color:#fff;backdrop-filter:blur(8px)">🎤</button>
+    <button onclick="endCall()" style="width:66px;height:66px;border-radius:50%;background:#E53935;border:none;font-size:26px;cursor:pointer;box-shadow:0 4px 18px rgba(229,57,53,.5)">📵</button>
+    <button id="callCamBtn" onclick="toggleCallCam()" style="width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,.15);border:none;font-size:22px;cursor:pointer;color:#fff;backdrop-filter:blur(8px)">📹</button>
   </div>
 </div>
 
@@ -3738,6 +3754,8 @@ function doGoogleLogin() {
 
 
 async function enterApp() {
+  // 初始化OneSignal推送
+  setTimeout(initOneSignal, 1500);
   // 双重验证：确保是真实登录用户，不是匿名用户
   try {
     var cl = sb();
@@ -4513,6 +4531,12 @@ async function sendMessage() {
       sender_emoji: userEmoji, room_id: currentRoomId, content: encrypted
     });
     if (res.error) console.warn('sendMessage error:', res.error.message);
+    // 推送通知给对方
+    var c2 = CHATS[activeChatIdx];
+    if (c2 && c2.memberId) {
+      var preview = txt.length > 30 ? txt.slice(0,30)+'…' : txt;
+      sendPushToUser(c2.memberId, (userName||'家人') + ' 发来消息', preview).catch(function(){});
+    }
   }
 }
 
@@ -7261,54 +7285,187 @@ function showEveningGreeting(text) {
 })();
 
 // ============================================================
-// CALLS (Jitsi iframe)
-// ============================================================
-// ============================================================
+// ══════════════════════════════════════════════════════
+// CALLS — Agora RTC (App ID: c6d9ae12aa304e78b31a2f66eb68e323)
+// ══════════════════════════════════════════════════════
+var AGORA_APP_ID = 'c6d9ae12aa304e78b31a2f66eb68e323';
+var _agoraClient  = null;
+var _agoraLocal   = { audio: null, video: null };
+var _agoraMuted   = false;
+var _agoraCamOff  = false;
+var _agoraCallType = 'video';
+
 function getRoomName(n) {
-  return 'chrono100' + (n||'family').toLowerCase().replace(/[^a-z0-9]/g,'') + '2026';
+  return 'c100' + (n||'fam').toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,12);
 }
 
 function startVoiceCall() { startCall('voice'); }
 function startVideoCall() { startCall('video'); }
 
 async function startCall(type) {
-  var c = CHATS[activeChatIdx] || {n:'家人', e:'😊'};
+  _agoraCallType = type;
+  var c = CHATS[activeChatIdx] || { n:'家人', e:'😊', memberId: null };
   var myUid = await getUid();
-  var room = buildDirectRoomId(myUid, c.memberId) || getRoomName(c.n);
+
+  // 生成频道名（双方用同一房间ID）
+  var channel = buildDirectRoomId(myUid, c.memberId) || getRoomName(c.n);
+  channel = channel.replace(/[^a-zA-Z0-9_-]/g,'').slice(0, 64);
+
+  // 更新UI
   document.getElementById('callScreenAv').textContent = c.e;
   document.getElementById('callScreenName').textContent = c.n;
   document.getElementById('callScreenStatus').textContent = '正在连接…';
   document.getElementById('callAvBig').textContent = c.e;
   document.getElementById('callNameBig').textContent = c.n;
   document.getElementById('callConnecting').style.display = 'flex';
+  document.getElementById('callConnectingLabel').textContent = '正在连接…';
   document.getElementById('callScreen').style.display = 'flex';
-  callStartTime=Date.now();
-  try{var _cc=sb();var cm=type==='voice'?'📞':'📹';if(_cc&&c.memberId)await _cc.from('messages').insert({room_id:room,sender_id:myUid,sender_name:userName||'用户',content:cm+' '+(userName||'家人')+' 发起了'+(type==='voice'?'语音':'视频')+'通话\n加入：https://meet.jit.si/'+room,created_at:new Date().toISOString()});}catch(e){/* call notify */}
-  var container = document.getElementById('jitsiContainer');
-  var old = container.querySelector('iframe');
-  if (old) old.remove();
-  var iframe = document.createElement('iframe');
-  iframe.src = 'https://meet.jit.si/' + room + '#config.startWithVideoMuted=' + (type==='voice') + '&config.prejoinPageEnabled=false&userInfo.displayName=' + encodeURIComponent(userName);
-  iframe.style.cssText = 'width:100%;height:100%;border:none';
-  iframe.allow = 'camera;microphone;display-capture;autoplay;clipboard-write;fullscreen';
-  container.appendChild(iframe);
-  setTimeout(function() {
-    document.getElementById('callConnecting').style.display = 'none';
-    document.getElementById('callScreenStatus').textContent = type === 'voice' ? '🎤 语音通话中' : '📹 视频通话中';
-  }, 3000);
+  callStartTime = Date.now();
+
+  // 发通知消息给对方
+  try {
+    var _cc = sb();
+    var cm = type === 'voice' ? '📞' : '📹';
+    if (_cc && c.memberId) {
+      await _cc.from('messages').insert({
+        room_id: currentRoomId || channel,
+        sender_id: myUid, sender_name: userName || '家人',
+        content: cm + ' ' + (userName || '家人') + ' 发起了' + (type === 'voice' ? '语音' : '视频') + '通话，频道：' + channel,
+        created_at: new Date().toISOString()
+      });
+    }
+  } catch(e) {}
+
+  // 加载 Agora SDK（动态加载）
+  if (!window.AgoraRTC) {
+    await new Promise(function(resolve, reject) {
+      var s = document.createElement('script');
+      s.src = 'https://download.agora.io/sdk/release/AgoraRTC_N-4.21.0.js';
+      s.onload = resolve;
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+
+  try {
+    _agoraClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+    _agoraMuted = false;
+    _agoraCamOff = (type === 'voice');
+
+    // 监听远端用户
+    _agoraClient.on('user-published', async function(user, mediaType) {
+      await _agoraClient.subscribe(user, mediaType);
+      document.getElementById('callConnecting').style.display = 'none';
+      document.getElementById('callScreenStatus').textContent = type === 'voice' ? '🎤 语音通话中' : '📹 视频通话中';
+      if (mediaType === 'video') {
+        var remoteContainer = document.getElementById('agoraRemoteContainer');
+        user.videoTrack.play(remoteContainer);
+      }
+      if (mediaType === 'audio') {
+        user.audioTrack.play();
+      }
+    });
+
+    _agoraClient.on('user-unpublished', function() {
+      document.getElementById('callConnectingLabel').textContent = '对方已离开';
+    });
+
+    _agoraClient.on('user-left', function() {
+      document.getElementById('callConnecting').style.display = 'flex';
+      document.getElementById('callConnectingLabel').textContent = '通话已结束';
+      setTimeout(endCall, 2000);
+    });
+
+    // 加入频道（Testing mode 不需要 token）
+    await _agoraClient.join(AGORA_APP_ID, channel, null, myUid.slice(0,8).replace(/-/g,'').slice(0,6) + Math.floor(Math.random()*9000+1000));
+
+    // 创建并发布本地音频
+    _agoraLocal.audio = await AgoraRTC.createMicrophoneAudioTrack();
+    var toPublish = [_agoraLocal.audio];
+
+    // 视频通话才开摄像头
+    if (type === 'video') {
+      try {
+        _agoraLocal.video = await AgoraRTC.createCameraVideoTrack({ encoderConfig: '360p_7' });
+        var localContainer = document.getElementById('agoraLocalContainer');
+        _agoraLocal.video.play(localContainer);
+        toPublish.push(_agoraLocal.video);
+      } catch(camErr) {
+        toast('⚠️ 摄像头不可用，已切换为语音通话');
+        _agoraCamOff = true;
+      }
+    }
+
+    await _agoraClient.publish(toPublish);
+    document.getElementById('callCamBtn').style.opacity = type === 'voice' ? '0.4' : '1';
+
+    // 3秒后如无人接听仍显示等待
+    setTimeout(function() {
+      var conn = document.getElementById('callConnecting');
+      if (conn && conn.style.display !== 'none') {
+        document.getElementById('callConnectingLabel').textContent = '等待对方接听…';
+      }
+    }, 3000);
+
+  } catch(err) {
+    console.error('Agora error:', err);
+    toast('❌ 通话失败：' + (err.message || err));
+    endCall();
+  }
 }
 
-function endCall() {
-  var c = document.getElementById('jitsiContainer').querySelector('iframe');
-  if (c) c.remove();
+async function endCall() {
+  // 停止并关闭本地轨道
+  if (_agoraLocal.audio) { try { _agoraLocal.audio.stop(); _agoraLocal.audio.close(); } catch(e){} _agoraLocal.audio = null; }
+  if (_agoraLocal.video) { try { _agoraLocal.video.stop(); _agoraLocal.video.close(); } catch(e){} _agoraLocal.video = null; }
+  if (_agoraClient) {
+    try { await _agoraClient.leave(); } catch(e) {}
+    _agoraClient = null;
+  }
+
+  // 清空视频容器
+  var rem = document.getElementById('agoraRemoteContainer');
+  if (rem) { rem.querySelectorAll('video,div.agora_video_player').forEach(function(el){ el.remove(); }); }
+  var loc = document.getElementById('agoraLocalContainer');
+  if (loc) { loc.innerHTML = ''; }
+
   document.getElementById('callScreen').style.display = 'none';
-  var secs = callStartTime ? Math.floor((Date.now()-callStartTime)/1000) : 0;
+  document.getElementById('callConnecting').style.display = 'flex';
+  document.getElementById('callConnectingLabel').textContent = '正在连接…';
+
+  // 通话记录
+  var secs = callStartTime ? Math.floor((Date.now() - callStartTime) / 1000) : 0;
   callStartTime = null;
   if (secs > 5) {
-    var dur = Math.floor(secs/60) > 0 ? Math.floor(secs/60)+'分'+secs%60+'秒' : secs+'秒';
+    var dur = Math.floor(secs/60) > 0 ? Math.floor(secs/60) + '分' + (secs%60) + '秒' : secs + '秒';
     var box = document.getElementById('crMessages');
-    if (box) { box.insertAdjacentHTML('beforeend', '<div class="msg me"><div class="call-record"><div class="call-record-ico" style="background:#3D72D422">📞</div><div><div class="call-record-label">通话结束</div><div class="call-record-dur">'+dur+'</div></div></div></div>'); box.scrollTop = box.scrollHeight; }
+    if (box) {
+      box.insertAdjacentHTML('beforeend',
+        '<div class="msg me"><div class="call-record">'
+        + '<div class="call-record-ico" style="background:#3D72D422">' + (_agoraCallType === 'voice' ? '📞' : '📹') + '</div>'
+        + '<div><div class="call-record-label">通话结束</div>'
+        + '<div class="call-record-dur">' + dur + '</div></div>'
+        + '</div></div>'
+      );
+      box.scrollTop = box.scrollHeight;
+    }
   }
+}
+
+function toggleCallMute() {
+  if (!_agoraLocal.audio) return;
+  _agoraMuted = !_agoraMuted;
+  _agoraLocal.audio.setEnabled(!_agoraMuted);
+  var btn = document.getElementById('callMuteBtn');
+  if (btn) { btn.textContent = _agoraMuted ? '🔇' : '🎤'; btn.style.background = _agoraMuted ? 'rgba(229,57,53,.6)' : 'rgba(255,255,255,.15)'; }
+}
+
+function toggleCallCam() {
+  if (!_agoraLocal.video || _agoraCallType === 'voice') return;
+  _agoraCamOff = !_agoraCamOff;
+  _agoraLocal.video.setEnabled(!_agoraCamOff);
+  var btn = document.getElementById('callCamBtn');
+  if (btn) { btn.textContent = _agoraCamOff ? '📷' : '📹'; btn.style.background = _agoraCamOff ? 'rgba(229,57,53,.6)' : 'rgba(255,255,255,.15)'; }
 }
 
 // ============================================================
@@ -8912,6 +9069,127 @@ function sigToggleLoc(el){var dot=document.getElementById('sigLocDot');var on=do
 async function sigTogglePush(el){var dot=document.getElementById('sigPushDot');var on=localStorage.getItem('c100_sigPush')==='1';if(!on){if(!('Notification'in window)){toast('❌ 不支持通知');return;}var p=Notification.permission!=='granted'?await Notification.requestPermission():'granted';if(p!=='granted'){toast('⚠️ 请允许通知权限');return;}scheduleDailyPush();if(dot)dot.style.background='var(--green)';try{localStorage.setItem('c100_sigPush','1');}catch(e){}toast('🔔 每日推送已开启');}else{if(dot)dot.style.background='var(--border)';try{localStorage.setItem('c100_sigPush','0');}catch(e){}toast('🔔 每日推送已关闭');}}
 function scheduleDailyPush(){var now=new Date(),next=new Date(now);next.setHours(9,0,0,0);if(next<=now)next.setDate(next.getDate()+1);setTimeout(function(){if(localStorage.getItem('c100_sigPush')!=='1')return;if(Notification.permission==='granted')new Notification('CHRONO100 早安 ☀️',{body:'点击更新位置',icon:'/favicon.ico',tag:'daily-push'});scheduleDailyPush();},next.getTime()-now.getTime());}
 async function sigToggleBatt(el){var dot=document.getElementById('sigBattDot');var on=localStorage.getItem('c100_sigBatt')==='1';if(!on){if(!navigator.getBattery){toast('❌ 不支持电量监控');return;}var b=await navigator.getBattery();if(dot)dot.style.background='var(--green)';try{localStorage.setItem('c100_sigBatt','1');}catch(e){}toast('🔋 电量监控已开启，当前 '+Math.round(b.level*100)+'%');b.addEventListener('levelchange',function(){if(localStorage.getItem('c100_sigBatt')!=='1')return;var lv=Math.round(b.level*100);if(lv<=20&&Notification.permission==='granted')new Notification('CHRONO100 低电量 🔋',{body:'电量 '+lv+'%',icon:'/favicon.ico',tag:'batt-alert'});});}else{if(dot)dot.style.background='var(--border)';try{localStorage.setItem('c100_sigBatt','0');}catch(e){}toast('🔋 电量监控已关闭');}}
+
+// ══════════════════════════════════════════════════════
+// ONESIGNAL PUSH NOTIFICATIONS
+// App ID: 9920dc6d-a99e-46b9-9dcf-3a44bd684e6a
+// ══════════════════════════════════════════════════════
+var _osReady = false;
+
+// 等待OneSignal初始化完成
+function _waitOS(cb) {
+  if (window.OneSignalDeferred) {
+    window.OneSignalDeferred.push(function(os) {
+      _osReady = true;
+      cb(os);
+    });
+  }
+}
+
+// 初始化：登录后绑定用户ID到OneSignal
+async function initOneSignal() {
+  try {
+    var uid = await getUid();
+    if (!uid) return;
+    _waitOS(async function(os) {
+      try {
+        // 用UID登录OneSignal，实现精准推送
+        await os.login(uid);
+        console.log('✅ OneSignal linked to uid:', uid.slice(0,8));
+      } catch(e) { console.warn('OneSignal login err:', e); }
+    });
+  } catch(e) {}
+}
+
+// 开启推送订阅
+async function enablePushNotification() {
+  if (!window.OneSignalDeferred) {
+    toast('❌ 推送服务未加载');
+    return false;
+  }
+  return new Promise(function(resolve) {
+    _waitOS(async function(os) {
+      try {
+        var permission = await os.Notifications.requestPermission();
+        if (permission) {
+          var uid = await getUid();
+          if (uid) await os.login(uid);
+          // 保存OneSignal订阅ID到Supabase
+          var subId = await os.User.PushSubscription.id;
+          if (subId) {
+            var cl = sb();
+            if (cl && uid) {
+              await cl.from('profiles').upsert(
+                { id: uid, push_token: subId },
+                { onConflict: 'id' }
+              );
+            }
+          }
+          toast('🔔 推送通知已开启！有新消息会提醒你');
+          resolve(true);
+        } else {
+          toast('⚠️ 请允许通知权限');
+          resolve(false);
+        }
+      } catch(e) {
+        console.warn('enablePush err:', e);
+        resolve(false);
+      }
+    });
+  });
+}
+
+// 关闭推送
+async function disablePushNotification() {
+  _waitOS(async function(os) {
+    try {
+      await os.User.PushSubscription.optOut();
+      toast('🔔 每日推送已关闭');
+    } catch(e) {}
+  });
+}
+
+// 发送推送给特定用户（通过Supabase Edge Function）
+// 接收新消息时调用
+async function sendPushToUser(targetUid, title, body) {
+  try {
+    var res = await fetch('https://flerfkkbzrnxreszxmcd.supabase.co/functions/v1/send-push', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + SB_KEY,
+        'apikey': SB_KEY
+      },
+      body: JSON.stringify({
+        uid: targetUid,
+        title: title || 'CHRONO100',
+        body: body || '你有新消息',
+        url: 'https://chrono100.com/chrono100-v10.html'
+      })
+    });
+    return res.ok;
+  } catch(e) {
+    return false;
+  }
+}
+
+// 改写 sigTogglePush，接入 OneSignal
+async function sigTogglePush(el) {
+  var dot = el ? el.querySelector('.signal-dot') : document.getElementById('sigPushDot');
+  var on = localStorage.getItem('c100_sigPush') === '1';
+  if (!on) {
+    var ok = await enablePushNotification();
+    if (!ok) return;
+    if (dot) dot.style.background = 'var(--green)';
+    try { localStorage.setItem('c100_sigPush', '1'); } catch(e) {}
+    toast('🔔 每日推送已开启，关闭 App 也能收到通知');
+  } else {
+    await disablePushNotification();
+    if (dot) dot.style.background = 'var(--border)';
+    try { localStorage.setItem('c100_sigPush', '0'); } catch(e) {}
+  }
+}
+
 function initSignalDots(){var ld=document.getElementById('sigLocDot'),pd=document.getElementById('sigPushDot'),bd=document.getElementById('sigBattDot');if(ld)ld.style.background=localStorage.getItem('c100_sigLoc')==='1'?'var(--green)':'var(--border)';if(pd)pd.style.background=localStorage.getItem('c100_sigPush')==='1'?'var(--green)':'var(--border)';if(bd)bd.style.background=localStorage.getItem('c100_sigBatt')==='1'?'var(--green)':'var(--border)';if(localStorage.getItem('c100_sigLoc')==='1'){locOn=true;uploadMyLocation();}if(localStorage.getItem('c100_sigPush')==='1')scheduleDailyPush();}
 // ============================================================
 // REUNION
@@ -11542,8 +11820,7 @@ window.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<!-- Jitsi Meet API -->
-<script async src="https://meet.jit.si/external_api.js"></script>
+<!-- Agora RTC SDK loaded dynamically on call start -->
 <!-- ════ VOICE RECORDING BAR ════ -->
 <div class="voice-rec-bar" id="voiceRecBar">
   <div style="font-size:28px">🎤</div>
