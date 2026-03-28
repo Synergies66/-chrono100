@@ -7119,13 +7119,7 @@ function savePhotoToAlbum(file) {
   if (!file) return;
   try {
     // iOS Safari: use Web Share API — user taps "存储图像" to save to Photos
-    if (navigator.share && /iphone|ipad|ipod/i.test(navigator.userAgent)) {
-      var shareFile = new File([file], 'CHRONO100_' + new Date().getTime() + '.jpg', { type: file.type });
-      navigator.share({ files: [shareFile], title: 'CHRONO100 照片' })
-        .then(function() { toast('📸 照片已保存到相册！'); })
-        .catch(function(e) { if (e.name !== 'AbortError') _savePhotoFallback(file); });
-      return;
-    }
+    // navigator.share 在 iframe 中无效，直接下载
     _savePhotoFallback(file);
   } catch(e) {
     console.warn('savePhotoToAlbum error:', e);
@@ -7825,10 +7819,36 @@ window.addEventListener('DOMContentLoaded', function() {
   var loginEl = document.getElementById('login');
   var appEl = document.getElementById('app');
 
-  // 必须有Supabase session才能进入App，否则显示登录页
+  // 如果有保存的昵称，直接进入App
   var savedName = localStorage.getItem('c100_name');
-  if (savedName) userName = savedName;
-  // 不自动进入App — 由 checkExistingSession 和 onAuthStateChange 控制
+  if (false && savedName && savedName !== '用户') { // 禁用自动进入，必须有session
+    userName = savedName;
+    if (loginEl) loginEl.style.display = 'none';
+    if (appEl) appEl.style.display = 'flex';
+    updateUI();
+    buildChatList();
+    showFirstRunIfNeeded();
+    setTimeout(function() {
+      try { loadTodayActivity(); } catch(ex) {}
+      try { loadMomentsFromDB(); } catch(ex) {}
+      try { registerInviteCode(); } catch(ex) {}
+      try { cacheUidForInvite(); } catch(ex) {}
+      try { restoreProfileFromDB(); } catch(ex) {}
+    }, 500);
+  } else {
+    // 没有昵称 — 显示登录页，但也检查是否有Google session
+    if (loginEl) loginEl.style.display = 'none'; // 仍然直接进入
+    if (appEl) appEl.style.display = 'flex';
+    updateUI();
+    buildChatList();
+    showFirstRunIfNeeded();
+    setTimeout(function() {
+      try { loadTodayActivity(); } catch(ex) {}
+      try { loadMomentsFromDB(); } catch(ex) {}
+      try { registerInviteCode(); } catch(ex) {}
+      try { cacheUidForInvite(); } catch(ex) {}
+    }, 500);
+  }
 });
 </script>
 
