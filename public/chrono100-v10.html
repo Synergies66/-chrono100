@@ -9108,7 +9108,16 @@ async function _snShowHistory() {
 // ══════════════════════════════════════════════════════════════
 
 // ── ① 访问日志 ──
+var _logAccessDone = false; // 防止重复记录同一次访问
 async function logAccess(eventType, extra) {
+  // 同类型事件只记录一次（防止多个listener重复触发）
+  var dedupeKey = 'log_' + eventType;
+  if (window[dedupeKey]) return;
+  window[dedupeKey] = true;
+  // 防重复：同类型事件1秒内只记一次
+  var dedupKey = '_logAccess_' + eventType;
+  if (window[dedupKey] && Date.now() - window[dedupKey] < 1000) return;
+  window[dedupKey] = Date.now();
   try {
     var cl = sb(); if (!cl) return;
     var uid = null;
@@ -9175,6 +9184,10 @@ function track(action, detail) {
 // ── ③ 强制登录墙 ──
 // App启动时立即检查，未登录锁死在登录页
 async function enforceLoginWall() {
+  // 防重入：只执行一次
+  if (window._loginWallDone) return;
+  window._loginWallDone = true;
+
   var loginEl = document.getElementById('login');
   var appEl   = document.getElementById('app');
   if (!loginEl || !appEl) return;
@@ -10090,8 +10103,8 @@ window.addEventListener('DOMContentLoaded', function() {
   // 先从本地读取保存的资料
   loadProfileFromStorage();
 
-  // 强制登录墙：启动时立即执行，未登录不显示App
-  enforceLoginWall();
+  // 强制登录墙：延迟500ms等Supabase恢复session
+  setTimeout(enforceLoginWall, 500);
 
   var loginEl = document.getElementById('login');
   var appEl = document.getElementById('app');
