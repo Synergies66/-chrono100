@@ -7825,36 +7825,10 @@ window.addEventListener('DOMContentLoaded', function() {
   var loginEl = document.getElementById('login');
   var appEl = document.getElementById('app');
 
-  // 如果有保存的昵称，直接进入App
+  // 必须有Supabase session才能进入App，否则显示登录页
   var savedName = localStorage.getItem('c100_name');
-  if (savedName && savedName !== '用户') {
-    userName = savedName;
-    if (loginEl) loginEl.style.display = 'none';
-    if (appEl) appEl.style.display = 'flex';
-    updateUI();
-    buildChatList();
-    showFirstRunIfNeeded();
-    setTimeout(function() {
-      try { loadTodayActivity(); } catch(ex) {}
-      try { loadMomentsFromDB(); } catch(ex) {}
-      try { registerInviteCode(); } catch(ex) {}
-      try { cacheUidForInvite(); } catch(ex) {}
-      try { restoreProfileFromDB(); } catch(ex) {}
-    }, 500);
-  } else {
-    // 没有昵称 — 显示登录页，但也检查是否有Google session
-    if (loginEl) loginEl.style.display = 'none'; // 仍然直接进入
-    if (appEl) appEl.style.display = 'flex';
-    updateUI();
-    buildChatList();
-    showFirstRunIfNeeded();
-    setTimeout(function() {
-      try { loadTodayActivity(); } catch(ex) {}
-      try { loadMomentsFromDB(); } catch(ex) {}
-      try { registerInviteCode(); } catch(ex) {}
-      try { cacheUidForInvite(); } catch(ex) {}
-    }, 500);
-  }
+  if (savedName) userName = savedName;
+  // 不自动进入App — 由 checkExistingSession 和 onAuthStateChange 控制
 });
 </script>
 
