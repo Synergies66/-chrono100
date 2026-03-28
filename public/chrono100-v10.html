@@ -842,24 +842,24 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
         </div>
 
         <!-- Import row — inline compact -->
-        <div style="display:flex;gap:7px;margin-top:8px">
-          <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:10px;border-radius:12px;background:var(--blue2);color:#fff;font-size:12px;font-weight:600;cursor:pointer">
-            <span>📷</span><span data-i18n-key="importPhotos">导入照片</span>
-            <input type="file" accept="image/*" multiple style="display:none" onchange="importPhotos(this.files)">
-          </label>
-          <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:10px;border-radius:12px;background:var(--ink);color:#fff;font-size:12px;font-weight:600;cursor:pointer">
-            <span>📁</span><span data-i18n-key="importFolder">整个文件夹</span>
-            <input type="file" accept="image/*" multiple webkitdirectory style="display:none" onchange="importPhotos(this.files)">
-          </label>
-        </div>
-        <!-- 相册入口 -->
-        <div onclick="openAlbum()" style="display:flex;align-items:center;gap:12px;padding:13px 15px;background:var(--card);border-radius:14px;margin-top:8px;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.06)">
-          <div style="width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg,#E8F4FD,#C9E8FF);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">&#128247;</div>
-          <div style="flex:1">
-            <div style="font-size:14px;font-weight:700;color:var(--ink)">&#25105;&#30340;&#30456;&#20876;</div>
-            <div style="font-size:11px;color:var(--ink3);margin-top:1px">&#29983;&#27963; &middot; &#24037;&#20316; &middot; &#23478;&#20154;</div>
+        <!-- 我的相册 -->
+        <div style="background:var(--card);border-radius:16px;margin-top:8px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 14px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#E8F4FD,#C9E8FF);display:flex;align-items:center;justify-content:center;font-size:20px">&#128247;</div>
+              <div>
+                <div style="font-size:14px;font-weight:700;color:var(--ink)">我的相册</div>
+                <div style="font-size:10px;color:var(--ink3);margin-top:1px">生活 &middot; 工作 &middot; 家人</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <label style="display:flex;align-items:center;gap:4px;padding:7px 14px;border-radius:20px;background:var(--blue2);color:#fff;font-size:12px;font-weight:600;cursor:pointer">
+                &#65291; 添加照片
+                <input type="file" accept="image/*" multiple style="display:none" onchange="importPhotosToAlbum(this.files)">
+              </label>
+              <div onclick="openAlbum()" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);font-size:12px;color:var(--ink3);cursor:pointer;white-space:nowrap">查看全部</div>
+            </div>
           </div>
-          <div style="font-size:18px;color:var(--ink4)">&#8250;</div>
         </div>
         <!-- Auto-scan banner (Feature 2) -->
         <div id="autoScanBanner" style="margin-top:8px;background:linear-gradient(135deg,#EBF0FF,#E2ECFF);border-radius:12px;padding:11px 14px;display:flex;align-items:center;gap:10px;cursor:pointer" onclick="requestAutoPhotoScan()">
@@ -1046,18 +1046,10 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
           <div class="settings-section-title">&#25991;&#20214;&#22841;</div>
           <div class="settings-list">
             <div class="settings-row" onclick="openFolders('life')">
-              <div class="settings-ico" style="background:#E8F5E9">&#127807;</div>
+              <div class="settings-ico" style="background:#E8F5E9">&#128193;</div>
               <div class="settings-row-body">
-                <div class="settings-row-label">&#29983;&#27963;&#25991;&#20214;&#22841;</div>
-                <div class="settings-row-sub">&#20581;&#24247;&#12289;&#26085;&#24120;&#25991;&#20214;</div>
-              </div>
-              <div class="settings-row-val">&#8250;</div>
-            </div>
-            <div class="settings-row" onclick="openFolders('work')">
-              <div class="settings-ico" style="background:#FFF8E1">&#128188;</div>
-              <div class="settings-row-body">
-                <div class="settings-row-label">&#24037;&#20316;&#25991;&#20214;&#22841;</div>
-                <div class="settings-row-sub">&#21512;&#21516;&#12289;&#25253;&#21578;&#12289;&#25991;&#26723;</div>
+                <div class="settings-row-label">&#25991;&#20214;&#22841;</div>
+                <div class="settings-row-sub">&#29983;&#27963; &middot; &#24037;&#20316;</div>
               </div>
               <div class="settings-row-val">&#8250;</div>
             </div>
@@ -7927,7 +7919,8 @@ async function savePhotoToCategory(category) {
 var _albumCurrentCat = 'all';
 var _albumOvOpen = false;
 
-function openAlbum() {
+function openAlbum(cat) {
+  if (cat) _albumCurrentCat = cat;
   _albumOvOpen = true;
   var ex = document.getElementById('albumOv');
   if (ex) ex.remove();
@@ -7978,9 +7971,13 @@ async function loadAlbum(cat) {
     var catIco = { life:'&#127807;', work:'&#128188;', family:'&#128106;' };
     grid.innerHTML = photos.map(function(p){
       var ico = catIco[p.category] || '&#127807;';
-      return '<div onclick="viewAlbumPhoto(\'' + esc(p.photo_url) + '\')" style="position:relative;aspect-ratio:1;overflow:hidden;border-radius:3px;cursor:pointer;background:var(--border)">' +
-        '<img src="' + esc(p.photo_url) + '" style="width:100%;height:100%;object-fit:cover" loading="lazy">' +
-        '<div style="position:absolute;bottom:2px;right:3px;font-size:11px;text-shadow:0 1px 3px rgba(0,0,0,.5)">' + ico + '</div></div>';
+      var pid = p.id ? esc(p.id) : '';
+      var purl = esc(p.photo_url);
+      return '<div style="position:relative;aspect-ratio:1;overflow:hidden;border-radius:3px;background:var(--border)">' +
+        '<img src="' + purl + '" onclick="viewAlbumPhoto(\'' + purl + '\')" style="width:100%;height:100%;object-fit:cover;cursor:pointer" loading="lazy">' +
+        '<div style="position:absolute;bottom:2px;right:3px;font-size:11px;text-shadow:0 1px 3px rgba(0,0,0,.5)">' + ico + '</div>' +
+        '<button onclick="deleteAlbumPhoto(\'' + pid + '\',\'' + purl + '\',this)" style="position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;font-size:12px;line-height:1;cursor:pointer;-webkit-appearance:none">&#10005;</button>' +
+        '</div>';
     }).join('');
   } catch(e) {
     grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--ink3)">&#21152;&#36733;&#22833;&#36133;</div>';
@@ -8181,6 +8178,37 @@ async function deleteTodayByIndex(idx) {
   }
 
   setTimeout(function(){ loadTodayActivity(); }, 1000);
+}
+
+
+async function deleteAlbumPhoto(id, url, btn) {
+  if (btn) btn.textContent = '...';
+  var cl = sb();
+  var uid = await getUid();
+  try {
+    if (cl && id) {
+      await cl.from('album_photos').delete().eq('id', id);
+    } else if (cl && url) {
+      // 按url删
+      await cl.from('album_photos').delete().eq('photo_url', url).eq('user_id', uid);
+      await cl.from('moments').delete().eq('photo_url', url).eq('user_id', uid);
+    }
+    // 从DOM移除
+    var cell = btn ? btn.closest('div[style*="aspect-ratio"]') : null;
+    if (cell && cell.parentNode) cell.parentNode.removeChild(cell);
+    toast('已删除');
+  } catch(e) {
+    toast('删除失败');
+    if (btn) btn.textContent = 'x';
+  }
+}
+
+async function importPhotosToAlbum(files) {
+  if (!files || !files.length) return;
+  var file = files[0]; // 先处理第一张
+  showPhotoCategoryPicker(file);
+  // 如果多张，存起来队列处理
+  window._pendingAlbumFiles = Array.from(files).slice(1);
 }
 
 checkInviteParam();
