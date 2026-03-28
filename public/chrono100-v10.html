@@ -660,10 +660,11 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
     <div class="login-hint" id="loginHint">家人安全 · 人生轨迹 · 私密聊天</div>
 
     <!-- Login method tabs -->
-    <div style="display:flex;background:var(--bg);border-radius:12px;padding:3px;margin-bottom:18px;border:1px solid var(--border)">
+    <div style="display:flex;background:var(--bg);border-radius:12px;padding:3px;margin-bottom:10px;border:1px solid var(--border)">
       <button onclick="switchLoginTab('phone')" id="ltab-phone" class="ltab active" data-i18n-key="tabPhone">📱 手机</button>
       <button onclick="switchLoginTab('email')" id="ltab-email" class="ltab" data-i18n-key="tabEmail">✉️ 邮箱</button>
     </div>
+    <div style="text-align:center;font-size:11px;color:var(--ink3);margin-bottom:14px;padding:7px 12px;background:var(--bg);border-radius:9px;border:1px solid var(--border)">🔒 请登录或注册账号，不支持访客模式</div>
 
     <!-- Phone tab -->
     <div id="lpanel-phone">
@@ -1016,6 +1017,7 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
         <div class="me-name" id="meNameDisplay">用户</div>
         <div class="me-bio" id="meBioDisplay"></div>
         <div class="me-sub" id="meEmailDisplay">未登录</div>
+        <div id="meAccountBadge" style="display:none;margin-top:4px;padding:4px 14px;background:var(--blue-lt);border-radius:20px;font-size:11px;color:var(--blue2);font-weight:600">✅ 已登录账号</div>
         <button class="me-edit-btn" onclick="openEditProfile()">编辑个人资料</button>
         <!-- Real stats row -->
         <div class="me-stats" id="meStatsRow">
@@ -1038,11 +1040,20 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
             <span class="settings-value" id="meNameShort">用户</span>
             <span class="settings-arr">›</span>
           </div>
-          <div class="settings-row" onclick="toast('手机号绑定即将上线 · Google 登录开发中')">
+          <div class="settings-row">
+            <div class="settings-ico" style="background:#FFF3E0">📧</div>
+            <div class="settings-label">登录邮箱</div>
+            <span class="settings-value" id="meEmailShort" style="font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis">—</span>
+          </div>
+          <div class="settings-row">
+            <div class="settings-ico" style="background:#E3F5EE">🆔</div>
+            <div class="settings-label">用户ID</div>
+            <span class="settings-value" id="meUserId" style="font-size:10px;color:var(--ink3)">—</span>
+          </div>
+          <div class="settings-row">
             <div class="settings-ico" style="background:#E3F5EE">📱</div>
             <div class="settings-label" data-i18n-key="sPhone">手机号</div>
             <span class="settings-value" id="mePhone">—</span>
-            <span class="settings-arr">›</span>
           </div>
           <div class="settings-row" onclick="toast('邮箱绑定即将上线')">
             <div class="settings-ico" style="background:#FFF3E0">📧</div>
@@ -2368,6 +2379,8 @@ async function doForgotPassword() {
 
 // ── GUEST LOGIN ──
 function doGuestLogin() {
+  toast('❌ 访客模式已关闭，请注册或登录账号');
+  return;
   var name = (document.getElementById('loginGuestName').value || '').trim();
   if (!name) { toast(t('enterName')); return; }
   userName = name;
@@ -6493,11 +6506,15 @@ function updateMePage() {
     setT('meNameDisplay', userName || notBound);
     setT('meNameShort', userName || notBound);
     setT('meBioDisplay', userBio || '');
-    setT('meEmailDisplay', '已登录 · CHRONO100');
+    setT('meEmailDisplay', userEmail || '已登录 · CHRONO100');
     setT('navAv', ((userName&&userName[0])||'你').toUpperCase());
-    // Real phone/email in account settings
+    // Real phone/email/id in account settings
     setT('mePhone', userPhone ? (userPhoneCC||'') + userPhone : notBound);
     setT('meEmailShort', userEmail || notBound);
+    var uid = localStorage.getItem('c100_uid') || '';
+    setT('meUserId', uid ? uid.substring(0,8).toUpperCase() + '…' : notBound);
+    var badge = document.getElementById('meAccountBadge');
+    if (badge) badge.style.display = userEmail ? 'inline-block' : 'none';
     // Load settings toggles
     loadSettingToggles();
     calcProfileCompletion();
