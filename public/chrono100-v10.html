@@ -5323,7 +5323,7 @@ async function loadTodayActivity() {
   if (client) {
     try {
       var pres = await client.from('moments')
-        .select('title,taken_at,created_at,lat,photo_url,image_urls')
+        .select('id,title,taken_at,created_at,lat,photo_url,image_urls')
         .eq('user_id', uid)
         .gte('taken_at', windowStart)
         .order('taken_at', {ascending:false})
@@ -5344,7 +5344,7 @@ async function loadTodayActivity() {
       // Also try created_at fallback
       if (!pres.error && photos.length === 0) {
         var pres2 = await client.from('moments')
-          .select('title,taken_at,created_at,lat,photo_url,image_urls')
+          .select('id,title,taken_at,created_at,lat,photo_url,image_urls')
           .eq('user_id', uid)
           .gte('created_at', windowStart)
           .order('created_at', {ascending:false})
@@ -7255,13 +7255,20 @@ async function deleteTrajItem(id, el) {
   if (row) row.style.opacity = '0.4';
 
   var cl = sb();
-  // Delete from Supabase
+  var uid = await getUid();
+  // Delete from Supabase — 同时加 user_id 确保权限匹配
   if (cl) {
-    var res = await cl.from('moments').delete().eq('id', id);
+    var res = await cl.from('moments').delete().eq('id', id).eq('user_id', uid);
     if (res.error) {
       toast('❌ 删除失败：' + (res.error.message || ''));
       if (row) row.style.opacity = '1';
       return;
+    }
+    // 二次验证：确认记录已从DB消失
+    var check = await cl.from('moments').select('id').eq('id', id).single();
+    if (check.data) {
+      // 记录还在，尝试无user_id再删一次
+      await cl.from('moments').delete().eq('id', id);
     }
   }
 
@@ -7293,12 +7300,14 @@ async function deleteTrajItem(id, el) {
   renderTimeline(_momentsCache);                 // re-run title count + summary trigger
   if (MOMENTS_DATA.length >= 0) buildMomentsFeed(); // moments feed (uses filtered cache)
 
-  // Immediately remove from today cache so UI updates before async reload
-  if (window._todayItemsCache) {
-    window._todayItemsCache = window._todayItemsCache.filter(function(it){ return it.momentId !== id; });
-    renderTodayList();
-  }
-  // Then do a full async refresh of today activity from DB
+  // 立即清除今日缓存，强制从DB重新拉取
+  window._todayItemsCache = [];
+  var todayListEl = document.getElementById('todayList');
+  if (todayListEl) todayListEl.innerHTML = '';
+  // 立即从DOM移除当前行
+  if (row && row.parentNode) row.parentNode.removeChild(row);
+  // 强制重新加载今日动态（确保删除后消失）
+  toast('🗑 已删除，同步更新中…');
   await loadTodayActivity();
 
   // Refresh summary stats if visible
@@ -7316,15 +7325,13 @@ function renderTodayList(){
   var items=window._todayItemsCache||[];
   var html=items.map(function(it){
     var thumbHtml=it.thumb?'<img src="'+esc(it.thumb)+'" style="width:44px;height:44px;border-radius:9px;object-fit:cover;flex-shrink:0" onerror="this.style.display=\'none\'">':'<div class="ev-ico" style="background:'+it.bg+'">'+it.ico+'</div>';
-    // Delete button — always visible as a red pill on the right
-    var delBtn = it.momentId
-      ? '<span onclick="event.stopPropagation();deleteTodayItem(\''+it.momentId+'\')" '
-        + 'style="font-size:11px;color:#E74C3C;cursor:pointer;padding:3px 10px;border:1.5px solid rgba(231,76,60,.3);border-radius:99px;background:rgba(231,76,60,.06);white-space:nowrap;font-weight:600">删除</span>'
-      : '';
-    return '<div class="ev" style="align-items:center" onclick="gotoPage(\''+it.page+'\')"><span class="ev-t">'+it.t+'</span>'+thumbHtml
-      +'<div class="ev-main" style="min-width:0"><div class="ev-lbl" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(it.lbl)+'</div>'
+    var itemIdx = items.indexOf(it);
+    return '<div class="ev" style="position:relative;align-items:center;padding-right:46px" onclick="gotoPage(\''+it.page+'\')">'
+      +'<span class="ev-t">'+it.t+'</span>'+thumbHtml
+      +'<div class="ev-main" style="min-width:0;flex:1"><div class="ev-lbl" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(it.lbl)+'</div>'
       +(it.sub?'<div class="ev-sub">'+esc(it.sub)+'</div>':'')+'</div>'
-      +(delBtn?'<div style="margin-left:8px;flex-shrink:0">'+delBtn+'</div>':'')
+      +'<button onclick="event.stopPropagation();deleteTodayByIndex('+itemIdx+')" '
+      +'style="position:absolute;right:10px;top:50%;transform:translateY(-50%);padding:3px 10px;border-radius:99px;border:1.5px solid rgba(231,76,60,.3);background:rgba(231,76,60,.06);color:#E74C3C;font-size:11px;font-weight:600;cursor:pointer;-webkit-appearance:none">删除</button>'
       +'</div>';
   }).join('');
   listEl.innerHTML = html || '<div style="text-align:center;padding:18px;color:var(--ink3);font-size:12px">今天还没有记录</div>';
@@ -8103,6 +8110,77 @@ async function uploadToFolder(file) {
     toast('&#10003; &#25991;&#20214;&#24050;&#19978;&#20256;');
     loadFolderFiles(_folderCurrentCat);
   } catch(e) { toast('&#10060; &#19978;&#20256;&#22833;&#36133;'); }
+}
+
+
+function deleteTodayItemSafe(id) {
+  if (!confirm('确定删除这条记录？')) return;
+  if (id) {
+    deleteTodayItem(id);
+  } else {
+    // 没有id就强制重新加载
+    window._todayItemsCache = [];
+    loadTodayActivity();
+    toast('&#35831;&#21047;&#26032;&#39029;&#38754;&#21518;&#20877;&#21024;&#38500;');
+  }
+}
+
+
+async function deleteTodayByIndex(idx) {
+  var items = window._todayItemsCache || [];
+  var it = items[idx];
+  if (!it) { loadTodayActivity(); return; }
+  var id = it.momentId;
+  var lbl = it.lbl || '';
+
+  // 立即从界面移除
+  window._todayItemsCache = items.filter(function(_,i){ return i !== idx; });
+  renderTodayList();
+  toast('删除中...');
+
+  var cl = sb();
+  var uid = await getUid();
+
+  if (cl) {
+    try {
+      if (id) {
+        // 有DB id，直接删除
+        await cl.from('moments').delete().eq('id', id);
+        _momentsCache = (_momentsCache||[]).filter(function(m){ return m.id !== id; });
+        window._trajMomentsCache = (window._trajMomentsCache||[]).filter(function(m){ return m.id !== id; });
+        MOMENTS_DATA = (MOMENTS_DATA||[]).filter(function(m){ return m.id !== id; });
+        try { renderTrajList(); } catch(e) {}
+      } else {
+        // 没有id，按标题查找DB记录再删
+        var now = new Date();
+        var windowStart = new Date(Date.now() - 48*60*60*1000).toISOString();
+        var findRes = await cl.from('moments')
+          .select('id')
+          .eq('user_id', uid)
+          .eq('title', lbl)
+          .gte('taken_at', windowStart)
+          .limit(1)
+          .maybeSingle();
+        if (findRes.data && findRes.data.id) {
+          await cl.from('moments').delete().eq('id', findRes.data.id);
+        }
+        // 同时从 _localEvents 删除
+        _localEvents = (_localEvents||[]).filter(function(e){ return e.title !== lbl; });
+        try { localStorage.setItem('c100_local_events', JSON.stringify(_localEvents)); } catch(ex) {}
+      }
+      toast('已删除');
+    } catch(e) {
+      console.warn('deleteTodayByIndex error:', e);
+      toast('已从列表移除');
+    }
+  } else {
+    // 离线：只删本地
+    _localEvents = (_localEvents||[]).filter(function(e){ return e.title !== lbl; });
+    try { localStorage.setItem('c100_local_events', JSON.stringify(_localEvents)); } catch(ex) {}
+    toast('已删除');
+  }
+
+  setTimeout(function(){ loadTodayActivity(); }, 1000);
 }
 
 checkInviteParam();
