@@ -636,6 +636,27 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
 .sav{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#B8D0F0,#8AAEE0);display:flex;align-items:center;justify-content:center;font-size:17px;position:relative;flex-shrink:0}
 .sdot{position:absolute;bottom:1px;right:1px;width:10px;height:10px;border-radius:50%;border:2px solid var(--card)}
 .sdot.ok{background:var(--green)}.sdot.no{background:var(--border)}.sdot.warn{background:var(--red)}
+
+/* ── VOICE MESSAGE ── */
+.voice-btn{width:38px;height:38px;border-radius:50%;background:var(--blue-lt);border:none;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;flex-shrink:0;transition:all .15s}
+.voice-btn.recording{background:var(--red,#E53935);animation:pulse-rec .7s infinite alternate}
+@keyframes pulse-rec{from{transform:scale(1);box-shadow:0 0 0 0 rgba(229,57,53,.4)}to{transform:scale(1.12);box-shadow:0 0 0 8px rgba(229,57,53,0)}}
+.voice-bubble{display:flex;align-items:center;gap:8px;padding:8px 12px;min-width:140px;max-width:220px}
+.voice-play{width:32px;height:32px;border-radius:50%;border:none;background:currentColor;opacity:.85;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px}
+.voice-wave{flex:1;display:flex;align-items:center;gap:2px;height:24px}
+.voice-wave span{display:inline-block;width:3px;border-radius:2px;background:currentColor;opacity:.7;animation:wave-idle 1.2s ease-in-out infinite}
+.voice-wave span:nth-child(2){animation-delay:.1s}.voice-wave span:nth-child(3){animation-delay:.2s}.voice-wave span:nth-child(4){animation-delay:.3s}.voice-wave span:nth-child(5){animation-delay:.4s}.voice-wave span:nth-child(6){animation-delay:.5s}.voice-wave span:nth-child(7){animation-delay:.6s}
+@keyframes wave-idle{0%,100%{height:4px}50%{height:16px}}
+.voice-wave.playing span{animation:wave-play .5s ease-in-out infinite}
+@keyframes wave-play{0%,100%{height:6px}50%{height:20px}}
+.voice-dur{font-size:11px;opacity:.7;flex-shrink:0;min-width:24px;text-align:right}
+.voice-rec-bar{position:fixed;bottom:0;left:0;right:0;z-index:9900;background:var(--card);border-top:1px solid var(--border);padding:14px 20px 30px;display:none;flex-direction:column;align-items:center;gap:10px;box-shadow:0 -4px 24px rgba(0,0,0,.1)}
+.voice-rec-bar.show{display:flex}
+.voice-rec-timer{font-size:28px;font-weight:700;color:var(--red,#E53935);letter-spacing:2px;font-variant-numeric:tabular-nums}
+.voice-rec-hint{font-size:12px;color:var(--ink3)}
+.voice-rec-actions{display:flex;gap:20px;align-items:center;margin-top:4px}
+.voice-rec-cancel{padding:10px 24px;border-radius:99px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:14px;cursor:pointer;font-family:inherit}
+.voice-rec-send{padding:10px 28px;border-radius:99px;border:none;background:var(--blue2);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -822,7 +843,7 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
       <div style="margin:10px 14px 0">
         <!-- Header row: title + year nav + add btn -->
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-          <div style="font-size:14px;font-weight:700;color:var(--ink);flex:1">人生轨迹</div>
+          <div style="font-size:14px;font-weight:700;color:var(--ink);flex:1" data-i18n-key="lifeJourney2">人生轨迹</div>
           <div class="year-arrow" onclick="changeYear(-1)">‹</div>
           <div class="year-num" id="yearNum" style="font-size:16px;min-width:52px;text-align:center">2026</div>
           <div class="year-arrow" onclick="changeYear(1)">›</div>
@@ -865,14 +886,14 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
           <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 14px">
             <div style="display:flex;align-items:center;gap:10px">
               <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#E8F4FD,#C9E8FF);display:flex;align-items:center;justify-content:center;font-size:20px">&#128247;</div>
-              <div><div style="font-size:14px;font-weight:700;color:var(--ink)">我的相册</div>
-              <div style="font-size:10px;color:var(--ink3);margin-top:1px">生活 &middot; 工作 &middot; 家人</div></div>
+              <div><div style="font-size:14px;font-weight:700;color:var(--ink)" data-i18n-key="myAlbum">我的相册</div>
+              <div style="font-size:10px;color:var(--ink3);margin-top:1px" data-i18n-key="albumSubtitle">生活 · 工作 · 家人</div></div>
             </div>
             <div style="display:flex;gap:8px;align-items:center">
               <label style="display:flex;align-items:center;gap:4px;padding:7px 14px;border-radius:20px;background:var(--blue2);color:#fff;font-size:12px;font-weight:600;cursor:pointer">
-                &#65291; 添加照片<input type="file" accept="image/*" multiple style="display:none" onchange="importPhotosToAlbum(this.files)">
+                <span data-i18n-key="addPhoto">+ 添加照片</span><input type="file" accept="image/*" multiple style="display:none" onchange="importPhotosToAlbum(this.files)">
               </label>
-              <div onclick="openAlbum()" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);font-size:12px;color:var(--ink3);cursor:pointer;white-space:nowrap">查看全部</div>
+              <div onclick="openAlbum()" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);font-size:12px;color:var(--ink3);cursor:pointer;white-space:nowrap" data-i18n-key="viewAll">查看全部</div>
             </div>
           </div>
         </div>
@@ -880,10 +901,10 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
         <div id="autoScanBanner" style="margin-top:8px;background:linear-gradient(135deg,#EBF0FF,#E2ECFF);border-radius:12px;padding:11px 14px;display:flex;align-items:center;gap:10px;cursor:pointer" onclick="requestAutoPhotoScan()">
           <div style="font-size:22px">🔮</div>
           <div style="flex:1">
-            <div style="font-size:12px;font-weight:700;color:var(--blue)">自动扫描照片库</div>
-            <div style="font-size:10px;color:var(--ink3);margin-top:1px">授权后自动读取照片GPS，一键生成人生轨迹</div>
+            <div style="font-size:12px;font-weight:700;color:var(--blue)" data-i18n-key="autoScan">自动扫描照片库</div>
+            <div style="font-size:10px;color:var(--ink3);margin-top:1px" data-i18n-key="autoScanDesc">授权后自动读取照片GPS，一键生成人生轨迹</div>
           </div>
-          <div style="font-size:13px;color:var(--blue2);font-weight:700">授权 →</div>
+          <div style="font-size:13px;color:var(--blue2);font-weight:700" data-i18n-key="sAuthorize">授权 →</div>
         </div>
       </div>
 
@@ -913,10 +934,10 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
       <div style="margin:10px 16px 0;background:var(--card);border-radius:16px;box-shadow:0 1px 6px rgba(0,0,0,.06);overflow:hidden">
         <!-- Tab headers -->
         <div style="display:flex;border-bottom:1px solid var(--border)">
-          <button id="stab4-today" onclick="switchTab4('today')" style="flex:1;padding:10px 2px;font-size:11px;font-weight:700;color:var(--blue2);border:none;background:transparent;cursor:pointer;border-bottom:2px solid var(--blue2);font-family:inherit">&#11088; 今日</button>
-          <button id="stab4-month" onclick="switchTab4('month')" style="flex:1;padding:10px 2px;font-size:11px;font-weight:600;color:var(--ink3);border:none;background:transparent;cursor:pointer;border-bottom:2px solid transparent;font-family:inherit">&#128197; 本月</button>
-          <button id="stab4-year" onclick="switchTab4('year')" style="flex:1;padding:10px 2px;font-size:11px;font-weight:600;color:var(--ink3);border:none;background:transparent;cursor:pointer;border-bottom:2px solid transparent;font-family:inherit">&#128198; 年度</button>
-          <button id="stab4-all" onclick="switchTab4('all')" style="flex:1;padding:10px 2px;font-size:11px;font-weight:600;color:var(--ink3);border:none;background:transparent;cursor:pointer;border-bottom:2px solid transparent;font-family:inherit">&#128506; 全部</button>
+          <button id="stab4-today" onclick="switchTab4('today')" style="flex:1;padding:10px 2px;font-size:11px;font-weight:700;color:var(--blue2);border:none;background:transparent;cursor:pointer;border-bottom:2px solid var(--blue2);font-family:inherit"><span data-i18n-key="tabToday">⭐ 今日</span></button>
+          <button id="stab4-month" onclick="switchTab4('month')" style="flex:1;padding:10px 2px;font-size:11px;font-weight:600;color:var(--ink3);border:none;background:transparent;cursor:pointer;border-bottom:2px solid transparent;font-family:inherit"><span data-i18n-key="tabMonth">📅 本月</span></button>
+          <button id="stab4-year" onclick="switchTab4('year')" style="flex:1;padding:10px 2px;font-size:11px;font-weight:600;color:var(--ink3);border:none;background:transparent;cursor:pointer;border-bottom:2px solid transparent;font-family:inherit"><span data-i18n-key="tabYear">📆 年度</span></button>
+          <button id="stab4-all" onclick="switchTab4('all')" style="flex:1;padding:10px 2px;font-size:11px;font-weight:600;color:var(--ink3);border:none;background:transparent;cursor:pointer;border-bottom:2px solid transparent;font-family:inherit"><span data-i18n-key="tabAll">🗺 全部</span></button>
         </div>
         <!-- 今日总结 panel -->
         <div id="tab4-today" style="padding:12px 14px 14px">
@@ -942,7 +963,7 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
 <!-- Signal strip -->
       <div class="signals-strip">
         <div style="font-size:12px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:5px">
-          🛡 轨迹信号（无需后台定位）
+          <span data-i18n-key="trackSignal">🛡 轨迹信号（无需后台定位）</span>
         </div>
         <div class="signals-row">
           <div class="signal" onclick="toast(t('sigExifTip'))"><div class="signal-ico">📷</div><div class="signal-lbl" data-i18n-key="sigExif">照片EXIF</div><div class="signal-dot"></div></div>
@@ -965,8 +986,8 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
           <div class="safety-sub" data-i18n-key="safetyOnline">今天 · 家人都在线</div>
           <div class="safety-stats">
             <div class="stat-pill" onclick="gotoPage('chat')" style="cursor:pointer"><div class="stat-num" id="circleOnline">—</div><div class="stat-lbl">家人</div></div>
-            <div class="stat-pill" onclick="gotoPage('chat')" style="cursor:pointer"><div class="stat-num" id="circleMsg">—</div><div class="stat-lbl">本月消息</div></div>
-            <div class="stat-pill" onclick="gotoPage('life')" style="cursor:pointer"><div class="stat-num" id="circlePhotos">—</div><div class="stat-lbl">本月记录</div></div>
+            <div class="stat-pill" onclick="gotoPage('chat')" style="cursor:pointer"><div class="stat-num" id="circleMsg">—</div><div class="stat-lbl" data-i18n-key="statMessages">本月消息</div></div>
+            <div class="stat-pill" onclick="gotoPage('life')" style="cursor:pointer"><div class="stat-num" id="circlePhotos">—</div><div class="stat-lbl" data-i18n-key="statPhotos">本月记录</div></div>
           </div>
         </div>
       </div>
@@ -985,11 +1006,11 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
           <span style="font-size:14px;font-weight:600;color:var(--ink)" data-i18n-key="locSharing">位置共享</span>
           <div style="display:flex;gap:6px">
-            <button onclick="setLocAll(true)" style="padding:5px 12px;border-radius:99px;background:var(--blue2);color:#fff;font-size:11px;font-weight:600;border:none;cursor:pointer;font-family:inherit">全开</button>
-            <button onclick="setLocAll(false)" style="padding:5px 12px;border-radius:99px;background:var(--bg);color:var(--ink3);font-size:11px;font-weight:600;border:1.5px solid var(--border);cursor:pointer;font-family:inherit">全关</button>
+            <button onclick="setLocAll(true)" style="padding:5px 12px;border-radius:99px;background:var(--blue2);color:#fff;font-size:11px;font-weight:600;border:none;cursor:pointer;font-family:inherit" data-i18n-key="allOn">全开</button>
+            <button onclick="setLocAll(false)" style="padding:5px 12px;border-radius:99px;background:var(--bg);color:var(--ink3);font-size:11px;font-weight:600;border:1.5px solid var(--border);cursor:pointer;font-family:inherit" data-i18n-key="allOff">全关</button>
           </div>
         </div>
-        <div style="font-size:11px;color:var(--ink3);margin-bottom:10px">选择让哪些人能看到你的位置</div>
+        <div style="font-size:11px;color:var(--ink3);margin-bottom:10px" data-i18n-key="locSharingDesc">选择让哪些人能看到你的位置</div>
         <div id="realMemberList">
           <div style="text-align:center;padding:20px;color:var(--ink3);font-size:12px">
             加载家人位置中…<br><span style="font-size:10px;margin-top:4px;display:block">邀请家人加入后显示位置</span>
@@ -1060,8 +1081,8 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
         </div>
         <div class="me-name" id="meNameDisplay">用户</div>
         <div class="me-bio" id="meBioDisplay"></div>
-        <div id="meAccountBadge" style="display:none;margin-top:4px;padding:4px 14px;background:var(--blue-lt);border-radius:20px;font-size:11px;color:var(--blue2);font-weight:600">✅ 已登录账号</div>
-        <button class="me-edit-btn" onclick="openEditProfile()">编辑个人资料</button>
+        <div id="meAccountBadge" style="display:none;margin-top:4px;padding:4px 14px;background:var(--blue-lt);border-radius:20px;font-size:11px;color:var(--blue2);font-weight:600" data-i18n-key="loggedIn">✅ 已登录账号</div>
+        <button class="me-edit-btn" onclick="openEditProfile()" data-i18n-key="editProfile">编辑个人资料</button>
         <!-- Real stats row -->
         <div class="me-stats" id="meStatsRow">
           <div class="me-stat"><div class="me-stat-num" id="statMoments">—</div><div class="me-stat-lbl">记录</div></div>
@@ -1078,21 +1099,21 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
 
         <!-- 档案 & 智能分析 — 核心功能入口 -->
         <div class="settings-section" style="margin-bottom:4px">
-          <div class="settings-section-title">&#128196; 档案 &amp; 智能分析</div>
+          <div class="settings-section-title" data-i18n-key="sArchiveTitle">&#128196; 档案 &amp; 智能分析</div>
           <div class="settings-list">
             <div class="settings-row" onclick="openLifeArchive()" style="align-items:flex-start;padding:14px">
               <div class="settings-ico" style="background:linear-gradient(135deg,#E8F0FF,#D0E2FF);margin-top:2px">&#128196;</div>
               <div class="settings-row-body">
-                <div class="settings-row-label">人生轨迹档案</div>
-                <div class="settings-row-sub">生成PDF证明文件 · 关键词/时间/地点精准筛选</div>
+                <div class="settings-row-label" data-i18n-key="sLifeArchive">人生轨迹档案</div>
+                <div class="settings-row-sub" data-i18n-key="sLifeArchiveDesc">生成PDF证明文件 · 关键词/时间/地点精准筛选</div>
               </div>
               <div class="settings-arr">&#8250;</div>
             </div>
             <div class="settings-row" onclick="openSmartNotes()" style="align-items:flex-start;padding:14px">
               <div class="settings-ico" style="background:linear-gradient(135deg,#FFF0E8,#FFE0CC);margin-top:2px">&#129504;</div>
               <div class="settings-row-body">
-                <div class="settings-row-label">AI 智能笔记分析</div>
-                <div class="settings-row-sub">上传会议纪要/日记 · AI生成结构化总结和建议</div>
+                <div class="settings-row-label" data-i18n-key="sSmartNotes">AI 智能笔记分析</div>
+                <div class="settings-row-sub" data-i18n-key="sSmartNotesDesc">上传会议纪要/日记 · AI生成结构化总结和建议</div>
               </div>
               <div class="settings-arr">&#8250;</div>
             </div>
@@ -1100,11 +1121,11 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
         </div>
 
         <div class="settings-section">
-          <div class="settings-section-title">文件夹</div>
+          <div class="settings-section-title" data-i18n-key="sFolder">文件夹</div>
           <div class="settings-list">
             <div class="settings-row" onclick="openFolders('life')">
               <div class="settings-ico" style="background:#E8F5E9">&#128193;</div>
-              <div class="settings-row-body"><div class="settings-row-label">文件夹</div></div>
+              <div class="settings-row-body"><div class="settings-row-label" data-i18n-key="sFolderRow">文件夹</div></div>
               <div class="settings-row-val">&#8250;</div>
             </div>
           </div>
@@ -1119,30 +1140,30 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
           </div>
           <div class="settings-row" onclick="openBindEmailSheet()">
             <div class="settings-ico" style="background:#FFF3E0">📧</div>
-            <div class="settings-label">登录邮箱</div>
+            <div class="settings-label" data-i18n-key="sEmail">登录邮箱</div>
             <span class="settings-value" id="meEmailShort" style="font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis">未绑定</span>
             <span class="settings-arr">›</span>
           </div>
           <div class="settings-row" onclick="copyUserId()">
             <div class="settings-ico" style="background:#E3F5EE">🆔</div>
-            <div class="settings-label">用户ID</div>
+            <div class="settings-label" data-i18n-key="sUserId">用户ID</div>
             <span class="settings-value" id="meUserId" style="font-size:10px;color:var(--ink3)">—</span>
-            <span class="settings-arr" style="font-size:11px;color:var(--ink4)">复制</span>
+            <span class="settings-arr" data-i18n-key="sCopy" style="font-size:11px;color:var(--ink4)">复制</span>
           </div>
           <div class="settings-row" onclick="openBindPhoneSheet()">
             <div class="settings-ico" style="background:#E3F5EE">📱</div>
-            <div class="settings-label">手机号</div>
+            <div class="settings-label" data-i18n-key="sPhone">手机号</div>
             <span class="settings-value" id="mePhone">未绑定</span>
             <span class="settings-arr">›</span>
           </div>
           <div class="settings-row" onclick="openChangePwdSheet()">
             <div class="settings-ico" style="background:#FCE4EC">&#128274;</div>
-            <div class="settings-label">修改密码</div>
+            <div class="settings-label" data-i18n-key="sChangePwd">修改密码</div>
             <span class="settings-arr">&#8250;</span>
           </div>
           <div class="settings-row" onclick="openForgotPwdSheet()">
             <div class="settings-ico" style="background:#E8F5E9">&#128273;</div>
-            <div class="settings-label">忘记/找回密码</div>
+            <div class="settings-label" data-i18n-key="sForgotPwd">忘记/找回密码</div>
             <span class="settings-arr">&#8250;</span>
           </div>
 
@@ -1190,12 +1211,12 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
           <!-- AI API Key -->
           <div class="settings-row" onclick="openApiKeySheet()">
             <div class="settings-ico" style="background:linear-gradient(135deg,#EBF0FF,#E2ECFF)">✨</div>
-            <div class="settings-label">AI 故事功能</div>
+            <div class="settings-label" data-i18n-key="sAiStory">AI 故事功能</div>
             <span class="settings-value" id="apiKeyStatus" style="color:var(--green)">配置 →</span>
           </div>
           <div class="settings-row" onclick="clearReunionCache()">
             <div class="settings-ico" style="background:#FFF4E0">🔄</div>
-            <div class="settings-label">重新检测相遇</div>
+            <div class="settings-label" data-i18n-key="sRedetect">重新检测相遇</div>
             <span class="settings-value" style="color:var(--green)">立即触发 →</span>
           </div>
           <div class="settings-row" onclick="toast('发送邮件至 support@chrono100.com')">
@@ -1277,6 +1298,7 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
         oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'"></textarea>
       <span style="font-size:18px;cursor:pointer;color:var(--ink3);flex-shrink:0;padding:0 2px" onclick="toggleEmojiPanelChat()">😊</span>
     </div>
+    <button class="voice-btn" id="voiceBtn" ontouchstart="voiceStart(event)" ontouchend="voiceEnd(event)" onmousedown="voiceStart(event)" onmouseup="voiceEnd(event)" onmouseleave="voiceCancelIfRecording()" title="按住录音">🎤</button>
     <div class="cr-send" onclick="sendMessage()">↑</div>
   </div>
   <!-- Media panel -->
@@ -1365,7 +1387,7 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
       <div style="background:var(--bg);border-radius:13px;padding:13px;margin-bottom:9px;word-break:break-all;font-size:12px;color:var(--ink2);border:1px solid var(--border);line-height:1.6" id="linkBox">生成中…</div>
       <div style="display:flex;gap:7px">
         <button class="link-copy-btn" onclick="copyInviteLink()">📋 复制链接</button>
-        <button onclick="nativeShare()" style="flex:1;padding:11px;border-radius:11px;background:var(--bg);color:var(--ink);font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);font-family:inherit">↗ 分享</button>
+        <button onclick="nativeShare()" style="flex:1;padding:11px;border-radius:11px;background:var(--bg);color:var(--ink);font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);font-family:inherit" data-i18n-key="shareLabel2">↗ 分享</button>
       </div>
       <div style="font-size:10px;color:var(--ink4);text-align:center;margin-top:7px">链接有效期 7 天 · 仅限 1 人使用</div>
     </div>
@@ -1580,7 +1602,7 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
         <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center" id="fr-emoji-picker"></div>
       </div>
       <div style="margin-bottom:20px">
-        <label class="edit-label">个性签名（可选）</label>
+        <label class="edit-label" data-i18n-key="bioLbl">个性签名（可选）</label>
         <input class="edit-input" type="text" placeholder="用一句话介绍自己…" id="fr-bio" maxlength="40" style="width:100%">
       </div>
       <div style="display:flex;gap:9px">
@@ -1604,11 +1626,11 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
         </div>
       </div>
       <div style="margin-bottom:12px">
-        <label class="edit-label">所在城市（可选）</label>
+        <label class="edit-label" data-i18n-key="cityLbl">所在城市（可选）</label>
         <input class="edit-input" type="text" placeholder="例如：奥克兰 Auckland" id="fr-city" maxlength="30" style="width:100%">
       </div>
       <div style="margin-bottom:20px">
-        <label class="edit-label">生日（可选）</label>
+        <label class="edit-label" data-i18n-key="birthdayLbl">生日（可选）</label>
         <input class="edit-input" type="date" id="fr-birthday" style="width:100%">
       </div>
       <div style="display:flex;gap:9px">
@@ -1812,368 +1834,1499 @@ var _lang = localStorage.getItem('c100_lang') || 'zh';
 var I18N = {
   zh: {
     tagline:'时间 · 关系 · 记忆<br>记录你与家人之间最珍贵的时光',
-    loginTitle:'登录 CHRONO100', loginHint:'家人安全 · 人生轨迹 · 私密聊天',
-    tabPhone:'📱 手机', tabEmail:'✉️ 邮箱',
-    lbl_phone:'手机号', lbl_otp:'验证码', lbl_email:'邮箱', lbl_password:'密码',
-    btnSendOtp:'发送验证码', btnVerify:'验证并登录', btnLogin:'登录', btnRegister:'注册',
+    loginTitle:'登录 CHRONO100',
+    tabPhone:'📱 手机',
+    lbl_phone:'手机号',
+    btnSendOtp:'发送验证码',
     btnForgot:'忘记密码？',
-    btnGoogle:'使用 Google 账号登录', btnWechat:'微信登录',
-    orWord:'或', termsText:'登录即表示同意', privacyLink:'隐私政策', termsLink:'服务条款',
-    otpSent:'验证码已发送 ✅', enterOtp:'请输入验证码', enterPhone:'请输入手机号',
-    enterEmail:'请输入邮箱', enterPassword:'请输入密码（至少8位）', enterName:'请输入昵称',
-    wechatTip:'微信登录需在微信内打开，或扫码访问 chrono100.com', resetSent:'重置邮件已发送，请查收 ✅',
-    greeting:'早上好', greetingDay:'下午好', greetingEvening:'晚上好',
-    navLife:'人生轨迹', navSafe:'家人守护', navChat:'私密聊天', navMe:'我的',
-    pageLife:'人生轨迹', pageSafe:'家人守护', pageChat:'私密聊天', pageMe:'个人设置',
-    todayActivity:'今日动态', addRecord:'＋ 添加今日记录', inviteFamily:'邀请家人加入',
+    btnGoogle:'使用 Google 账号登录',
+    orWord:'或',
+    otpSent:'验证码已发送 ✅',
+    enterEmail:'请输入邮箱',
+    wechatTip:'微信登录需在微信内打开，或扫码访问 chrono100.com',
+    greeting:'早上好',
+    navLife:'人生轨迹',
+    pageLife:'人生轨迹',
+    todayActivity:'今日动态',
     langLabel:'语言',
-    sAccount:'账号', sProfile:'个人资料', sPhone:'手机号', sEmail:'邮箱',
-    sPrivacy:'隐私与安全', sLocation:'位置权限', sEncrypt:'传输加密', sEnabled:'已开启',
-    sExport:'导出我的数据', sPrivacyPolicy:'隐私政策',
-    sNotify:'通知', sReunion:'Reunion 通知', sSafeAlert:'家人安全提醒', sDailySummary:'每日晚间总结',
-    sAppearance:'外观', sDarkMode:'深色模式',
-    sAbout:'关于', sHelp:'帮助与支持', sTerms:'服务条款',
+    sAccount:'账号',
+    sPrivacy:'隐私与安全',
+    sExport:'导出我的数据',
+    sNotify:'通知',
+    sAppearance:'外观',
+    sAbout:'关于',
     sSecurityTitle:'🔒 数据安全承诺',
     sSec1:'消息通过 HTTPS 安全传输，数据存储在 Supabase 安全服务器',
     sSec2:'位置仅在你授权的家庭圈内共享，每人独立控制',
     sSec3:'可随时导出或删除你的全部数据',
     sLogout:'退出登录',
-    safetyTitle:'家人安全中心', safetyOnline:'今天 · 家人都在线',
-    statContacts:'联系人', statMessages:'本月消息', statPhotos:'本月照片',
-    locSharing:'位置共享', safetyZones:'🛡 安全区域', addFamilyMember:'添加家庭成员',
-    checkInTitle:'✅ 一键报平安', checkInDesc:'点击告诉家人「我很好」，家人收到你的位置和状态通知',
-    tabDM:'私信', tabMoments:'朋友圈', privateSpace:'私密空间',
+    safetyTitle:'家人安全中心',
+    statContacts:'联系人',
+    locSharing:'位置共享',
+    checkInTitle:'✅ 一键报平安',
+    tabDM:'私信',
     inviteSubtitle:'加入后可互相看到位置 · 一键报平安',
     inviteFamily:'邀请家人加入',
     addRecord:'＋ 添加今日记录（显示在上方列表）',
-    todayStory:'⭐ 今日故事', lifeFootprint:'人生足迹',
-    importPhotos:'导入照片', importFolder:'整个文件夹',
-    noMsgs:'暂无消息', sentMsg:'发送了消息', addedRecord:'添加了记录',
-    photoRecord:'📷 照片记录', sharedPhoto:'📷 分享了照片',
-    hasLocation:'📍 含位置', preciseGPS:'📍 精确GPS',
-    cityLevel:'🏙 城市级位置', textRecord:'📝 文字记录',
-    noRecordToday:'今天还没有记录', startRecord:'点下方「＋ 添加今日记录」开始',
-    noRecords:'还没有记录', startImport:'点「导入照片」或「✏️ 添加记录」开始',
-    noContacts:'还没有联系人', addFamilyHint:'点右上角 ＋ 邀请家人加入',
-    recordsCount:' 个记录', locationsCount:' 个位置',
-    startImportHint:'导入照片开始记录', startImportLocHint:'导入照片或填写地点开始记录',
-    yearRecords:'年记录（共 ', yearRecordsEnd:' 条）',
-    noRecordPeriod:'暂无记录', withPhotos:'含照片', withLocation:'有位置',
-    noMoments:'还没有动态', addMomentHint:'添加记录时开启「同时发布到朋友圈」',
+    todayStory:'⭐ 今日故事',
+    importPhotos:'导入照片',
+    noMsgs:'暂无消息',
+    photoRecord:'📷 照片记录',
+    hasLocation:'📍 含位置',
+    cityLevel:'🏙 城市级位置',
+    noRecordToday:'今天还没有记录',
+    noRecords:'还没有记录',
+    noContacts:'还没有联系人',
+    recordsCount:' 个记录',
+    startImportHint:'导入照片开始记录',
+    yearRecords:'年记录（共 ',
+    noRecordPeriod:'暂无记录',
+    noMoments:'还没有动态',
     noMsgsChat:'还没有消息，发送第一条吧 👋',
-    familyActivity:'家人动态', memberCount:' 人',
+    familyActivity:'家人动态',
     trackSignal:'🛡 轨迹信号（无需后台定位）',
     noRecordTodayFull:'今天还没有记录，明天记得打开 App ✨',
-    tabMonth:'📅 本月总结', tabYear:'📆 年度回顾', tabAll:'🗺 全部记录',
-    statRecords:'记录', placesVisited:'去过的地方', companions:'陪伴你的人', photosLeft:'留下的照片',
+    tabMonth:'📅 本月总结',
+    statRecords:'记录',
     storyLabel:'故事',
-    hlRecorded:'共记录了 <em>{n}</em> 件事', hlPhotos:'留下了 <em>{n}</em> 张照片',
-    hlCompanion:'最常陪伴你的是 <em>{name}</em>', hlPlace:'去得最多的地方是 <em>{name}</em>',
-    summaryPhotos:'记录了 <em>{n} 张</em>照片', summaryMsgs:'给家人发了 <em>{n} 条</em>消息',
-    chatEncrypted:'🔒 传输加密保护', btnWechatSoon:'微信登录（即将推出）',
+    hlRecorded:'共记录了 <em>{n}</em> 件事',
+    hlCompanion:'最常陪伴你的是 <em>{name}</em>',
+    summaryPhotos:'记录了 <em>{n} 张</em>照片',
+    chatEncrypted:'🔒 传输加密保护',
     notBound:'未绑定',
-    sigExif:'照片EXIF', sigLoc:'打开定位', sigSafe:'报平安', sigPush:'每日推送', sigBatt:'电量监控',
-    sigExifTip:'📷 照片EXIF · 解析GPS时间戳', sigLocTip:'📱 打开App时自动定位', sigPushTip:'🔔 早9点推送，点开更新位置', sigBattTip:'🔋 电量低于20%自动告警',
+    sigExif:'照片EXIF',
+    sigExifTip:'📷 照片EXIF · 解析GPS时间戳',
+    sEmail:'登录邮箱',
+    sUserId:'用户ID',
+    sChangePwd:'修改密码',
+    sForgotPwd:'忘记/找回密码',
+    tabToday:'⭐ 今日',
+    myAlbum:'我的相册',
+    autoScan:'自动扫描照片库',
+    sArchiveTitle:'档案 & 智能分析',
+    sFolder:'文件夹',
+    sLifeArchive:'人生轨迹档案',
+    sSmartNotes:'AI 智能笔记分析',
+    sCopy:'复制',
+    sAuthorize:'授权 →',
+    viewAll:'查看全部',
+    albumSubtitle:'生活 · 工作 · 家人',
+    addPhoto:'+ 添加照片',
+    locSharingDesc:'选择让哪些人能看到你的位置',
+    allOn:'全开',
+    allOff:'全关',
+    loggedIn:'✅ 已登录账号',
+    editProfile:'编辑个人资料',
+    sLifeArchiveDesc:'生成PDF证明文件 · 关键词/时间/地点精准筛选',
+    sSmartNotesDesc:'上传会议纪要/日记 · AI生成结构化总结和建议',
+    sAiStory:'AI 故事功能',
+    sRedetect:'重新检测相遇',
+    visible:'可见',
+    hidden:'隐藏',
+    profileComplete:'✅ 资料已完整',
+    profileCompletion:'资料完整度',
+    guardianHint:'需家人打开「家人守护」页面才会上传位置',
+    sRefresh:'刷新',
+    shareLabel:'分享',
+    shareLabel2:'↗ 分享',
+    noFamily:'还没有家人',
+    noFamilyHint:'邀请家人加入后可以看到位置',
+    sFolderRow:'文件夹',
+    autoScanDesc:'授权后自动读取照片GPS，一键生成人生轨迹',
+    editProfileTitle:'编辑个人资料',
+    save:'保存',
+    changeAvatar:'点击更换头像照片',
+    basicInfo:'基本信息',
+    nicknameLbl:'昵称',
+    realNameLbl:'真实姓名（可选）',
+    familyOnly:'仅家庭圈内可见',
+    bioLbl:'个性签名（可选）',
+    roleInFamily:'我在家里是',
+    contactInfo:'联系方式',
+    sEmail2:'邮箱',
+    personalDetails:'个人详情',
+    birthdayLbl:'生日（可选）',
+    genderLbl:'性别（可选）',
+    cityLbl:'所在城市（可选）',
+    emergencyContact:'紧急联系人',
+    emergencyName:'紧急联系人姓名',
+    emergencyPhone:'紧急联系人手机',
+    changeEmailTitle:'修改登录邮箱',
+    bindEmailTitle:'绑定登录邮箱',
+    changeEmailDesc:'绑定后可用邮箱登录和找回密码',
+    currentEmail:'当前邮箱：',
+    newEmailAddr:'新邮箱地址',
+    setPwd:'设置密码（至少8位）',
+    setPwdHint:'设置登录密码',
+    cancel:'取消',
+    confirmBind:'确认绑定',
+    verifying:'验证中...',
+    sending:'发送中...',
+    history:'历史',
+    pasteNotes:'✍️ 粘贴或输入笔记内容',
+    chars:'字',
+    recordDate:'记录日期：',
+    saveToJourney:'存入人生轨迹',
+    aiAnalyze:'AI 分析',
+    archiveTemplate:'档案模板',
+    timeRange:'时间范围',
+    contentType:'包含内容',
+    keywordPlaceholder:'输入地点、事件、人名…多个用空格分隔',
+    preview:'预览',
+    generatePDF:'生成 PDF',
+    tplGeneral:'通用人生档案',
+    tplGeneralDesc:'完整记录，适合个人留存',
+    tplVisa:'签证行程证明',
+    tplVisaDesc:'按日期列出地点轨迹，含GPS',
+    tplWork:'工作履历档案',
+    tplWorkDesc:'筛选工作记录，适合简历附件',
+    tplFamily:'家庭历史记录',
+    tplFamilyDesc:'家庭相关记录，永久珍藏',
+    timeAll:'全部时间',
+    timeYear:'近一年',
+    timeHalfYear:'近半年',
+    timeThreeMonths:'近三个月',
+    timeCustom:'自定义',
+    typeAll:'全部类型',
+    typeGPS:'仅含位置',
+    typeGPSDesc:'有GPS坐标的记录',
+    typePhoto:'仅含照片',
+    typePhotoDesc:'有图片的记录',
+    typePeople:'含同行人',
+    typePeopleDesc:'有家人同行的记录',
+    noFamilyYet:'还没有家人',
+    folderLabel:'文件夹',
+    startDate:'开始日期',
+    endDate:'结束日期',
+    sending2:'发送中…',
+    verifying2:'验证中…',
+    signingIn:'登录中…',
+    registering:'注册中…',
+    saving2:'保存中…',
+    analyzing:'分析中...',
+    loading2:'加载中...',
+    scanning:'极速扫描中…',
+    noMsgsYet:'还没有消息，发送第一条吧 👋',
+    newMsg:'新消息',
+    contact:'联系人',
+    family2:'家人',
+    friend2:'好友',
+    imgLabel:'[图片]',
+    fileLabel:'[文件]',
+    download:'下载',
+    noMoments2:'还没有动态',
+    familyFeed:'家人动态',
+    sharedMoment:'分享了动态',
+    reunionTitle:'你们相遇了！',
+    reunionYouAnd:'你和 ',
+    reunionToday:'今天碰面啦',
+    reunionThisYear:'今年第 ',
+    reunionTimes:'次',
+    addRecord3:'📝 添加记录',
+    noRecordYet:'今天还没有记录',
+    allRecords:'全部',
+    noRecord2:'暂无记录',
+    placesVisited2:'去过的地方',
+    clickAll:'点击查看全部记录',
+    clickPhoto:'点击查看含照片记录',
+    clickLoc:'点击查看含位置记录',
+    expand2:'展开',
+    changePwdTitle:'修改密码',
+    newPwd:'新密码（至少8位）',
+    confirmPwd:'确认新密码',
+    confirmChange:'确认修改',
+    forgotTitle:'找回密码',
+    chooseMethod:'选择找回方式',
+    byEmail2:'邮箱找回',
+    byPhone2:'手机找回',
+    changePhoneTitle:'修改手机号',
+    changePhoneDesc:'绑定后可用手机号登录和找回密码',
+    newPhone:'新手机号',
+    myAlbumTitle:'我的相册',
+    myFolderTitle:'我的文件夹',
+    openFile:'打开',
+    addBtn:'+ 添加',
+    saveWhere:'这张照片存入哪里？',
+    autoSaveAlbum:'选择后自动保存到相册',
+    shareFamily:'分享给家人',
+    bothSave:'🗺 + ✨ 两者都保存（人生轨迹 & 朋友圈）',
+    dontSave:'不保存到 App',
+    aiResultTitle:'智能分析结果',
+    summaryKey:'📋 核心总结',
+    keyPoints:'⭐ 关键要点',
+    actionList:'✅ 行动清单',
+    notesWarning:'⚠️ 注意事项',
+    aiSuggest:'🧠 AI 专属建议',
+    copyReport:'📋 复制报告',
+    withPhoto:'含照片',
+    gpsLoc:'GPS定位',
+    companion:'同行人',
+    recordDetail:'',
+    noMatch:'暂无匹配记录',
+    expandHint:'试试扩大时间范围或清空关键词',
+    searchHint:'输入关键词开始搜索',
+    searching:'搜索中...',
+    noResults:'没有找到相关记录',
+    confirm2:'确定',
+    ok2:'好的',
+    minutesAgo:'分前',
+    minuteAgo2:'分钟前',
+    hourAgo:'小时前',
+    confirmLogout:'确认退出登录？\n退出后需重新登录',
+    delete2:'删除',
+    noPwd:'旧版加密消息',
+    lifeJourney2:'人生轨迹',
+    justNow:'justNow',
+    notSharing:'notSharing',
+    visAll:'visAll',
+    visFam:'visFam',
   },
   en: {
     tagline:'Time · Family · Memory<br>Capture precious moments with your loved ones',
-    loginTitle:'Sign in to CHRONO100', loginHint:'Family Safety · Life Journey · Private Chat',
-    tabPhone:'📱 Phone', tabEmail:'✉️ Email',
-    lbl_phone:'Phone number', lbl_otp:'OTP code', lbl_email:'Email', lbl_password:'Password',
-    btnSendOtp:'Send OTP', btnVerify:'Verify & Sign in', btnLogin:'Sign in', btnRegister:'Register',
+    loginTitle:'Sign in to CHRONO100',
+    tabPhone:'📱 Phone',
+    lbl_phone:'Phone number',
+    btnSendOtp:'Send OTP',
     btnForgot:'Forgot password?',
-    btnGoogle:'Sign in with Google', btnWechat:'WeChat Login',
-    orWord:'or', termsText:'By signing in you agree to our', privacyLink:'Privacy Policy', termsLink:'Terms',
-    otpSent:'OTP sent ✅', enterOtp:'Enter the OTP', enterPhone:'Enter your phone number',
-    enterEmail:'Enter your email', enterPassword:'Enter password (min 8 chars)', enterName:'Enter your name',
-    wechatTip:'WeChat login requires opening in WeChat app', resetSent:'Reset email sent ✅',
-    greeting:'Good morning', greetingDay:'Good afternoon', greetingEvening:'Good evening',
-    navLife:'Journey', navSafe:'Guardian', navChat:'Chat', navMe:'Me',
-    pageLife:'Life Journey', pageSafe:'Family Guardian', pageChat:'Private Chat', pageMe:'Settings',
-    todayActivity:"Today's Activity", addRecord:'＋ Add Today', inviteFamily:'Invite Family',
+    btnGoogle:'Sign in with Google',
+    orWord:'or',
+    otpSent:'OTP sent ✅',
+    enterEmail:'Enter your email',
+    wechatTip:'WeChat login requires opening in WeChat app',
+    greeting:'Good morning',
+    navLife:'Journey',
+    pageLife:'Life Journey',
     langLabel:'Language',
-    sAccount:'Account', sProfile:'Profile', sPhone:'Phone', sEmail:'Email',
-    sPrivacy:'Privacy & Security', sLocation:'Location', sEncrypt:'Transport Encryption', sEnabled:'Active',
-    sExport:'Export My Data', sPrivacyPolicy:'Privacy Policy',
-    sNotify:'Notifications', sReunion:'Reunion Alerts', sSafeAlert:'Family Safety Alerts', sDailySummary:'Daily Summary',
-    sAppearance:'Appearance', sDarkMode:'Dark Mode',
-    sAbout:'About', sHelp:'Help & Support', sTerms:'Terms of Service',
+    sAccount:'Account',
+    sPrivacy:'Privacy & Security',
+    sExport:'Export My Data',
+    sNotify:'Notifications',
+    sAppearance:'Appearance',
+    sAbout:'About',
     sSecurityTitle:'🔒 Security Promise',
     sSec1:'Messages are encrypted in transit. Advanced E2E encryption coming soon.',
     sSec2:'Location is shared only within your authorized family circle.',
     sSec3:'Export or delete all your data at any time.',
     sLogout:'Sign Out',
-    safetyTitle:'Family Guardian', safetyOnline:'Today · Family Online',
-    statContacts:'Contacts', statMessages:'Monthly Messages', statPhotos:'Monthly Photos',
-    locSharing:'Location Sharing', safetyZones:'🛡 Safety Zones', addFamilyMember:'Add Family Member',
-    checkInTitle:'✅ Check In', checkInDesc:'Tap to tell your family you\'re safe. They\'ll receive your location.',
-    tabDM:'Messages', tabMoments:'Moments', privateSpace:'Private Space',
-    inviteSubtitle:'See each other\'s location · One-tap check-in',
+    safetyTitle:'Family Guardian',
+    statContacts:'Contacts',
+    locSharing:'Location Sharing',
+    checkInTitle:'✅ Check In',
+    tabDM:'Messages',
+    inviteSubtitle:"See each other's location · One-tap check-in",
     inviteFamily:'Invite Family',
-    addRecord:'＋ Add Today\'s Record',
-    todayStory:'⭐ Today\'s Story', lifeFootprint:'Life Footprint',
-    importPhotos:'Import Photos', importFolder:'Import Folder',
-    noMsgs:'No messages yet', sentMsg:'Sent a message', addedRecord:'Added a record',
-    photoRecord:'📷 Photo record', sharedPhoto:'📷 Shared a photo',
-    hasLocation:'📍 Has location', preciseGPS:'📍 Precise GPS',
-    cityLevel:'🏙 City-level', textRecord:'📝 Text record',
-    noRecordToday:'No records today', startRecord:'Tap below to add your first record',
-    noRecords:'No records yet', startImport:'Import photos or add a record to start',
-    noContacts:'No contacts yet', addFamilyHint:'Tap ＋ to invite family',
-    recordsCount:' records', locationsCount:' locations',
-    startImportHint:'Import photos to start', startImportLocHint:'Import photos or enter a place to start',
-    yearRecords:' Records (', yearRecordsEnd:')',
-    noRecordPeriod:'No records', withPhotos:'With photos', withLocation:'With location',
-    noMoments:'No moments yet', addMomentHint:'Enable "Share to Moments" when adding a record',
+    addRecord:"＋ Add Today's Record",
+    todayStory:"⭐ Today's Story",
+    importPhotos:'Import Photos',
+    noMsgs:'No messages yet',
+    photoRecord:'📷 Photo record',
+    hasLocation:'📍 Has location',
+    cityLevel:'🏙 City-level',
+    noRecordToday:'No records today',
+    noRecords:'No records yet',
+    noContacts:'No contacts yet',
+    recordsCount:' records',
+    startImportHint:'Import photos to start',
+    yearRecords:' Records (',
+    noRecordPeriod:'No records',
+    noMoments:'No moments yet',
     noMsgsChat:'No messages yet. Say hello 👋',
-    familyActivity:'Family Activity', memberCount:' members',
+    familyActivity:'Family Activity',
     trackSignal:'🛡 Location Signals (no background tracking)',
     noRecordTodayFull:'No records today. Remember to open the app tomorrow ✨',
-    tabMonth:'📅 This Month', tabYear:'📆 This Year', tabAll:'🗺 All Records',
-    statRecords:'Records', placesVisited:'Places Visited', companions:'With People', photosLeft:'Photos',
+    tabMonth:'📅 This Month',
+    statRecords:'Records',
     storyLabel:' Story',
-    hlRecorded:'recorded <em>{n}</em> moments', hlPhotos:'saved <em>{n}</em> photos',
-    hlCompanion:'most often with <em>{name}</em>', hlPlace:'visited <em>{name}</em> the most',
-    summaryPhotos:'recorded <em>{n}</em> photos', summaryMsgs:'sent <em>{n}</em> messages to family',
+    hlRecorded:'recorded <em>{n}</em> moments',
+    hlCompanion:'most often with <em>{name}</em>',
+    summaryPhotos:'recorded <em>{n}</em> photos',
     chatEncrypted:'🔒 Encrypted in transit',
     notBound:'Not bound',
-    sigExif:'Photo EXIF', sigLoc:'GPS on Open', sigSafe:'Check In', sigPush:'Daily Push', sigBatt:'Battery Watch',
-    sigExifTip:'📷 Photo EXIF · Parse GPS timestamps', sigLocTip:'📱 Auto-locate when app opens', sigPushTip:'🔔 Daily 9am push, opens to update location', sigBattTip:'🔋 Auto-alert when battery below 20%', btnWechatSoon:'WeChat (Coming Soon)'
+    sigExif:'Photo EXIF',
+    sigExifTip:'📷 Photo EXIF · Parse GPS timestamps',
+    sEmail:'Login Email',
+    sUserId:'User ID',
+    sChangePwd:'Change Password',
+    sForgotPwd:'Forgot Password',
+    tabToday:'⭐ Today',
+    myAlbum:'My Album',
+    autoScan:'Auto Scan Photos',
+    sArchiveTitle:'Archive & AI Analysis',
+    sFolder:'Folders',
+    sLifeArchive:'Life Journey Archive',
+    sSmartNotes:'AI Smart Notes',
+    sCopy:'Copy',
+    sAuthorize:'Authorize →',
+    viewAll:'View All',
+    albumSubtitle:'Life · Work · Family',
+    addPhoto:'+ Add Photo',
+    locSharingDesc:'Choose who can see your location',
+    allOn:'All On',
+    allOff:'All Off',
+    loggedIn:'✅ Signed In',
+    editProfile:'Edit Profile',
+    sLifeArchiveDesc:'Generate PDF · Filter by keyword/time/location',
+    sSmartNotesDesc:'Upload meeting notes/diary · AI summary & suggestions',
+    sAiStory:'AI Story',
+    sRedetect:'Re-detect Reunion',
+    visible:'Visible',
+    hidden:'Hidden',
+    profileComplete:'✅ Profile Complete',
+    profileCompletion:'Profile completeness',
+    guardianHint:'Ask family to open Guardian page to share location',
+    sRefresh:'Refresh',
+    shareLabel:'Share',
+    shareLabel2:'↗ Share',
+    noFamily:'No family yet',
+    noFamilyHint:'Invite family to see their location',
+    sFolderRow:'Folders',
+    autoScanDesc:'Auto-read photo GPS after authorization',
+    editProfileTitle:'Edit Profile',
+    save:'Save',
+    changeAvatar:'Tap to change avatar',
+    basicInfo:'Basic Info',
+    nicknameLbl:'Nickname',
+    realNameLbl:'Real Name (optional)',
+    familyOnly:'Visible to family only',
+    bioLbl:'Bio (optional)',
+    roleInFamily:'My role in family',
+    contactInfo:'Contact',
+    sEmail2:'Email',
+    personalDetails:'Personal Details',
+    birthdayLbl:'Birthday (optional)',
+    genderLbl:'Gender (optional)',
+    cityLbl:'City (optional)',
+    emergencyContact:'Emergency Contact',
+    emergencyName:'Emergency contact name',
+    emergencyPhone:'Emergency phone',
+    changeEmailTitle:'Change Login Email',
+    bindEmailTitle:'Bind Login Email',
+    changeEmailDesc:'Use email to login and reset password',
+    currentEmail:'Current email: ',
+    newEmailAddr:'New email address',
+    setPwd:'Set password (min 8 chars)',
+    setPwdHint:'Set login password',
+    cancel:'Cancel',
+    confirmBind:'Confirm',
+    verifying:'Verifying...',
+    sending:'Sending...',
+    history:'History',
+    pasteNotes:'✍️ Paste or type notes',
+    chars:'chars',
+    recordDate:'Date: ',
+    saveToJourney:'Save to Journey',
+    aiAnalyze:'AI Analyze',
+    archiveTemplate:'Archive Template',
+    timeRange:'Time Range',
+    contentType:'Content Type',
+    keywordPlaceholder:'Enter places, events, names... separate with spaces',
+    preview:'Preview',
+    generatePDF:'Generate PDF',
+    tplGeneral:'General Archive',
+    tplGeneralDesc:'Complete records, personal use',
+    tplVisa:'Visa Travel Proof',
+    tplVisaDesc:'Daily locations with GPS',
+    tplWork:'Work History',
+    tplWorkDesc:'Work records for resume',
+    tplFamily:'Family History',
+    tplFamilyDesc:'Family records, forever treasured',
+    timeAll:'All Time',
+    timeYear:'Past Year',
+    timeHalfYear:'Past 6 Months',
+    timeThreeMonths:'Past 3 Months',
+    timeCustom:'Custom',
+    typeAll:'All Types',
+    typeGPS:'GPS Only',
+    typeGPSDesc:'Records with GPS coordinates',
+    typePhoto:'Photos Only',
+    typePhotoDesc:'Records with photos',
+    typePeople:'With People',
+    typePeopleDesc:'Records with family',
+    noFamilyYet:'No family members yet',
+    folderLabel:'Folders',
+    startDate:'Start Date',
+    endDate:'End Date',
+    sending2:'Sending…',
+    verifying2:'Verifying…',
+    signingIn:'Signing in…',
+    registering:'Registering…',
+    saving2:'Saving…',
+    analyzing:'Analyzing...',
+    loading2:'Loading...',
+    scanning:'Scanning…',
+    noMsgsYet:'No messages yet. Say hello 👋',
+    newMsg:'New message',
+    contact:'Contact',
+    family2:'Family',
+    friend2:'Friend',
+    notSharing:'Not sharing location',
+    imgLabel:'[Photo]',
+    fileLabel:'[File]',
+    download:'Download',
+    noMoments2:'No moments yet',
+    familyFeed:'Family Feed',
+    sharedMoment:'shared a moment',
+    visAll:'Visible to all',
+    visFam:'Family only',
+    reunionTitle:'You met!',
+    reunionYouAnd:'You and ',
+    reunionToday:'met today',
+    reunionThisYear:'No. ',
+    reunionTimes:'time(s)',
+    addRecord3:'📝 Add Record',
+    noRecordYet:'No records today',
+    allRecords:'All',
+    noRecord2:'No records',
+    placesVisited2:'Places visited',
+    clickAll:'View all records',
+    clickPhoto:'View photo records',
+    clickLoc:'View location records',
+    expand2:'Expand',
+    changePwdTitle:'Change Password',
+    newPwd:'New password (min 8)',
+    confirmPwd:'Confirm password',
+    confirmChange:'Confirm change',
+    forgotTitle:'Forgot Password',
+    chooseMethod:'Choose method',
+    byEmail2:'By email',
+    byPhone2:'By phone',
+    changePhoneTitle:'Change Phone',
+    changePhoneDesc:'Use phone to login and reset password',
+    newPhone:'New phone number',
+    myAlbumTitle:'My Album',
+    myFolderTitle:'My Folders',
+    openFile:'Open',
+    addBtn:'+ Add',
+    saveWhere:'Save this photo to?',
+    autoSaveAlbum:'Auto-save to album',
+    shareFamily:'Share with family',
+    bothSave:'🗺 + ✨ Save to both (Journey & Moments)',
+    aiResultTitle:'AI Analysis Result',
+    summaryKey:'📋 Summary',
+    keyPoints:'⭐ Key Points',
+    actionList:'✅ Action List',
+    notesWarning:'⚠️ Notes',
+    aiSuggest:'🧠 AI Suggestions',
+    copyReport:'📋 Copy Report',
+    withPhoto:'Photos',
+    gpsLoc:'GPS',
+    companion:'With',
+    recordDetail:'Records (tap to view)',
+    noMatch:'No matching records',
+    expandHint:'Try wider range or clear keywords',
+    searchHint:'Enter keywords to search',
+    searching:'Searching...',
+    noResults:'No results found',
+    confirm2:'Confirm',
+    ok2:'OK',
+    minutesAgo:'m ago',
+    justNow:'Just now',
+    minuteAgo2:'min ago',
+    hourAgo:'hr ago',
+    confirmLogout:'Sign out?\nYou will need to sign in again.',
+    delete2:'Delete',
+    noPwd:'[Legacy encrypted message]',
+    lifeJourney2:'Life Journey',
+    dontSave:"Don't save to App",
+    todayActivity:"Today's Activity",
   },
   'zh-tw': {
     tagline:'時間 · 關係 · 記憶<br>記錄你與家人之間最珍貴的時光',
-    loginTitle:'登入 CHRONO100', loginHint:'家人安全 · 人生軌跡 · 私密聊天',
-    tabPhone:'📱 手機', tabEmail:'✉️ 郵箱',
-    lbl_phone:'手機號碼', lbl_otp:'驗證碼', lbl_email:'電子郵件', lbl_password:'密碼',
-    btnSendOtp:'發送驗證碼', btnVerify:'驗證並登入', btnLogin:'登入', btnRegister:'註冊',
+    loginTitle:'登入 CHRONO100',
+    tabPhone:'📱 手機',
+    lbl_phone:'手機號碼',
+    btnSendOtp:'發送驗證碼',
     btnForgot:'忘記密碼？',
-    btnGoogle:'使用 Google 帳號登入', btnWechat:'微信登入',
-    orWord:'或', termsText:'登入即表示同意', privacyLink:'隱私政策', termsLink:'服務條款',
-    otpSent:'驗證碼已發送 ✅', enterOtp:'請輸入驗證碼', enterPhone:'請輸入手機號碼',
-    enterEmail:'請輸入電子郵件', enterPassword:'請輸入密碼（至少8位）', enterName:'請輸入暱稱',
-    wechatTip:'微信登入需在微信內開啟', resetSent:'重置郵件已發送 ✅',
-    greeting:'早上好', greetingDay:'下午好', greetingEvening:'晚上好',
-    navLife:'人生軌跡', navSafe:'防失聯', navChat:'私密聊天', navMe:'我的',
-    pageLife:'人生軌跡', pageSafe:'防失聯', pageChat:'私密聊天', pageMe:'個人設定',
-    todayActivity:'今日動態', addRecord:'＋ 添加今日記錄', inviteFamily:'邀請家人加入',
+    btnGoogle:'使用 Google 帳號登入',
+    orWord:'或',
+    otpSent:'驗證碼已發送 ✅',
+    enterEmail:'請輸入電子郵件',
+    wechatTip:'微信登入需在微信內開啟',
+    greeting:'早上好',
+    navLife:'人生軌跡',
+    pageLife:'人生軌跡',
+    todayActivity:'今日動態',
     langLabel:'語言',
-    sAccount:'帳號', sProfile:'個人資料', sPhone:'手機號', sEmail:'郵箱',
-    sPrivacy:'隱私與安全', sLocation:'位置權限', sEncrypt:'傳輸加密', sEnabled:'已啟用',
-    sExport:'匯出我的資料', sPrivacyPolicy:'隱私政策',
-    sNotify:'通知', sReunion:'Reunion 通知', sSafeAlert:'防失聯告警', sDailySummary:'每日晚間總結',
-    sAppearance:'外觀', sDarkMode:'深色模式',
-    sAbout:'關於', sHelp:'幫助與支持', sTerms:'服務條款',
+    sAccount:'帳號',
+    sPrivacy:'隱私與安全',
+    sExport:'匯出我的資料',
+    sNotify:'通知',
+    sAppearance:'外觀',
+    sAbout:'關於',
     sSecurityTitle:'🔒 資料安全承諾',
     sSec1:'所有訊息端對端加密，伺服器僅存密文，員工無法查看',
     sSec2:'位置僅在你授權的家庭圈內共享，每人獨立控制',
     sSec3:'可隨時匯出或刪除你的全部資料',
     sLogout:'退出登入',
-    sigExif:'照片EXIF', sigLoc:'打開定位', sigSafe:'報平安', sigPush:'每日推送', sigBatt:'電量監控',
-    sigExifTip:'📷 照片EXIF · 解析GPS時間戳', sigLocTip:'📱 打開App時自動定位', sigPushTip:'🔔 早9點推送', sigBattTip:'🔋 電量低於20%自動告警',
-    hasLocation:'📍 含位置', preciseGPS:'📍 精確GPS',
-    cityLevel:'🏙 城市級位置', textRecord:'📝 文字記錄',
-    noRecordToday:'今天還沒有記錄', startRecord:'點下方「＋ 添加今日記錄」開始',
-    noRecords:'還沒有記錄', startImport:'點「匯入照片」或「✏️ 添加記錄」開始',
-    noContacts:'還沒有聯絡人', addFamilyHint:'點右上角 ＋ 邀請家人加入',
-    recordsCount:' 個記錄', locationsCount:' 個位置',
-    startImportHint:'匯入照片開始記錄', startImportLocHint:'匯入照片或填寫地點開始記錄',
-    yearRecords:'年記錄（共 ', yearRecordsEnd:' 條）',
-    noRecordPeriod:'暫無記錄', withPhotos:'含照片', withLocation:'有位置',
-    noMoments:'還沒有動態', addMomentHint:'添加記錄時開啟「同時發佈到朋友圈」',
+    sigExif:'照片EXIF',
+    sigExifTip:'📷 照片EXIF · 解析GPS時間戳',
+    hasLocation:'📍 含位置',
+    cityLevel:'🏙 城市級位置',
+    noRecordToday:'今天還沒有記錄',
+    noRecords:'還沒有記錄',
+    noContacts:'還沒有聯絡人',
+    recordsCount:' 個記錄',
+    startImportHint:'匯入照片開始記錄',
+    yearRecords:'年記錄（共 ',
+    noRecordPeriod:'暫無記錄',
+    noMoments:'還沒有動態',
     noMsgsChat:'還沒有訊息，發送第一條吧 👋',
-    familyActivity:'家人動態', memberCount:' 人',
+    familyActivity:'家人動態',
     trackSignal:'🛡 軌跡訊號（無需後台定位）',
     noRecordTodayFull:'今天還沒有記錄，明天記得打開 App ✨',
-    tabMonth:'📅 本月總結', tabYear:'📆 年度回顧', tabAll:'🗺 全部記錄',
-    statRecords:'記錄', placesVisited:'去過的地方', companions:'陪伴你的人', photosLeft:'留下的照片',
+    tabMonth:'📅 本月總結',
+    statRecords:'記錄',
     storyLabel:'故事',
-    hlRecorded:'共記錄了 <em>{n}</em> 件事', hlPhotos:'留下了 <em>{n}</em> 張照片',
-    hlCompanion:'最常陪伴你的是 <em>{name}</em>', hlPlace:'去得最多的地方是 <em>{name}</em>',
-    summaryPhotos:'記錄了 <em>{n} 張</em>照片', summaryMsgs:'給家人發了 <em>{n} 條</em>訊息',
-    chatEncrypted:'🔒 傳輸加密保護', btnWechatSoon:'微信登入（即將推出）',
-    safetyTitle:'家人安全中心', safetyOnline:'今天 · 家人都在線',
-    statContacts:'聯絡人', statMessages:'本月訊息', statPhotos:'本月照片',
-    locSharing:'位置共享', safetyZones:'🛡 安全區域', addFamilyMember:'添加家庭成員',
-    checkInTitle:'✅ 一鍵報平安', checkInDesc:'點擊告訴家人「我很好」，家人收到你的位置通知',
-    tabDM:'私信', tabMoments:'朋友圈', privateSpace:'私密空間',
-    inviteSubtitle:'加入後可互相看到位置 · 一鍵報平安'
+    hlRecorded:'共記錄了 <em>{n}</em> 件事',
+    hlCompanion:'最常陪伴你的是 <em>{name}</em>',
+    summaryPhotos:'記錄了 <em>{n} 張</em>照片',
+    chatEncrypted:'🔒 傳輸加密保護',
+    safetyTitle:'家人安全中心',
+    statContacts:'聯絡人',
+    locSharing:'位置共享',
+    checkInTitle:'✅ 一鍵報平安',
+    tabDM:'私信',
+    addRecord:'＋ 添加今日記錄（顯示在上方列表）',
+    importPhotos:'匯入照片',
+    inviteFamily:'邀請家人加入',
+    noMsgs:'暫無消息',
+    notBound:'未綁定',
+    photoRecord:'📷 照片記錄',
+    todayStory:'⭐ 今日故事',
+    inviteSubtitle:'加入後可互相看到位置 · 一鍵報平安',
+    sEmail:'登入郵箱',
+    sUserId:'用戶ID',
+    sChangePwd:'修改密碼',
+    sForgotPwd:'忘記/找回密碼',
+    tabToday:'⭐ 今日',
+    myAlbum:'我的相冊',
+    autoScan:'自動掃描照片庫',
+    sArchiveTitle:'檔案 & 智能分析',
+    sFolder:'文件夾',
+    sLifeArchive:'人生軌跡檔案',
+    sSmartNotes:'AI 智能筆記分析',
+    sCopy:'複製',
+    sAuthorize:'授權 →',
+    viewAll:'查看全部',
+    autoScanDesc:'授權後自動讀取照片GPS，一鍵生成人生軌跡',
+    editProfileTitle:'編輯個人資料',
+    save:'保存',
+    changeAvatar:'點擊更換頭像照片',
+    basicInfo:'基本信息',
+    nicknameLbl:'暱稱',
+    realNameLbl:'真實姓名（可選）',
+    familyOnly:'僅家庭圈內可見',
+    bioLbl:'個性簽名（可選）',
+    roleInFamily:'我在家裡是',
+    contactInfo:'聯繫方式',
+    sEmail2:'郵箱',
+    personalDetails:'個人詳情',
+    birthdayLbl:'生日（可選）',
+    genderLbl:'性別（可選）',
+    cityLbl:'所在城市（可選）',
+    emergencyContact:'緊急聯絡人',
+    emergencyName:'緊急聯絡人姓名',
+    emergencyPhone:'緊急聯絡人手機',
+    changeEmailTitle:'修改登入郵箱',
+    bindEmailTitle:'綁定登入郵箱',
+    changeEmailDesc:'綁定後可用郵箱登入和找回密碼',
+    currentEmail:'當前郵箱：',
+    newEmailAddr:'新郵箱地址',
+    setPwd:'設置密碼（至少8位）',
+    setPwdHint:'設置登入密碼',
+    cancel:'取消',
+    confirmBind:'確認綁定',
+    verifying:'驗證中...',
+    sending:'發送中...',
+    history:'歷史',
+    pasteNotes:'✍️ 粘貼或輸入筆記內容',
+    chars:'字',
+    recordDate:'記錄日期：',
+    saveToJourney:'存入人生軌跡',
+    aiAnalyze:'AI 分析',
+    archiveTemplate:'檔案模板',
+    timeRange:'時間範圍',
+    contentType:'包含內容',
+    keywordPlaceholder:'輸入地點、事件、人名…多個用空格分隔',
+    preview:'預覽',
+    generatePDF:'生成 PDF',
+    tplGeneral:'通用人生檔案',
+    tplGeneralDesc:'完整記錄，適合個人留存',
+    tplVisa:'簽證行程證明',
+    tplVisaDesc:'按日期列出地點軌跡，含GPS',
+    tplWork:'工作履歷檔案',
+    tplWorkDesc:'篩選工作記錄，適合簡歷附件',
+    tplFamily:'家庭歷史記錄',
+    tplFamilyDesc:'家庭相關記錄，永久珍藏',
+    timeAll:'全部時間',
+    timeYear:'近一年',
+    timeHalfYear:'近半年',
+    timeThreeMonths:'近三個月',
+    timeCustom:'自定義',
+    typeAll:'全部類型',
+    typeGPS:'僅含位置',
+    typeGPSDesc:'有GPS坐標的記錄',
+    typePhoto:'僅含照片',
+    typePhotoDesc:'有圖片的記錄',
+    typePeople:'含同行人',
+    typePeopleDesc:'有家人同行的記錄',
+    noFamilyYet:'還沒有家人',
+    noFamilyHint:'邀請家人加入後可以看到位置',
+    folderLabel:'文件夾',
+    startDate:'開始日期',
+    endDate:'結束日期',
+    sending2:'發送中…',
+    verifying2:'驗證中…',
+    signingIn:'登入中…',
+    registering:'註冊中…',
+    saving2:'保存中…',
+    analyzing:'分析中...',
+    loading2:'載入中...',
+    scanning:'極速掃描中…',
+    noMsgsYet:'還沒有消息，發送第一條吧 👋',
+    newMsg:'新消息',
+    contact:'聯絡人',
+    family2:'家人',
+    friend2:'好友',
+    imgLabel:'[圖片]',
+    fileLabel:'[文件]',
+    download:'下載',
+    noMoments2:'還沒有動態',
+    familyFeed:'家人動態',
+    sharedMoment:'分享了動態',
+    visAll:'所有人可見',
+    visFam:'僅家人可見',
+    reunionTitle:'你們相遇了！',
+    reunionYouAnd:'你和 ',
+    reunionToday:'今天碰面啦',
+    reunionThisYear:'今年第 ',
+    reunionTimes:'次',
+    addRecord3:'📝 添加記錄',
+    noRecordYet:'今天還沒有記錄',
+    allRecords:'全部',
+    noRecord2:'暫無記錄',
+    placesVisited2:'去過的地方',
+    clickAll:'點擊查看全部記錄',
+    clickPhoto:'點擊查看含照片記錄',
+    clickLoc:'點擊查看含位置記錄',
+    expand2:'展開',
+    changePwdTitle:'修改密碼',
+    newPwd:'新密碼（至少8位）',
+    confirmPwd:'確認新密碼',
+    confirmChange:'確認修改',
+    forgotTitle:'找回密碼',
+    chooseMethod:'選擇找回方式',
+    byEmail2:'郵箱找回',
+    byPhone2:'手機找回',
+    changePhoneTitle:'修改手機號',
+    changePhoneDesc:'綁定後可用手機號登入和找回密碼',
+    newPhone:'新手機號',
+    myAlbumTitle:'我的相冊',
+    myFolderTitle:'我的文件夾',
+    openFile:'打開',
+    addBtn:'+ 添加',
+    saveWhere:'這張照片存入哪裡？',
+    autoSaveAlbum:'選擇後自動保存到相冊',
+    shareFamily:'分享給家人',
+    bothSave:'🗺 + ✨ 兩者都保存',
+    dontSave:'不保存到 App',
+    aiResultTitle:'智能分析結果',
+    summaryKey:'📋 核心總結',
+    keyPoints:'⭐ 關鍵要點',
+    actionList:'✅ 行動清單',
+    notesWarning:'⚠️ 注意事項',
+    aiSuggest:'🧠 AI 專屬建議',
+    copyReport:'📋 複製報告',
+    withPhoto:'含照片',
+    gpsLoc:'GPS定位',
+    companion:'同行人',
+    recordDetail:'記錄明細（點擊可查看詳情）',
+    noMatch:'暫無匹配記錄',
+    expandHint:'試試擴大時間範圍或清空關鍵詞',
+    searchHint:'輸入關鍵詞開始搜索',
+    searching:'搜索中...',
+    noResults:'沒有找到相關記錄',
+    confirm2:'確定',
+    ok2:'好的',
+    minutesAgo:'分前',
+    justNow:'剛剛更新',
+    minuteAgo2:'分鐘前',
+    hourAgo:'小時前',
+    confirmLogout:'確認退出登入？\n退出後需重新登入',
+    delete2:'刪除',
+    noPwd:'舊版加密消息',
+    lifeJourney2:'人生軌跡',
+    profileCompletion:'资料完整度',
+    loggedIn:'✅ 已登录账号',
+    allOff:'全关',
+    hidden:'隐藏',
+    allOn:'全开',
+    guardianHint:'需家人打开「家人守护」页面才会上传位置',
+    sSmartNotesDesc:'上传会议纪要/日记 · AI生成结构化总结和建议',
+    addPhoto:'+ 添加照片',
+    shareLabel2:'↗ 分享',
+    sRefresh:'刷新',
+    sFolderRow:'文件夹',
+    editProfile:'编辑个人资料',
+    albumSubtitle:'生活 · 工作 · 家人',
+    locSharingDesc:'选择让哪些人能看到你的位置',
+    sRedetect:'重新检测相遇',
+    profileComplete:'✅ 资料已完整',
+    sLifeArchiveDesc:'生成PDF证明文件 · 关键词/时间/地点精准筛选',
+    visible:'可见',
+    sAiStory:'AI 故事功能',
+    shareLabel:'分享',
+    noFamily:'还没有家人',
+    notSharing:'notSharing',
   },
   ja: {
     tagline:'時間 · 絆 · 記憶<br>家族との大切な瞬間を記録しよう',
-    loginTitle:'CHRONO100 にログイン', loginHint:'家族の安全 · 人生の軌跡 · プライベートチャット',
-    tabPhone:'📱 電話', tabEmail:'✉️ メール',
-    lbl_phone:'電話番号', lbl_otp:'認証コード', lbl_email:'メール', lbl_password:'パスワード',
-    btnSendOtp:'認証コードを送信', btnVerify:'確認してログイン', btnLogin:'ログイン', btnRegister:'登録',
+    loginTitle:'CHRONO100 にログイン',
+    tabPhone:'📱 電話',
+    lbl_phone:'電話番号',
+    btnSendOtp:'認証コードを送信',
     btnForgot:'パスワードを忘れた？',
-    btnGoogle:'Googleでログイン', btnWechat:'WeChatログイン',
-    orWord:'または', termsText:'ログインで同意します', privacyLink:'プライバシー', termsLink:'利用規約',
-    otpSent:'認証コードを送信しました ✅', enterOtp:'認証コードを入力', enterPhone:'電話番号を入力',
-    enterEmail:'メールを入力', enterPassword:'パスワードを入力（8文字以上）', enterName:'名前を入力',
-    wechatTip:'WeChatアプリ内で開いてください', resetSent:'リセットメールを送信しました ✅',
-    greeting:'おはようございます', greetingDay:'こんにちは', greetingEvening:'こんばんは',
-    navLife:'人生', navSafe:'安全', navChat:'チャット', navMe:'マイページ',
-    pageLife:'人生の軌跡', pageSafe:'家族の安全', pageChat:'プライベートチャット', pageMe:'設定',
-    todayActivity:'今日のできごと', addRecord:'＋ 追加', inviteFamily:'家族を招待',
+    btnGoogle:'Googleでログイン',
+    orWord:'または',
+    otpSent:'認証コードを送信しました ✅',
+    enterEmail:'メールを入力',
+    wechatTip:'WeChatアプリ内で開いてください',
+    greeting:'おはようございます',
+    navLife:'人生',
+    pageLife:'人生の軌跡',
+    todayActivity:'今日のできごと',
     langLabel:'言語',
-    sAccount:'アカウント', sProfile:'プロフィール', sPhone:'電話番号', sEmail:'メール',
-    sPrivacy:'プライバシーと安全', sLocation:'位置情報', sEncrypt:'転送暗号化', sEnabled:'有効',
-    sExport:'データをエクスポート', sPrivacyPolicy:'プライバシーポリシー',
-    sNotify:'通知', sReunion:'再会通知', sSafeAlert:'安全アラート', sDailySummary:'毎日のまとめ',
-    sAppearance:'外観', sDarkMode:'ダークモード',
-    sAbout:'について', sHelp:'ヘルプとサポート', sTerms:'利用規約',
+    sAccount:'アカウント',
+    sPrivacy:'プライバシーと安全',
+    sExport:'データをエクスポート',
+    sNotify:'通知',
+    sAppearance:'外観',
+    sAbout:'について',
     sSecurityTitle:'🔒 セキュリティの約束',
     sSec1:'すべてのメッセージはエンドツーエンド暗号化。サーバーは暗号文のみを保存。',
     sSec2:'位置情報は許可した家族サークル内でのみ共有されます。',
     sSec3:'いつでもデータをエクスポートまたは削除できます。',
     sLogout:'ログアウト',
-    sigExif:'写真EXIF', sigLoc:'位置ON', sigSafe:'安全確認', sigPush:'毎日通知', sigBatt:'電池監視',
-    sigExifTip:'📷 写真EXIFからGPSを解析', sigLocTip:'📱 アプリ起動時に自動位置取得', sigPushTip:'🔔 毎朝9時にプッシュ通知', sigBattTip:'🔋 電池20%以下で自動アラート',
-    hasLocation:'📍 位置あり', preciseGPS:'📍 精密GPS',
-    cityLevel:'🏙 都市レベル', textRecord:'📝 テキスト記録',
-    noRecordToday:'今日の記録はまだありません', startRecord:'下のボタンから記録を追加',
-    noRecords:'記録がありません', startImport:'写真をインポートするか記録を追加して開始',
-    noContacts:'連絡先がありません', addFamilyHint:'右上の ＋ で家族を招待',
-    recordsCount:' 件', locationsCount:' か所',
-    startImportHint:'写真をインポートして開始', startImportLocHint:'写真または場所を追加して開始',
-    yearRecords:'年の記録（全 ', yearRecordsEnd:' 件）',
-    noRecordPeriod:'記録なし', withPhotos:'写真あり', withLocation:'位置あり',
-    noMoments:'モーメントがありません', addMomentHint:'記録追加時に「モーメントへ投稿」をオン',
+    sigExif:'写真EXIF',
+    sigExifTip:'📷 写真EXIFからGPSを解析',
+    hasLocation:'📍 位置あり',
+    cityLevel:'🏙 都市レベル',
+    noRecordToday:'今日の記録はまだありません',
+    noRecords:'記録がありません',
+    noContacts:'連絡先がありません',
+    recordsCount:' 件',
+    startImportHint:'写真をインポートして開始',
+    yearRecords:'年の記録（全 ',
+    noRecordPeriod:'記録なし',
+    noMoments:'モーメントがありません',
     noMsgsChat:'メッセージがありません。最初のメッセージを送りましょう 👋',
-    familyActivity:'家族の活動', memberCount:' 人',
+    familyActivity:'家族の活動',
     trackSignal:'🛡 位置シグナル（バックグラウンド不要）',
     noRecordTodayFull:'今日の記録はありません。明日も開いてみてください ✨',
-    tabMonth:'📅 今月', tabYear:'📆 今年', tabAll:'🗺 全記録',
-    statRecords:'記録', placesVisited:'訪れた場所', companions:'一緒にいた人', photosLeft:'写真',
+    tabMonth:'📅 今月',
+    statRecords:'記録',
     storyLabel:'のストーリー',
-    hlRecorded:'<em>{n}</em>件のことを記録しました', hlPhotos:'<em>{n}</em>枚の写真を保存',
-    hlCompanion:'最もよく一緒にいたのは<em>{name}</em>', hlPlace:'最もよく行ったのは<em>{name}</em>',
-    summaryPhotos:'<em>{n}枚</em>の写真を記録', summaryMsgs:'家族に<em>{n}件</em>のメッセージを送信',
-    chatEncrypted:'🔒 転送暗号化', btnWechatSoon:'WeChat（近日公開）',
-    safetyTitle:'家族安全センター', safetyOnline:'今日 · 家族がオンライン',
-    statContacts:'連絡先', statMessages:'今月のメッセージ', statPhotos:'今月の写真',
-    locSharing:'位置共有', safetyZones:'🛡 セーフゾーン', addFamilyMember:'家族を追加',
-    checkInTitle:'✅ 安全確認', checkInDesc:'家族に「元気です」と伝えます。位置情報も送信されます。',
-    tabDM:'メッセージ', tabMoments:'モーメント', privateSpace:'プライベート',
-    inviteSubtitle:'お互いの位置を確認 · ワンタップで安全確認'
+    hlRecorded:'<em>{n}</em>件のことを記録しました',
+    hlCompanion:'最もよく一緒にいたのは<em>{name}</em>',
+    summaryPhotos:'<em>{n}枚</em>の写真を記録',
+    chatEncrypted:'🔒 転送暗号化',
+    safetyTitle:'家族安全センター',
+    statContacts:'連絡先',
+    locSharing:'位置共有',
+    checkInTitle:'✅ 安全確認',
+    tabDM:'メッセージ',
+    addRecord:'＋ 今日の記録を追加',
+    importPhotos:'写真をインポート',
+    inviteFamily:'家族を招待',
+    noMsgs:'メッセージなし',
+    notBound:'未設定',
+    photoRecord:'📷 写真記録',
+    todayStory:'⭐ 今日のストーリー',
+    inviteSubtitle:'お互いの位置を確認 · ワンタップで安全確認',
+    sEmail:'ログインメール',
+    sUserId:'ユーザーID',
+    sChangePwd:'パスワード変更',
+    sForgotPwd:'パスワードを忘れた',
+    tabToday:'⭐ 今日',
+    myAlbum:'マイアルバム',
+    autoScan:'写真を自動スキャン',
+    sArchiveTitle:'記録 & AI分析',
+    sFolder:'フォルダ',
+    sLifeArchive:'人生記録アーカイブ',
+    sSmartNotes:'AIスマートメモ',
+    sCopy:'コピー',
+    sAuthorize:'許可 →',
+    viewAll:'すべて見る',
+    albumSubtitle:'生活 · 仕事 · 家族',
+    addPhoto:'+ 写真を追加',
+    locSharingDesc:'位置を共有する相手を選択',
+    allOn:'全てON',
+    allOff:'全てOFF',
+    loggedIn:'✅ ログイン済み',
+    editProfile:'プロフィール編集',
+    sLifeArchiveDesc:'PDF生成 · キーワード/日時/場所で絞り込み',
+    sSmartNotesDesc:'議事録/日記をアップロード · AIが要約と提案を生成',
+    sAiStory:'AIストーリー',
+    sRedetect:'再会を再検出',
+    visible:'表示',
+    hidden:'非表示',
+    profileComplete:'✅ プロフィール完成',
+    profileCompletion:'プロフィール完成度',
+    guardianHint:'ご家族にGuardianページを開いてもらうと位置が共有されます',
+    sRefresh:'更新',
+    shareLabel:'共有',
+    shareLabel2:'↗ 共有',
+    noFamily:'家族がいません',
+    noFamilyHint:'家族を招待すると位置が見えます',
+    sFolderRow:'フォルダ',
+    autoScanDesc:'許可後に写真GPSを自動読取',
+    editProfileTitle:'プロフィール編集',
+    save:'保存',
+    changeAvatar:'タップでアバター変更',
+    basicInfo:'基本情報',
+    nicknameLbl:'ニックネーム',
+    realNameLbl:'本名（任意）',
+    familyOnly:'家族のみ表示',
+    bioLbl:'自己紹介（任意）',
+    roleInFamily:'家族内の役割',
+    contactInfo:'連絡先',
+    sEmail2:'メール',
+    personalDetails:'個人情報',
+    birthdayLbl:'誕生日（任意）',
+    genderLbl:'性別（任意）',
+    cityLbl:'都市（任意）',
+    emergencyContact:'緊急連絡先',
+    emergencyName:'緊急連絡先氏名',
+    emergencyPhone:'緊急連絡先電話',
+    changeEmailTitle:'メール変更',
+    bindEmailTitle:'メール登録',
+    changeEmailDesc:'メールでログインやパスワードリセットに使用',
+    currentEmail:'現在のメール：',
+    newEmailAddr:'新しいメールアドレス',
+    setPwd:'パスワード設定（8文字以上）',
+    setPwdHint:'ログインパスワード設定',
+    cancel:'キャンセル',
+    confirmBind:'確認',
+    verifying:'確認中...',
+    sending:'送信中...',
+    history:'履歴',
+    pasteNotes:'✍️ メモを貼り付けまたは入力',
+    chars:'字',
+    recordDate:'記録日：',
+    saveToJourney:'人生記録に保存',
+    aiAnalyze:'AI分析',
+    archiveTemplate:'アーカイブテンプレート',
+    timeRange:'期間',
+    contentType:'コンテンツ',
+    keywordPlaceholder:'場所、イベント、名前...スペースで区切る',
+    preview:'プレビュー',
+    generatePDF:'PDF生成',
+    tplGeneral:'一般アーカイブ',
+    tplGeneralDesc:'完全な記録、個人用',
+    tplVisa:'ビザ旅行証明',
+    tplVisaDesc:'GPS付き日別位置リスト',
+    tplWork:'職務経歴',
+    tplWorkDesc:'履歴書用の業務記録',
+    tplFamily:'家族の歴史',
+    tplFamilyDesc:'家族の記録、永久保存',
+    timeAll:'全期間',
+    timeYear:'過去1年',
+    timeHalfYear:'過去6ヶ月',
+    timeThreeMonths:'過去3ヶ月',
+    timeCustom:'カスタム',
+    typeAll:'全タイプ',
+    typeGPS:'GPS付きのみ',
+    typeGPSDesc:'GPS座標のある記録',
+    typePhoto:'写真付きのみ',
+    typePhotoDesc:'写真のある記録',
+    typePeople:'同行者あり',
+    typePeopleDesc:'家族と同行した記録',
+    noFamilyYet:'家族がいません',
+    folderLabel:'フォルダ',
+    startDate:'開始日',
+    endDate:'終了日',
+    sending2:'送信中…',
+    verifying2:'確認中…',
+    signingIn:'ログイン中…',
+    registering:'登録中…',
+    saving2:'保存中…',
+    analyzing:'分析中...',
+    loading2:'読み込み中...',
+    scanning:'スキャン中…',
+    noMsgsYet:'メッセージがありません。最初のメッセージを送りましょう 👋',
+    newMsg:'新しいメッセージ',
+    contact:'連絡先',
+    family2:'家族',
+    friend2:'友達',
+    notSharing:'位置未共有',
+    imgLabel:'[写真]',
+    fileLabel:'[ファイル]',
+    download:'ダウンロード',
+    noMoments2:'モーメントなし',
+    familyFeed:'家族フィード',
+    sharedMoment:'モーメントを共有',
+    visAll:'全員に表示',
+    visFam:'家族のみ',
+    reunionTitle:'再会しました！',
+    reunionYouAnd:'あなたと ',
+    reunionToday:'今日出会いました',
+    reunionThisYear:'今年 ',
+    reunionTimes:'回',
+    addRecord3:'📝 記録を追加',
+    noRecordYet:'今日の記録なし',
+    allRecords:'全て',
+    noRecord2:'記録なし',
+    placesVisited2:'訪れた場所',
+    clickAll:'全記録を見る',
+    clickPhoto:'写真記録を見る',
+    clickLoc:'位置記録を見る',
+    expand2:'展開',
+    changePwdTitle:'パスワード変更',
+    newPwd:'新しいパスワード（8文字以上）',
+    confirmPwd:'パスワード確認',
+    confirmChange:'変更を確認',
+    forgotTitle:'パスワード回復',
+    chooseMethod:'方法を選択',
+    byEmail2:'メールで回復',
+    byPhone2:'電話で回復',
+    changePhoneTitle:'電話番号変更',
+    changePhoneDesc:'電話でログインやリセットに使用',
+    newPhone:'新しい電話番号',
+    myAlbumTitle:'マイアルバム',
+    myFolderTitle:'マイフォルダ',
+    openFile:'開く',
+    addBtn:'+ 追加',
+    saveWhere:'どこに保存しますか？',
+    autoSaveAlbum:'自動的にアルバムに保存',
+    shareFamily:'家族に共有',
+    bothSave:'🗺 + ✨ 両方に保存',
+    dontSave:'Appに保存しない',
+    aiResultTitle:'AI分析結果',
+    summaryKey:'📋 要約',
+    keyPoints:'⭐ 重要なポイント',
+    actionList:'✅ アクションリスト',
+    notesWarning:'⚠️ 注意点',
+    aiSuggest:'🧠 AIの提案',
+    copyReport:'📋 コピー',
+    withPhoto:'写真あり',
+    gpsLoc:'GPS',
+    companion:'同伴',
+    recordDetail:'記録詳細（タップ）',
+    noMatch:'一致する記録なし',
+    expandHint:'期間を広げるかキーワードをクリア',
+    searchHint:'キーワードを入力して検索',
+    searching:'検索中...',
+    noResults:'結果が見つかりません',
+    confirm2:'確認',
+    ok2:'OK',
+    minutesAgo:'分前',
+    justNow:'たった今',
+    minuteAgo2:'分前',
+    hourAgo:'時間前',
+    confirmLogout:'ログアウトしますか？',
+    delete2:'削除',
+    noPwd:'[旧版暗号化メッセージ]',
+    lifeJourney2:'人生の軌跡',
   },
   ko: {
     tagline:'시간 · 관계 · 기억<br>가족과의 소중한 순간을 기록하세요',
-    loginTitle:'CHRONO100 로그인', loginHint:'가족 안전 · 인생 여정 · 비밀 채팅',
-    tabPhone:'📱 전화', tabEmail:'✉️ 이메일',
-    lbl_phone:'전화번호', lbl_otp:'인증코드', lbl_email:'이메일', lbl_password:'비밀번호',
-    btnSendOtp:'인증코드 전송', btnVerify:'확인 및 로그인', btnLogin:'로그인', btnRegister:'회원가입',
+    loginTitle:'CHRONO100 로그인',
+    tabPhone:'📱 전화',
+    lbl_phone:'전화번호',
+    btnSendOtp:'인증코드 전송',
     btnForgot:'비밀번호 찾기',
-    btnGoogle:'Google로 로그인', btnWechat:'위챗 로그인',
-    orWord:'또는', termsText:'로그인하면 동의합니다', privacyLink:'개인정보처리방침', termsLink:'이용약관',
-    otpSent:'인증코드가 발송되었습니다 ✅', enterOtp:'인증코드를 입력하세요', enterPhone:'전화번호를 입력하세요',
-    enterEmail:'이메일을 입력하세요', enterPassword:'비밀번호 입력(8자 이상)', enterName:'닉네임을 입력하세요',
-    wechatTip:'위챗 앱 내에서 열어주세요', resetSent:'재설정 이메일이 발송되었습니다 ✅',
-    greeting:'좋은 아침이에요', greetingDay:'안녕하세요', greetingEvening:'좋은 저녁이에요',
-    navLife:'인생여정', navSafe:'안전', navChat:'채팅', navMe:'마이',
-    pageLife:'인생 여정', pageSafe:'가족 안전', pageChat:'비밀 채팅', pageMe:'설정',
-    todayActivity:'오늘의 활동', addRecord:'＋ 오늘 기록 추가', inviteFamily:'가족 초대',
+    btnGoogle:'Google로 로그인',
+    orWord:'또는',
+    otpSent:'인증코드가 발송되었습니다 ✅',
+    enterEmail:'이메일을 입력하세요',
+    wechatTip:'위챗 앱 내에서 열어주세요',
+    greeting:'좋은 아침이에요',
+    navLife:'인생여정',
+    pageLife:'인생 여정',
+    todayActivity:'오늘의 활동',
     langLabel:'언어',
-    sAccount:'계정', sProfile:'프로필', sPhone:'전화번호', sEmail:'이메일',
-    sPrivacy:'개인정보 및 보안', sLocation:'위치 권한', sEncrypt:'전송 암호화', sEnabled:'활성화됨',
-    sExport:'내 데이터 내보내기', sPrivacyPolicy:'개인정보처리방침',
-    sNotify:'알림', sReunion:'재회 알림', sSafeAlert:'안전 경보', sDailySummary:'일일 요약',
-    sAppearance:'외관', sDarkMode:'다크 모드',
-    sAbout:'정보', sHelp:'도움말 및 지원', sTerms:'이용약관',
+    sAccount:'계정',
+    sPrivacy:'개인정보 및 보안',
+    sExport:'내 데이터 내보내기',
+    sNotify:'알림',
+    sAppearance:'외관',
+    sAbout:'정보',
     sSecurityTitle:'🔒 보안 약속',
     sSec1:'모든 메시지는 종단간 암호화됩니다.',
     sSec2:'위치는 승인된 가족 서클 내에서만 공유됩니다.',
     sSec3:'언제든지 데이터를 내보내거나 삭제할 수 있습니다.',
     sLogout:'로그아웃',
-    sigExif:'사진EXIF', sigLoc:'위치ON', sigSafe:'안전확인', sigPush:'매일알림', sigBatt:'배터리감시',
-    sigExifTip:'📷 사진 EXIF에서 GPS 파싱', sigLocTip:'📱 앱 실행시 자동 위치 수집', sigPushTip:'🔔 매일 오전 9시 푸시 알림', sigBattTip:'🔋 배터리 20% 이하 자동 알림',
-    hasLocation:'📍 위치 있음', preciseGPS:'📍 정밀 GPS',
-    cityLevel:'🏙 도시 수준', textRecord:'📝 텍스트 기록',
-    noRecordToday:'오늘 기록이 없어요', startRecord:'아래 버튼으로 기록을 추가하세요',
-    noRecords:'기록이 없어요', startImport:'사진을 가져오거나 기록을 추가하세요',
-    noContacts:'연락처가 없어요', addFamilyHint:'우측 상단 ＋ 로 가족 초대',
-    recordsCount:' 개', locationsCount:' 곳',
-    startImportHint:'사진을 가져와서 시작하세요', startImportLocHint:'사진이나 장소를 추가해서 시작하세요',
-    yearRecords:'년 기록 (총 ', yearRecordsEnd:' 개)',
-    noRecordPeriod:'기록 없음', withPhotos:'사진 있음', withLocation:'위치 있음',
-    noMoments:'모멘트가 없어요', addMomentHint:'기록 추가 시 「모멘트 공유」를 켜세요',
+    sigExif:'사진EXIF',
+    sigExifTip:'📷 사진 EXIF에서 GPS 파싱',
+    hasLocation:'📍 위치 있음',
+    cityLevel:'🏙 도시 수준',
+    noRecordToday:'오늘 기록이 없어요',
+    noRecords:'기록이 없어요',
+    noContacts:'연락처가 없어요',
+    recordsCount:' 개',
+    startImportHint:'사진을 가져와서 시작하세요',
+    yearRecords:'년 기록 (총 ',
+    noRecordPeriod:'기록 없음',
+    noMoments:'모멘트가 없어요',
     noMsgsChat:'메시지가 없어요. 첫 메시지를 보내세요 👋',
-    familyActivity:'가족 활동', memberCount:' 명',
+    familyActivity:'가족 활동',
     trackSignal:'🛡 위치 신호 (백그라운드 불필요)',
     noRecordTodayFull:'오늘 기록이 없어요. 내일 앱을 열어주세요 ✨',
-    tabMonth:'📅 이번달', tabYear:'📆 올해', tabAll:'🗺 전체 기록',
-    statRecords:'기록', placesVisited:'방문한 곳', companions:'함께한 사람', photosLeft:'사진',
+    tabMonth:'📅 이번달',
+    statRecords:'기록',
     storyLabel:' 이야기',
-    hlRecorded:'<em>{n}</em>개의 기록을 남겼어요', hlPhotos:'<em>{n}</em>장의 사진을 저장',
-    hlCompanion:'<em>{name}</em>과 가장 많은 시간을 보냈어요', hlPlace:'<em>{name}</em>을 가장 많이 방문',
-    summaryPhotos:'<em>{n}장</em> 사진 기록', summaryMsgs:'가족에게 <em>{n}개</em> 메시지 전송',
-    chatEncrypted:'🔒 전송 암호화', btnWechatSoon:'위챗 (출시 예정)',
-    safetyTitle:'가족 안전 센터', safetyOnline:'오늘 · 가족 온라인',
-    statContacts:'연락처', statMessages:'이번달 메시지', statPhotos:'이번달 사진',
-    locSharing:'위치 공유', safetyZones:'🛡 안전 구역', addFamilyMember:'가족 추가',
-    checkInTitle:'✅ 안전 확인', checkInDesc:'가족에게 "괜찮아요"를 알립니다. 위치도 함께 전송됩니다.',
-    tabDM:'메시지', tabMoments:'모멘트', privateSpace:'프라이빗',
-    inviteSubtitle:'서로 위치 확인 · 원터치 안전 확인'
+    hlRecorded:'<em>{n}</em>개의 기록을 남겼어요',
+    hlCompanion:'<em>{name}</em>과 가장 많은 시간을 보냈어요',
+    summaryPhotos:'<em>{n}장</em> 사진 기록',
+    chatEncrypted:'🔒 전송 암호화',
+    safetyTitle:'가족 안전 센터',
+    statContacts:'연락처',
+    locSharing:'위치 공유',
+    checkInTitle:'✅ 안전 확인',
+    tabDM:'메시지',
+    addRecord:'＋ 오늘 기록 추가',
+    importPhotos:'사진 가져오기',
+    inviteFamily:'가족 초대',
+    noMsgs:'메시지 없음',
+    notBound:'미연결',
+    photoRecord:'📷 사진 기록',
+    todayStory:'⭐ 오늘의 이야기',
+    inviteSubtitle:'서로 위치 확인 · 원터치 안전 확인',
+    sEmail:'로그인 이메일',
+    sUserId:'사용자 ID',
+    sChangePwd:'비밀번호 변경',
+    sForgotPwd:'비밀번호 찾기',
+    tabToday:'⭐ 오늘',
+    myAlbum:'내 앨범',
+    autoScan:'사진 자동 스캔',
+    sArchiveTitle:'기록 & AI 분석',
+    sFolder:'폴더',
+    sLifeArchive:'인생 기록 보관소',
+    sSmartNotes:'AI 스마트 노트',
+    sCopy:'복사',
+    sAuthorize:'승인 →',
+    viewAll:'전체 보기',
+    albumSubtitle:'생활 · 직장 · 가족',
+    addPhoto:'+ 사진 추가',
+    locSharingDesc:'위치를 공유할 사람을 선택하세요',
+    allOn:'모두 켜기',
+    allOff:'모두 끄기',
+    loggedIn:'✅ 로그인됨',
+    editProfile:'프로필 편집',
+    sLifeArchiveDesc:'PDF 생성 · 키워드/시간/위치로 필터링',
+    sSmartNotesDesc:'회의록/일기 업로드 · AI 요약 및 제안',
+    sAiStory:'AI 스토리',
+    sRedetect:'재회 재감지',
+    visible:'표시',
+    hidden:'숨김',
+    profileComplete:'✅ 프로필 완성',
+    profileCompletion:'프로필 완성도',
+    guardianHint:'가족이 Guardian 페이지를 열면 위치가 공유됩니다',
+    sRefresh:'새로고침',
+    shareLabel:'공유',
+    shareLabel2:'↗ 공유',
+    noFamily:'가족이 없습니다',
+    noFamilyHint:'가족을 초대하면 위치를 볼 수 있습니다',
+    sFolderRow:'폴더',
+    autoScanDesc:'승인 후 사진 GPS를 자동으로 읽습니다',
+    editProfileTitle:'프로필 편집',
+    save:'저장',
+    changeAvatar:'탭하여 아바타 변경',
+    basicInfo:'기본 정보',
+    nicknameLbl:'닉네임',
+    realNameLbl:'실명 (선택)',
+    familyOnly:'가족만 볼 수 있음',
+    bioLbl:'자기소개 (선택)',
+    roleInFamily:'가족 내 역할',
+    contactInfo:'연락처',
+    sEmail2:'이메일',
+    personalDetails:'개인 정보',
+    birthdayLbl:'생일 (선택)',
+    genderLbl:'성별 (선택)',
+    cityLbl:'도시 (선택)',
+    emergencyContact:'비상 연락처',
+    emergencyName:'비상 연락처 이름',
+    emergencyPhone:'비상 연락처 전화',
+    changeEmailTitle:'이메일 변경',
+    bindEmailTitle:'이메일 등록',
+    changeEmailDesc:'이메일로 로그인 및 비밀번호 재설정',
+    currentEmail:'현재 이메일: ',
+    newEmailAddr:'새 이메일 주소',
+    setPwd:'비밀번호 설정 (8자 이상)',
+    setPwdHint:'로그인 비밀번호 설정',
+    cancel:'취소',
+    confirmBind:'확인',
+    verifying:'확인 중...',
+    sending:'전송 중...',
+    history:'기록',
+    pasteNotes:'✍️ 노트 붙여넣기 또는 입력',
+    chars:'자',
+    recordDate:'기록 날짜: ',
+    saveToJourney:'여정에 저장',
+    aiAnalyze:'AI 분석',
+    archiveTemplate:'아카이브 템플릿',
+    timeRange:'기간',
+    contentType:'콘텐츠 유형',
+    keywordPlaceholder:'장소, 이벤트, 이름... 공백으로 구분',
+    preview:'미리보기',
+    generatePDF:'PDF 생성',
+    tplGeneral:'일반 아카이브',
+    tplGeneralDesc:'완전한 기록, 개인용',
+    tplVisa:'비자 여행 증명',
+    tplVisaDesc:'GPS 포함 일별 위치 목록',
+    tplWork:'직무 경력',
+    tplWorkDesc:'이력서용 업무 기록',
+    tplFamily:'가족 역사',
+    tplFamilyDesc:'가족 기록, 영구 보존',
+    timeAll:'전체 기간',
+    timeYear:'최근 1년',
+    timeHalfYear:'최근 6개월',
+    timeThreeMonths:'최근 3개월',
+    timeCustom:'직접 설정',
+    typeAll:'모든 유형',
+    typeGPS:'GPS만',
+    typeGPSDesc:'GPS 좌표가 있는 기록',
+    typePhoto:'사진만',
+    typePhotoDesc:'사진이 있는 기록',
+    typePeople:'동행자 있음',
+    typePeopleDesc:'가족과 함께한 기록',
+    noFamilyYet:'가족이 없습니다',
+    folderLabel:'폴더',
+    startDate:'시작일',
+    endDate:'종료일',
+    sending2:'전송 중…',
+    verifying2:'확인 중…',
+    signingIn:'로그인 중…',
+    registering:'등록 중…',
+    saving2:'저장 중…',
+    analyzing:'분석 중...',
+    loading2:'로딩 중...',
+    scanning:'스캔 중…',
+    noMsgsYet:'메시지가 없습니다. 안녕하세요 👋',
+    newMsg:'새 메시지',
+    contact:'연락처',
+    family2:'가족',
+    friend2:'친구',
+    notSharing:'위치 미공유',
+    imgLabel:'[사진]',
+    fileLabel:'[파일]',
+    download:'다운로드',
+    noMoments2:'모멘트 없음',
+    familyFeed:'가족 피드',
+    sharedMoment:'모멘트 공유',
+    visAll:'전체 공개',
+    visFam:'가족만',
+    reunionTitle:'만났습니다!',
+    reunionYouAnd:'당신과 ',
+    reunionToday:'오늘 만났습니다',
+    reunionThisYear:'올해 ',
+    reunionTimes:'번',
+    addRecord3:'📝 기록 추가',
+    noRecordYet:'오늘 기록 없음',
+    allRecords:'전체',
+    noRecord2:'기록 없음',
+    placesVisited2:'방문한 곳',
+    clickAll:'전체 기록 보기',
+    clickPhoto:'사진 기록 보기',
+    clickLoc:'위치 기록 보기',
+    expand2:'펼치기',
+    changePwdTitle:'비밀번호 변경',
+    newPwd:'새 비밀번호 (8자 이상)',
+    confirmPwd:'비밀번호 확인',
+    confirmChange:'변경 확인',
+    forgotTitle:'비밀번호 찾기',
+    chooseMethod:'방법 선택',
+    byEmail2:'이메일로',
+    byPhone2:'전화로',
+    changePhoneTitle:'전화번호 변경',
+    changePhoneDesc:'전화로 로그인 및 재설정',
+    newPhone:'새 전화번호',
+    myAlbumTitle:'내 앨범',
+    myFolderTitle:'내 폴더',
+    openFile:'열기',
+    addBtn:'+ 추가',
+    saveWhere:'어디에 저장할까요?',
+    autoSaveAlbum:'선택 후 자동 앨범 저장',
+    shareFamily:'가족에게 공유',
+    bothSave:'🗺 + ✨ 둘 다 저장',
+    dontSave:'App에 저장 안 함',
+    aiResultTitle:'AI 분석 결과',
+    summaryKey:'📋 핵심 요약',
+    keyPoints:'⭐ 핵심 포인트',
+    actionList:'✅ 행동 목록',
+    notesWarning:'⚠️ 주의사항',
+    aiSuggest:'🧠 AI 제안',
+    copyReport:'📋 보고서 복사',
+    withPhoto:'사진 있음',
+    gpsLoc:'GPS',
+    companion:'동반자',
+    recordDetail:'기록 세부 (탭하여 보기)',
+    noMatch:'일치하는 기록 없음',
+    expandHint:'기간을 넓히거나 키워드를 지우세요',
+    searchHint:'키워드를 입력하여 검색',
+    searching:'검색 중...',
+    noResults:'결과 없음',
+    confirm2:'확인',
+    ok2:'확인',
+    minutesAgo:'분 전',
+    justNow:'방금',
+    minuteAgo2:'분 전',
+    hourAgo:'시간 전',
+    confirmLogout:'로그아웃할까요?',
+    delete2:'삭제',
+    noPwd:'[구버전 암호화 메시지]',
+    lifeJourney2:'인생 여정',
   },
   es: {
     tagline:'Tiempo · Familia · Memoria<br>Captura los momentos más preciados con tu familia',
-    loginTitle:'Iniciar sesión en CHRONO100', loginHint:'Seguridad familiar · Trayectoria de vida · Chat privado',
-    tabPhone:'📱 Teléfono', tabEmail:'✉️ Correo',
-    lbl_phone:'Número de teléfono', lbl_otp:'Código OTP', lbl_email:'Correo', lbl_password:'Contraseña',
-    btnSendOtp:'Enviar OTP', btnVerify:'Verificar e iniciar', btnLogin:'Iniciar sesión', btnRegister:'Registrarse',
+    loginTitle:'Iniciar sesión en CHRONO100',
+    tabPhone:'📱 Teléfono',
+    lbl_phone:'Número de teléfono',
+    btnSendOtp:'Enviar OTP',
     btnForgot:'¿Olvidaste tu contraseña?',
-    btnGoogle:'Iniciar sesión con Google', btnWechat:'Iniciar sesión con WeChat',
-    orWord:'o', termsText:'Al iniciar sesión aceptas', privacyLink:'Privacidad', termsLink:'Términos',
-    otpSent:'OTP enviado ✅', enterOtp:'Ingresa el código OTP', enterPhone:'Ingresa tu teléfono',
-    enterEmail:'Ingresa tu correo', enterPassword:'Contraseña (mín. 8 caracteres)', enterName:'Ingresa tu nombre',
-    wechatTip:'Abre en la app WeChat', resetSent:'Correo de restablecimiento enviado ✅',
-    greeting:'Buenos días', greetingDay:'Buenas tardes', greetingEvening:'Buenas noches',
-    navLife:'Vida', navSafe:'Seguridad', navChat:'Chat', navMe:'Yo',
-    pageLife:'Trayectoria de vida', pageSafe:'Seguridad familiar', pageChat:'Chat privado', pageMe:'Configuración',
-    todayActivity:'Actividad de hoy', addRecord:'＋ Agregar hoy', inviteFamily:'Invitar familia',
+    btnGoogle:'Iniciar sesión con Google',
+    orWord:'o',
+    otpSent:'OTP enviado ✅',
+    enterEmail:'Ingresa tu correo',
+    wechatTip:'Abre en la app WeChat',
+    greeting:'Buenos días',
+    navLife:'Vida',
+    pageLife:'Trayectoria de vida',
+    todayActivity:'Actividad de hoy',
     langLabel:'Idioma',
-    sAccount:'Cuenta', sProfile:'Perfil', sPhone:'Teléfono', sEmail:'Correo',
-    sPrivacy:'Privacidad y seguridad', sLocation:'Permisos de ubicación', sEncrypt:'Cifrado en tránsito', sEnabled:'Activado',
-    sExport:'Exportar mis datos', sPrivacyPolicy:'Política de privacidad',
-    sNotify:'Notificaciones', sReunion:'Alertas de reunión', sSafeAlert:'Alertas de seguridad', sDailySummary:'Resumen diario',
-    sAppearance:'Apariencia', sDarkMode:'Modo oscuro',
-    sAbout:'Acerca de', sHelp:'Ayuda y soporte', sTerms:'Términos de servicio',
+    sAccount:'Cuenta',
+    sPrivacy:'Privacidad y seguridad',
+    sExport:'Exportar mis datos',
+    sNotify:'Notificaciones',
+    sAppearance:'Apariencia',
+    sAbout:'Acerca de',
     sSecurityTitle:'🔒 Promesa de seguridad',
     sSec1:'Todos los mensajes están cifrados de extremo a extremo.',
     sSec2:'La ubicación solo se comparte dentro de tu círculo familiar autorizado.',
     sSec3:'Exporta o elimina todos tus datos en cualquier momento.',
     sLogout:'Cerrar sesión',
-    sigExif:'EXIF Foto', sigLoc:'GPS abierto', sigSafe:'Reportar', sigPush:'Notif. diaria', sigBatt:'Batería',
-    sigExifTip:'📷 EXIF de foto · Analizar GPS', sigLocTip:'📱 Ubicación automática al abrir', sigPushTip:'🔔 Push diario a las 9am', sigBattTip:'🔋 Alerta automática bajo 20%',
-    hasLocation:'📍 Con ubicación', preciseGPS:'📍 GPS preciso',
-    cityLevel:'🏙 Nivel ciudad', textRecord:'📝 Registro de texto',
-    noRecordToday:'Sin registros hoy', startRecord:'Toca abajo para agregar tu primer registro',
-    noRecords:'Sin registros aún', startImport:'Importa fotos o agrega un registro para comenzar',
-    noContacts:'Sin contactos aún', addFamilyHint:'Toca ＋ para invitar familia',
-    recordsCount:' registros', locationsCount:' ubicaciones',
-    startImportHint:'Importa fotos para comenzar', startImportLocHint:'Importa fotos o ingresa un lugar para comenzar',
-    yearRecords:' Registros (', yearRecordsEnd:')',
-    noRecordPeriod:'Sin registros', withPhotos:'Con fotos', withLocation:'Con ubicación',
-    noMoments:'Sin momentos aún', addMomentHint:'Activa "Compartir en Momentos" al agregar un registro',
+    sigExif:'EXIF Foto',
+    sigExifTip:'📷 EXIF de foto · Analizar GPS',
+    hasLocation:'📍 Con ubicación',
+    cityLevel:'🏙 Nivel ciudad',
+    noRecordToday:'Sin registros hoy',
+    noRecords:'Sin registros aún',
+    noContacts:'Sin contactos aún',
+    recordsCount:' registros',
+    startImportHint:'Importa fotos para comenzar',
+    yearRecords:' Registros (',
+    noRecordPeriod:'Sin registros',
+    noMoments:'Sin momentos aún',
     noMsgsChat:'Sin mensajes aún. Di hola 👋',
-    familyActivity:'Actividad familiar', memberCount:' miembros',
+    familyActivity:'Actividad familiar',
     trackSignal:'🛡 Señales de ubicación (sin seguimiento en segundo plano)',
     noRecordTodayFull:'Sin registros hoy. Recuerda abrir la app mañana ✨',
-    tabMonth:'📅 Este mes', tabYear:'📆 Este año', tabAll:'🗺 Todo',
-    statRecords:'Registros', placesVisited:'Lugares visitados', companions:'Acompañantes', photosLeft:'Fotos',
+    tabMonth:'📅 Este mes',
+    statRecords:'Registros',
     storyLabel:' Historia',
-    hlRecorded:'registré <em>{n}</em> momentos', hlPhotos:'guardé <em>{n}</em> fotos',
-    hlCompanion:'más tiempo con <em>{name}</em>', hlPlace:'más veces en <em>{name}</em>',
-    summaryPhotos:'<em>{n}</em> fotos registradas', summaryMsgs:'<em>{n}</em> mensajes a la familia',
-    chatEncrypted:'🔒 Cifrado en tránsito', btnWechatSoon:'WeChat (Próximamente)',
-    safetyTitle:'Centro de seguridad familiar', safetyOnline:'Hoy · Familia en línea',
-    statContacts:'Contactos', statMessages:'Mensajes del mes', statPhotos:'Fotos del mes',
-    locSharing:'Compartir ubicación', safetyZones:'🛡 Zonas seguras', addFamilyMember:'Agregar familiar',
-    checkInTitle:'✅ Reportar seguridad', checkInDesc:'Toca para decirle a tu familia que estás bien. Se enviará tu ubicación.',
-    tabDM:'Mensajes', tabMoments:'Momentos', privateSpace:'Espacio privado',
-    inviteSubtitle:'Ver ubicaciones · Confirmación de seguridad con un toque'
+    hlRecorded:'registré <em>{n}</em> momentos',
+    hlCompanion:'más tiempo con <em>{name}</em>',
+    summaryPhotos:'<em>{n}</em> fotos registradas',
+    chatEncrypted:'🔒 Cifrado en tránsito',
+    safetyTitle:'Centro de seguridad familiar',
+    statContacts:'Contactos',
+    locSharing:'Compartir ubicación',
+    checkInTitle:'✅ Reportar seguridad',
+    tabDM:'Mensajes',
+    addRecord:'＋ Agregar registro de hoy',
+    importPhotos:'Importar fotos',
+    inviteFamily:'Invitar familia',
+    noMsgs:'Sin mensajes',
+    notBound:'No vinculado',
+    photoRecord:'📷 Registro de foto',
+    todayStory:'⭐ Historia de hoy',
+    inviteSubtitle:'Ver ubicaciones · Confirmación de seguridad con un toque',
+    sEmail:'Correo de acceso',
+    sUserId:'ID de usuario',
+    sChangePwd:'Cambiar contraseña',
+    sForgotPwd:'Olvidé mi contraseña',
+    tabToday:'⭐ Hoy',
+    myAlbum:'Mi álbum',
+    autoScan:'Escaneo automático',
+    sArchiveTitle:'Archivo & Análisis IA',
+    sFolder:'Carpetas',
+    sLifeArchive:'Archivo de vida',
+    sSmartNotes:'Notas inteligentes IA',
+    sCopy:'Copiar',
+    sAuthorize:'Autorizar →',
+    viewAll:'Ver todo',
+    albumSubtitle:'Vida · Trabajo · Familia',
+    addPhoto:'+ Agregar foto',
+    locSharingDesc:'Elige quién puede ver tu ubicación',
+    allOn:'Todo On',
+    allOff:'Todo Off',
+    loggedIn:'✅ Sesión iniciada',
+    editProfile:'Editar perfil',
+    sLifeArchiveDesc:'Generar PDF · Filtrar por palabra/tiempo/lugar',
+    sSmartNotesDesc:'Subir actas/diario · IA genera resumen y sugerencias',
+    sAiStory:'Historia IA',
+    sRedetect:'Redetectar reunión',
+    visible:'Visible',
+    hidden:'Oculto',
+    profileComplete:'✅ Perfil completo',
+    profileCompletion:'Completitud del perfil',
+    guardianHint:'Pide a tu familia que abra la página Guardian para compartir ubicación',
+    sRefresh:'Actualizar',
+    shareLabel:'Compartir',
+    shareLabel2:'↗ Compartir',
+    noFamily:'Sin familia aún',
+    noFamilyHint:'Invita familia para ver su ubicación',
+    sFolderRow:'Carpeta',
+    autoScanDesc:'Leer GPS de fotos automáticamente',
+    editProfileTitle:'Editar Perfil',
+    save:'Guardar',
+    changeAvatar:'Toca para cambiar avatar',
+    basicInfo:'Info Básica',
+    nicknameLbl:'Apodo',
+    realNameLbl:'Nombre real (opcional)',
+    familyOnly:'Solo visible para familia',
+    bioLbl:'Bio (opcional)',
+    roleInFamily:'Mi rol en la familia',
+    contactInfo:'Contacto',
+    sEmail2:'Correo',
+    personalDetails:'Detalles personales',
+    birthdayLbl:'Cumpleaños (opcional)',
+    genderLbl:'Género (opcional)',
+    cityLbl:'Ciudad (opcional)',
+    emergencyContact:'Contacto de emergencia',
+    emergencyName:'Nombre emergencia',
+    emergencyPhone:'Tel. emergencia',
+    changeEmailTitle:'Cambiar Email',
+    bindEmailTitle:'Vincular Email',
+    changeEmailDesc:'Usa el email para iniciar sesión y recuperar contraseña',
+    currentEmail:'Email actual: ',
+    newEmailAddr:'Nueva dirección de email',
+    setPwd:'Establecer contraseña (mín. 8 chars)',
+    setPwdHint:'Contraseña de inicio de sesión',
+    cancel:'Cancelar',
+    confirmBind:'Confirmar',
+    verifying:'Verificando...',
+    sending:'Enviando...',
+    history:'Historial',
+    pasteNotes:'✍️ Pega o escribe notas',
+    chars:'chars',
+    recordDate:'Fecha: ',
+    saveToJourney:'Guardar en viaje',
+    aiAnalyze:'Analizar con IA',
+    archiveTemplate:'Plantilla',
+    timeRange:'Período',
+    contentType:'Tipo de contenido',
+    keywordPlaceholder:'Lugares, eventos, nombres... separados por espacio',
+    preview:'Vista previa',
+    generatePDF:'Generar PDF',
+    tplGeneral:'Archivo general',
+    tplGeneralDesc:'Registros completos, uso personal',
+    tplVisa:'Prueba de viaje',
+    tplVisaDesc:'Ubicaciones diarias con GPS',
+    tplWork:'Historial laboral',
+    tplWorkDesc:'Registros de trabajo para CV',
+    tplFamily:'Historia familiar',
+    tplFamilyDesc:'Registros familiares, guardados para siempre',
+    timeAll:'Todo el tiempo',
+    timeYear:'Último año',
+    timeHalfYear:'Últimos 6 meses',
+    timeThreeMonths:'Últimos 3 meses',
+    timeCustom:'Personalizado',
+    typeAll:'Todos los tipos',
+    typeGPS:'Solo GPS',
+    typeGPSDesc:'Registros con coordenadas GPS',
+    typePhoto:'Solo fotos',
+    typePhotoDesc:'Registros con fotos',
+    typePeople:'Con personas',
+    typePeopleDesc:'Registros con familia',
+    noFamilyYet:'Sin familiares aún',
+    folderLabel:'Carpetas',
+    startDate:'Fecha inicio',
+    endDate:'Fecha fin',
+    sending2:'Enviando…',
+    verifying2:'Verificando…',
+    signingIn:'Iniciando…',
+    registering:'Registrando…',
+    saving2:'Guardando…',
+    analyzing:'Analizando...',
+    loading2:'Cargando...',
+    scanning:'Escaneando…',
+    noMsgsYet:'Sin mensajes. ¡Di hola! 👋',
+    newMsg:'Nuevo mensaje',
+    contact:'Contacto',
+    family2:'Familia',
+    friend2:'Amigo',
+    notSharing:'No compartiendo',
+    imgLabel:'[Foto]',
+    fileLabel:'[Archivo]',
+    download:'Descargar',
+    noMoments2:'Sin momentos',
+    familyFeed:'Feed familiar',
+    sharedMoment:'compartió un momento',
+    visAll:'Visible a todos',
+    visFam:'Solo familia',
+    reunionTitle:'¡Se encontraron!',
+    reunionYouAnd:'Tú y ',
+    reunionToday:'se encontraron hoy',
+    reunionThisYear:'N.° ',
+    reunionTimes:'vez',
+    addRecord3:'📝 Añadir',
+    noRecordYet:'Sin registros hoy',
+    allRecords:'Todo',
+    noRecord2:'Sin registros',
+    placesVisited2:'Lugares visitados',
+    clickAll:'Ver todos',
+    clickPhoto:'Ver con fotos',
+    clickLoc:'Ver con ubicación',
+    expand2:'Expandir',
+    changePwdTitle:'Cambiar contraseña',
+    newPwd:'Nueva contraseña (mín. 8)',
+    confirmPwd:'Confirmar contraseña',
+    confirmChange:'Confirmar cambio',
+    forgotTitle:'Recuperar contraseña',
+    chooseMethod:'Elegir método',
+    byEmail2:'Por correo',
+    byPhone2:'Por teléfono',
+    changePhoneTitle:'Cambiar teléfono',
+    changePhoneDesc:'Usar teléfono para login y recuperación',
+    newPhone:'Nuevo teléfono',
+    myAlbumTitle:'Mi álbum',
+    myFolderTitle:'Mis carpetas',
+    openFile:'Abrir',
+    addBtn:'+ Añadir',
+    saveWhere:'¿Dónde guardar?',
+    autoSaveAlbum:'Guardar automáticamente',
+    shareFamily:'Compartir con familia',
+    bothSave:'🗺 + ✨ Guardar en ambos',
+    dontSave:'No guardar en App',
+    aiResultTitle:'Resultado del análisis',
+    summaryKey:'📋 Resumen',
+    keyPoints:'⭐ Puntos clave',
+    actionList:'✅ Lista de acciones',
+    notesWarning:'⚠️ Notas',
+    aiSuggest:'🧠 Sugerencias IA',
+    copyReport:'📋 Copiar informe',
+    withPhoto:'Con fotos',
+    gpsLoc:'GPS',
+    companion:'Acompañante',
+    recordDetail:'Registros (toca para ver)',
+    noMatch:'Sin coincidencias',
+    expandHint:'Amplía el período o borra palabras',
+    searchHint:'Escribe para buscar',
+    searching:'Buscando...',
+    noResults:'Sin resultados',
+    confirm2:'Confirmar',
+    ok2:'OK',
+    minutesAgo:'min',
+    justNow:'Ahora mismo',
+    minuteAgo2:'min',
+    hourAgo:'hr',
+    confirmLogout:'¿Cerrar sesión?',
+    delete2:'Eliminar',
+    noPwd:'[Mensaje cifrado antiguo]',
+    lifeJourney2:'Viaje de vida',
   }
 };
-
 function t(key) { return (I18N[_lang] || I18N.zh)[key] || (I18N.zh)[key] || key; }
 
 function setLang(lang) {
@@ -2201,7 +3354,6 @@ function applyI18n() {
     loginTagline: L.tagline, loginTitle: L.loginTitle, loginHint: L.loginHint,
     'lbl-phone': L.lbl_phone, 'lbl-otp': L.lbl_otp,
     'lbl-email': L.lbl_email, 'lbl-password': L.lbl_password,
-
   };
   Object.keys(idMap).forEach(function(id) {
     var el = document.getElementById(id);
@@ -2265,7 +3417,7 @@ async function doPhoneStep() {
   _phoneOtpFull = (cc ? cc.value : '+64') + phone;
 
   var btn = document.getElementById('phonePrimaryBtn');
-  if (btn) btn.textContent = '发送中…';
+  if (btn) btn.textContent = t('sending2');
 
   try {
     var res = await fetch(EDGE_URL + '/send-otp', {
@@ -2296,7 +3448,7 @@ async function doPhoneVerify() {
   if (!otp || otp.length < 4) { toast(t('enterOtp')); return; }
 
   var btn = document.getElementById('phonePrimaryBtn');
-  if (btn) btn.textContent = '验证中…';
+  if (btn) btn.textContent = t('verifying2');
 
   try {
     var res = await fetch(EDGE_URL + '/verify-otp', {
@@ -2361,7 +3513,7 @@ async function doEmailLogin() {
   var client = sb();
   if (!client) { toast('❌ 数据库未连接，请刷新页面后重试'); return; }
   var btn = document.querySelector('#lpanel-email button[onclick="doEmailLogin()"]');
-  if (btn) { btn.textContent = '登录中…'; btn.disabled = true; }
+  if (btn) { btn.textContent = t('signingIn'); btn.disabled = true; }
   try {
     var res = await client.auth.signInWithPassword({email:email,password:pass});
     if (res.error) {
@@ -2380,7 +3532,7 @@ async function doEmailLogin() {
   } catch(e) {
     toast('❌ 登录失败，请检查网络后重试');
   } finally {
-    if (btn) { btn.textContent = '登录'; btn.disabled = false; }
+    if (btn) { btn.textContent = t('btnLogin'); btn.disabled = false; }
   }
 }
 
@@ -2395,7 +3547,7 @@ async function doEmailRegister() {
     return;
   }
   var btn = document.querySelector('#lpanel-email button[onclick="doEmailRegister()"]');
-  if (btn) { btn.textContent = '注册中…'; btn.disabled = true; }
+  if (btn) { btn.textContent = t('registering'); btn.disabled = true; }
   try {
     var res = await client.auth.signUp({ email: email, password: pass });
     if (res.error) {
@@ -2417,7 +3569,7 @@ async function doEmailRegister() {
   } catch(e) {
     toast('❌ 注册失败，请检查网络后重试');
   } finally {
-    if (btn) { btn.textContent = '注册'; btn.disabled = false; }
+    if (btn) { btn.textContent = t('btnRegister'); btn.disabled = false; }
   }
 }
 
@@ -3128,14 +4280,14 @@ function buildChatList() {
   var list = document.getElementById('chatList');
   if (!list) return;
   if (!CHATS || CHATS.length === 0) {
-    list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--ink3);font-size:13px">还没有联系人<br><span style="font-size:11px">点右上角 ＋ 邀请家人加入</span></div>';
+    list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--ink3);font-size:13px">' + t('noContacts') + '<br><span style="font-size:11px">' + t('addFamilyHint') + '</span></div>';
     return;
   }
   list.innerHTML = CHATS.map(function(c, i) {
     return '<div class="chat-row" onclick="openChat(' + i + ')">'
       + '<div class="chat-av">' + c.e + (c.on ? '<div class="chat-av-dot"></div>' : '') + '</div>'
       + '<div style="flex:1;min-width:0"><div class="chat-name">' + c.n + '</div>'
-      + '<div class="chat-preview">' + (c.preview||'暂无消息') + '</div></div>'
+      + '<div class="chat-preview">' + (c.preview||t('noMsgs')) + '</div></div>'
       + '<div style="text-align:right;flex-shrink:0">'
       + (c.time ? '<div class="chat-time">' + c.time + '</div>' : '')
       + (c.unread ? '<div class="chat-badge">' + c.unread + '</div>' : '')
@@ -3233,7 +4385,7 @@ async function loadMessages(roomId) {
     if (!box) return;
     box.innerHTML = '';
     if (!data.length) {
-      box.innerHTML = '<div style="text-align:center;padding:30px;color:var(--ink3);font-size:12px">还没有消息，发送第一条吧 👋</div>';
+      box.innerHTML = '<div style="text-align:center;padding:30px;color:var(--ink3);font-size:12px">'+t('noMsgsYet')+'</div>';
       return;
     }
     var decryptAll = data.map(async function(m) {
@@ -3277,7 +4429,7 @@ function subscribeRoom(roomId) {
         var rawPreview = plainContent || '';
         // Strip leftover encrypted prefix from preview
         if (rawPreview.startsWith('e1:')) rawPreview = '[对方版本较旧，请让对方刷新App]';
-        chat.preview = rawPreview.slice(0, 26) || '新消息';
+        chat.preview = rawPreview.slice(0, 26) || t('newMsg');
         chat.time = fmtTime(m.created_at);
         if (m.sender_id !== myUid && !chatRoomOpen) {
           chat.unread = (chat.unread || 0) + 1;
@@ -3406,11 +4558,27 @@ function closeChatPanels(){
 }
 function renderMessageContent(content,isMe){
   if(!content)return'';
-  if(content.startsWith('[图片] ')){
+  // 语音消息 [语音] dur | url
+  if(content.startsWith('[\u8bed\u97f3] ')) {
+    var parts = content.slice(5).split(' | ');
+    var dur = parseInt(parts[0]) || 0;
+    var url = parts[1] || '';
+    var mm = String(Math.floor(dur/60)).padStart(2,'0');
+    var ss = String(dur%60).padStart(2,'0');
+    var timeStr = dur >= 60 ? mm+':'+ss : dur+"''";
+    var btnColor = isMe ? 'var(--blue2)' : '#fff';
+    var btnBg = isMe ? 'rgba(255,255,255,.9)' : 'var(--blue2)';
+    return '<div class="voice-bubble">'
+      + '<button class="voice-play" style="background:'+btnBg+';color:'+btnColor+';width:32px;height:32px;border-radius:50%;border:none;cursor:pointer;font-size:13px;" onclick="playVoiceMsg(this,\''+esc(url)+'\')">&#9654;</button>'
+      + '<div class="voice-wave"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>'
+      + '<span class="voice-dur">'+timeStr+'</span>'
+      + '</div>';
+  }
+  if(content.startsWith(t('imgLabel')+' ')){
     var url=content.slice(5).trim();
     return'<img src="'+esc(url)+'" style="width:180px;max-height:200px;border-radius:12px;object-fit:cover;display:block;cursor:pointer" onclick="viewFullChatImage(this.src)" onerror="this.style.display=\'none\'">';
   }
-  if(content.startsWith('[文件] ')){
+  if(content.startsWith(t('fileLabel')+' ')){
     var pp=content.slice(5).split(' | ');
     var fn=pp[0]||'文件',fs=pp[1]||'',fu=pp[2]||'';
     return'<div style="display:flex;align-items:center;gap:8px">'
@@ -3460,7 +4628,7 @@ async function sendChatImages(files){
     try{
       var url=await uploadImageToStorage(file,myUid);
       if(url&&client&&currentRoomId){
-      var encContent = await encryptMsg('[图片] '+url, currentRoomId);
+      var encContent = await encryptMsg(t('imgLabel')+' '+url, currentRoomId);
         await client.from('messages').insert({sender_id:myUid,sender_name:userName,sender_emoji:userEmoji,room_id:currentRoomId,content:encContent});
         var mel=document.getElementById(mid);
         if(mel){var tel=mel.querySelector('.bubble-time');if(tel)tel.textContent=now();}
@@ -3481,7 +4649,7 @@ async function sendChatFile(file){
     var pub=client.storage.from('moments').getPublicUrl(path);
     var fileUrl=pub.data.publicUrl;
     var fileSize=file.size>1048576?(file.size/1048576).toFixed(1)+'MB':Math.round(file.size/1024)+'KB';
-    var content='[文件] '+file.name+' | '+fileSize+' | '+fileUrl;
+    var content=t('fileLabel')+' '+file.name+' | '+fileSize+' | '+fileUrl;
     var box=document.getElementById('crMessages');
     if(box){
       box.insertAdjacentHTML('beforeend',
@@ -3497,6 +4665,216 @@ async function sendChatFile(file){
     toast('✅ 文件已发送');
   }catch(e){toast('❌ 发送失败');}
 }
+
+// ══════════════════════════════════════════════════════
+// VOICE MESSAGE — MediaRecorder + Supabase Storage
+// ══════════════════════════════════════════════════════
+var _voiceRecorder = null;
+var _voiceChunks   = [];
+var _voiceStart    = 0;
+var _voiceTimer    = null;
+var _voiceCancelled = false;
+var _voiceStream   = null;
+var _voiceTouchY   = 0;   // 用于检测上滑取消
+
+async function voiceStart(e) {
+  // 防止重复触发
+  if (_voiceRecorder && _voiceRecorder.state === 'recording') return;
+  e.preventDefault();
+
+  // 记录起始触摸Y轴（上滑取消）
+  if (e.touches) _voiceTouchY = e.touches[0].clientY;
+
+  // 请求麦克风权限
+  try {
+    _voiceStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch(err) {
+    toast('❌ 无法访问麦克风，请检查权限');
+    return;
+  }
+
+  _voiceChunks   = [];
+  _voiceCancelled = false;
+  _voiceStart    = Date.now();
+
+  // 选择最兼容的格式
+  var mimeType = 'audio/webm;codecs=opus';
+  if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'audio/webm';
+  if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'audio/ogg;codecs=opus';
+  if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = '';
+
+  _voiceRecorder = new MediaRecorder(_voiceStream, mimeType ? { mimeType } : {});
+  _voiceRecorder.ondataavailable = function(ev) {
+    if (ev.data && ev.data.size > 0) _voiceChunks.push(ev.data);
+  };
+  _voiceRecorder.start(200);
+
+  // 显示录音状态栏
+  var bar = document.getElementById('voiceRecBar');
+  if (bar) bar.classList.add('show');
+  var btn = document.getElementById('voiceBtn');
+  if (btn) btn.classList.add('recording');
+
+  // 计时器
+  _voiceTimer = setInterval(function() {
+    var elapsed = Math.floor((Date.now() - _voiceStart) / 1000);
+    var mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
+    var ss = String(elapsed % 60).padStart(2, '0');
+    var timerEl = document.getElementById('voiceRecTimer');
+    if (timerEl) timerEl.textContent = mm + ':' + ss;
+    // 最长60秒自动停止
+    if (elapsed >= 60) voiceSendNow();
+  }, 500);
+
+  // 监听上滑取消（touchmove）
+  document.addEventListener('touchmove', voiceTouchMove, { passive: false });
+}
+
+function voiceTouchMove(e) {
+  if (!_voiceRecorder || _voiceRecorder.state !== 'recording') return;
+  var currentY = e.touches[0].clientY;
+  if (_voiceTouchY - currentY > 60) {
+    // 上滑超过60px → 取消
+    voiceCancel();
+  }
+}
+
+function voiceEnd(e) {
+  if (!_voiceRecorder || _voiceRecorder.state !== 'recording') return;
+  e.preventDefault();
+  document.removeEventListener('touchmove', voiceTouchMove);
+  // 短于0.5秒的不发送
+  if (Date.now() - _voiceStart < 500) {
+    voiceCancel();
+    toast('⏱ 按住时间太短，请重试');
+    return;
+  }
+  voiceSendNow();
+}
+
+function voiceCancelIfRecording() {
+  if (_voiceRecorder && _voiceRecorder.state === 'recording') voiceCancel();
+}
+
+function voiceCancel() {
+  _voiceCancelled = true;
+  _voiceStopRecorder();
+  _voiceHideBar();
+  toast('已取消');
+}
+
+function voiceSendNow() {
+  if (!_voiceRecorder || _voiceRecorder.state !== 'recording') return;
+  _voiceRecorder.onstop = _voiceUpload;
+  _voiceStopRecorder();
+  _voiceHideBar();
+}
+
+function _voiceStopRecorder() {
+  clearInterval(_voiceTimer);
+  if (_voiceRecorder && _voiceRecorder.state !== 'inactive') {
+    try { _voiceRecorder.stop(); } catch(e) {}
+  }
+  if (_voiceStream) {
+    _voiceStream.getTracks().forEach(function(t) { t.stop(); });
+    _voiceStream = null;
+  }
+  document.removeEventListener('touchmove', voiceTouchMove);
+}
+
+function _voiceHideBar() {
+  var bar = document.getElementById('voiceRecBar');
+  if (bar) bar.classList.remove('show');
+  var btn = document.getElementById('voiceBtn');
+  if (btn) btn.classList.remove('recording');
+  var timerEl = document.getElementById('voiceRecTimer');
+  if (timerEl) timerEl.textContent = '00:00';
+}
+
+async function _voiceUpload() {
+  if (_voiceCancelled || !_voiceChunks.length) return;
+
+  var duration = Math.round((Date.now() - _voiceStart) / 1000);
+  var mimeType = _voiceRecorder.mimeType || 'audio/webm';
+  var ext = mimeType.includes('ogg') ? 'ogg' : 'webm';
+  var blob = new Blob(_voiceChunks, { type: mimeType });
+
+  toast('🎤 发送中…');
+  var client = sb();
+  if (!client) { toast('❌ 未连接数据库'); return; }
+  var myUid = await getUid();
+  var path = myUid + '/voice/' + Date.now() + '.' + ext;
+
+  try {
+    var up = await client.storage.from('moments').upload(path, blob, {
+      contentType: mimeType, upsert: false
+    });
+    if (up.error) { toast('❌ 上传失败: ' + up.error.message); return; }
+
+    var pub = client.storage.from('moments').getPublicUrl(path);
+    var url = pub.data.publicUrl;
+    var content = '[语音] ' + duration + ' | ' + url;
+
+    // 本地立即显示
+    var box = document.getElementById('crMessages');
+    if (box) {
+      box.insertAdjacentHTML('beforeend',
+        '<div class="msg me"><div class="bubble me">'
+        + renderMessageContent(content, true)
+        + '<div class="bubble-time">' + now() + '</div>'
+        + '</div></div>'
+      );
+      box.scrollTop = box.scrollHeight;
+    }
+
+    // 存到数据库
+    if (currentRoomId) {
+      var enc = await encryptMsg(content, currentRoomId);
+      await client.from('messages').insert({
+        sender_id: myUid, sender_name: userName,
+        sender_emoji: userEmoji, room_id: currentRoomId, content: enc
+      });
+    }
+    toast('✅ 语音已发送');
+  } catch(err) {
+    toast('❌ 发送失败');
+    console.error('voice upload error:', err);
+  }
+}
+
+// 播放语音消息
+var _voiceCurrentAudio = null;
+var _voiceCurrentBtn   = null;
+
+function playVoiceMsg(btn, url) {
+  // 停止上一条
+  if (_voiceCurrentAudio) {
+    _voiceCurrentAudio.pause();
+    _voiceCurrentAudio = null;
+    if (_voiceCurrentBtn) {
+      _voiceCurrentBtn.textContent = '▶';
+      var w = _voiceCurrentBtn.parentElement.querySelector('.voice-wave');
+      if (w) w.classList.remove('playing');
+    }
+  }
+  if (_voiceCurrentBtn === btn) { _voiceCurrentBtn = null; return; }
+
+  var audio = new Audio(url);
+  _voiceCurrentAudio = audio;
+  _voiceCurrentBtn   = btn;
+  btn.textContent = '⏸';
+  var wave = btn.parentElement.querySelector('.voice-wave');
+  if (wave) wave.classList.add('playing');
+
+  audio.play().catch(function() { toast('播放失败'); });
+  audio.onended = function() {
+    btn.textContent = '▶';
+    if (wave) wave.classList.remove('playing');
+    _voiceCurrentAudio = null;
+    _voiceCurrentBtn   = null;
+  };
+}
+
 function sendLifeMomentToChat(){
   closeChatPanels();
   var moments=window._trajMomentsCache||[];
@@ -3695,13 +5073,13 @@ async function submitMoment() {
       if (url) photoUrls.push(url);
     }
     if (bar) bar.style.width = '100%';
-    if (ptext) ptext.textContent = '保存中…';
+    if (ptext) ptext.textContent = t('saving2');
   }
 
   // Base insert — only safe columns that always exist
   var baseRow = {
     user_id: uid,
-    title: text || ('分享了动态'),
+    title: text || t('sharedMoment'),
     taken_at: new Date().toISOString(),
     photo_url: photoUrls[0] || ''
   };
@@ -3729,7 +5107,7 @@ async function submitMoment() {
     }
   }
 
-  var visLabel = {all:'所有人可见', family:'仅家人可见', friends:'仅好友可见'};
+  var visLabel = {all:t('visAll'), family:t('visFam'), friends:'仅好友可见'};
   toast('✅ 动态已发布！' + (visLabel[_momentVisibility] || ''));
 
   closeMomentComposer();
@@ -3741,10 +5119,10 @@ function buildMomentsFeed() {
   var feed = document.getElementById('momentsFeed');
   if (!feed) return;
   if (!MOMENTS_DATA.length) {
-    feed.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--ink3)"><div style="font-size:40px;margin-bottom:12px">📸</div><div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px">还没有动态</div><div style="font-size:12px;line-height:1.7">添加记录时开启「同时发布到朋友圈」</div></div>';
+    feed.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--ink3)"><div style="font-size:40px;margin-bottom:12px">📸</div><div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px">'+t('noMoments2')+'</div><div style="font-size:12px;line-height:1.7">添加记录时开启「同时发布到朋友圈」</div></div>';
     return;
   }
-  feed.innerHTML = '<div style="padding:14px 14px 4px;font-size:15px;font-weight:700;color:var(--ink)">家人动态</div>'
+  feed.innerHTML = '<div style="padding:14px 14px 4px;font-size:15px;font-weight:700;color:var(--ink)">'+t('familyFeed')+'</div>'
     + MOMENTS_DATA.map(function(m) {
       // Photo HTML
       var imgHtml = '';
@@ -3771,12 +5149,12 @@ function buildMomentsFeed() {
         + imgHtml
         + '<div class="moment-foot"><div class="moment-action" onclick="likeMoment(\'' + m.id + '\',this)">♡ ' + m.likes + '</div>'
         + '<div class="moment-action">💬 ' + m.cmts + '</div>'
-        + '<div class="moment-action" style="margin-left:auto">↗ 分享</div></div></div>';
+        + '<div class="moment-action" style="margin-left:auto">↗ '+t('shareLabel')+'</div></div></div>';
     }).join('');
 }
 
 async function momentMenu(id) {
-  showConfirm('确定删除这条朋友圈动态？\n仅从朋友圈移除，人生轨迹记录保留。', function() {
+  showConfirm(t('confirmDeleteMoment'), function() {
     _doMomentDelete(id);
   });
 }
@@ -3893,7 +5271,7 @@ async function loadRealMoments_feed() {
     if (cr.data) cr.data.forEach(function(c) {
       if (c.member_id && c.member_id !== uid) {
         allowedUids.push(c.member_id);
-        nicknameMap[c.member_id] = c.nickname || '联系人';
+        nicknameMap[c.member_id] = c.nickname || t('contact');
       }
     });
 
@@ -3902,7 +5280,7 @@ async function loadRealMoments_feed() {
     if (cr2.data) cr2.data.forEach(function(c) {
       if (c.owner_id && c.owner_id !== uid && allowedUids.indexOf(c.owner_id) < 0) {
         allowedUids.push(c.owner_id);
-        nicknameMap[c.owner_id] = c.nickname || '联系人';
+        nicknameMap[c.owner_id] = c.nickname || t('contact');
       }
     });
 
@@ -3937,7 +5315,7 @@ async function loadRealMoments_feed() {
         var isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(rawTitle);
         var cleanTitle = isUUID ? (urls.length ? t('sharedPhoto') : t('addedRecord')) : rawTitle;
         // Use my nickname for them, not hardcoded "家人"
-        var displayName = nicknameMap[m.user_id] || (isMe ? (userName||'我') : '联系人');
+        var displayName = nicknameMap[m.user_id] || (isMe ? (userName||t('i2')) : t('contact'));
         return {
           id: m.id || '',
           userId: m.user_id,
@@ -4483,7 +5861,7 @@ var _allYearsMomentsCache = [];
 
 async function loadAllYearsMoments() {
   var body = document.getElementById('summaryBodyContent');
-  if (body) body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink3);font-size:12px">⏳ 加载全部记录…</div>';
+  if (body) body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink3);font-size:12px">⏳ '+t('loading2')+'</div>';
   var client = sb(); if (!client) return;
   var uid = await getUid(); if (!uid) return;
   try {
@@ -4531,7 +5909,7 @@ function renderSummary(moments, tab) {
   }
 
   if (!filtered.length) {
-    body.innerHTML = '<div style="text-align:center;padding:18px;color:var(--ink3);font-size:12px">'+periodLabel+'暂无记录</div>';
+    body.innerHTML = '<div style="text-align:center;padding:18px;color:var(--ink3);font-size:12px">'+periodLabel+t('noRecord2')+'</div>';
     return;
   }
 
@@ -5212,7 +6590,7 @@ async function loadRealCircle_impl() {
         var name = c.nickname || prof.display_name || '联系人';
         var emoji = prof.emoji || '😊';
         var isOnline = loc && (Date.now() - new Date(loc.updated_at).getTime()) < 30*60*1000;
-        var timeAgo = loc ? fmtAgo(loc.updated_at) : '未共享位置';
+        var timeAgo = loc ? fmtAgo(loc.updated_at) : t('notSharing');
         var batHtml = '';
         if (loc && loc.battery != null) {
           var bc = loc.battery < 25 ? 'var(--red)' : 'var(--green)';
@@ -5237,20 +6615,20 @@ async function loadRealCircle_impl() {
           + '</div>'
           + '<div style="flex:1;cursor:pointer" onclick="openContactOptions(\''+c.member_id+'\',\''+esc(name)+'\')">'
           + '<div style="display:flex;align-items:center;gap:6px"><div class="member-name">'+esc(name)+'</div>'+relTag+'</div>'
-          + '<div class="member-status">'+(isOnline ? '📍 '+esc(timeAgo) : '未共享位置')+'</div>'
+          + '<div class="member-status">'+(isOnline ? '📍 '+esc(timeAgo) : t('notSharing'))+'</div>'
           + batHtml+'</div>'
           // Per-contact share toggle
           + '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0">'
           + '<div class="toggle '+(sharingWithThem?'on':'off')+'" id="'+togId+'" onclick="toggleLocForContact(\''+c.member_id+'\',\''+togId+'\')" style="transform:scale(.85)"><div class="toggle-knob"></div></div>'
-          + '<span style="font-size:9px;color:var(--ink3)">'+(sharingWithThem?'可见':'隐藏')+'</span>'
+          + '<span style="font-size:9px;color:var(--ink3)">'+(sharingWithThem?t('visible'):t('hidden'))+'</span>'
           + '</div>'
           + '</div>';
       }).join('');
 
       // Add refresh + location hint
       html += '<div style="margin-top:10px;padding:10px 12px;background:var(--blue-lt);border-radius:10px;font-size:11px;color:var(--ink3);display:flex;align-items:center;justify-content:space-between">'
-        + '<span>💡 需家人打开「家人守护」页面才会上传位置</span>'
-        + '<button onclick="loadRealCircle_impl()" style="padding:5px 12px;border-radius:99px;background:var(--blue2);color:#fff;font-size:11px;font-weight:600;border:none;cursor:pointer;font-family:inherit;white-space:nowrap">刷新</button>'
+        + '<span>💡 ' + t('guardianHint') + '</span>'
+        + '<button onclick="loadRealCircle_impl()" style="padding:5px 12px;border-radius:99px;background:var(--blue2);color:#fff;font-size:11px;font-weight:600;border:none;cursor:pointer;font-family:inherit;white-space:nowrap">' + t('sRefresh') + '</button>'
         + '</div>';
 
       list.innerHTML = html;
@@ -5354,7 +6732,7 @@ async function initSafetyMap(myLoc, members, locs, profiles) {
 
 function showEmptyCircle() {
   var list = document.getElementById('realMemberList');
-  if (list) list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink3);font-size:12px"><div style="font-size:28px;margin-bottom:8px">&#128106;</div><div style="font-weight:600;color:var(--ink);margin-bottom:4px">还没有家人</div>邀请家人加入后可以看到位置</div>';
+  if (list) list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink3);font-size:12px"><div style="font-size:28px;margin-bottom:8px">&#128106;</div><div style="font-weight:600;color:var(--ink);margin-bottom:4px">' + t('noFamilyYet') + '</div>' + t('noFamilyHint') + '</div>';
 }
 
 function toggleLoc() {
@@ -5375,7 +6753,7 @@ function toggleLocForContact(memberId, togId) {
   var el = document.getElementById(togId);
   if (el) el.className = 'toggle ' + (newVal ? 'on' : 'off');
   var label = el && el.nextElementSibling;
-  if (label) label.textContent = newVal ? '可见' : '隐藏';
+  if (label) label.textContent = newVal ? t('visible') : t('hidden');
   // Update location in DB to reflect visibility change
   uploadMyLocation();
   toast(newVal ? '📍 对方可以看到你的位置' : '🙈 已对该联系人隐藏位置');
@@ -5393,7 +6771,7 @@ function setLocAll(on) {
   // Also scan circles from DOM
   document.querySelectorAll('[id^="loctog_"]').forEach(function(el) {
     el.className = 'toggle ' + (on ? 'on' : 'off');
-    if (el.nextElementSibling) el.nextElementSibling.textContent = on ? '可见' : '隐藏';
+    if (el.nextElementSibling) el.nextElementSibling.textContent = on ? t('visible') : t('hidden');
   });
   if (on) uploadMyLocation();
   toast(on ? '📍 已对所有人开启位置' : '🙈 已对所有人隐藏位置');
@@ -5981,7 +7359,7 @@ async function encryptMsg(plaintext, roomId) {
 async function decryptMsg(ciphertext, roomId) {
   if (!ciphertext) return ciphertext;
   // Strip old e1: encrypted messages — show placeholder
-  if (ciphertext.startsWith('e1:')) return '[旧版加密消息]';
+  if (ciphertext.startsWith('e1:')) return ''+t('noPwd')+'';
   return ciphertext;
 }
 
@@ -6517,21 +7895,21 @@ function navCamReceive(file) {
     + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 18px 8px">'
     +   '<button onclick="navCamSaveTo(\'life\')" style="padding:14px 10px;border-radius:14px;background:var(--blue-lt);border:none;cursor:pointer;font-family:inherit;text-align:center">'
     +     '<div style="font-size:24px;margin-bottom:4px">🗺</div>'
-    +     '<div style="font-size:13px;font-weight:700;color:var(--blue2)">人生轨迹</div>'
+    +     '<div style="font-size:13px;font-weight:700;color:var(--blue2)">'+t('lifeJourney2')+'</div>'
     +     '<div style="font-size:10px;color:var(--ink3);margin-top:2px">含GPS位置</div>'
     +   '</button>'
     +   '<button onclick="navCamSaveTo(\'moments\')" style="padding:14px 10px;border-radius:14px;background:#FFF3E0;border:none;cursor:pointer;font-family:inherit;text-align:center">'
     +     '<div style="font-size:24px;margin-bottom:4px">✨</div>'
     +     '<div style="font-size:13px;font-weight:700;color:#E07A00">发朋友圈</div>'
-    +     '<div style="font-size:10px;color:var(--ink3);margin-top:2px">分享给家人</div>'
+    +     '<div style="font-size:10px;color:var(--ink3);margin-top:2px">'+t('shareFamily')+'</div>'
     +   '</button>'
     + '</div>'
     + '<div style="padding:0 18px 8px">'
     +   '<button onclick="navCamSaveTo(\'both\')" style="width:100%;padding:13px;border-radius:14px;background:var(--blue2);color:#fff;font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:inherit">'
-    +     '🗺 + ✨ 两者都保存（人生轨迹 &amp; 朋友圈）'
+    +     ''+t('bothSave')+''
     +   '</button>'
     + '</div>'
-    + '<button onclick="document.getElementById(\'navCamDestOv\').remove();_navCamFile=null" style="width:100%;padding:13px;background:transparent;color:var(--ink3);font-size:13px;cursor:pointer;border:none;font-family:inherit;border-top:1px solid var(--border)">不保存到 App</button>'
+    + '<button onclick="document.getElementById(\'navCamDestOv\').remove();_navCamFile=null" style="width:100%;padding:13px;background:transparent;color:var(--ink3);font-size:13px;cursor:pointer;border:none;font-family:inherit;border-top:1px solid var(--border)">'+t('dontSave')+'</button>'
     + '</div>';
 
   ov.addEventListener('click', function(e){ if(e.target===ov) { ov.remove(); _navCamFile = null; } });
@@ -6880,8 +8258,8 @@ function calcProfileCompletion() {
   var txt = document.getElementById('profCompleteTxt');
   if (fill) fill.style.width = pct + '%';
   if (txt) {
-    if (pct === 100) txt.textContent = '✅ 资料已完整';
-    else txt.textContent = '资料完整度 ' + pct + '% · 点击「编辑个人资料」补充';
+    if (pct === 100) txt.textContent = t('profileComplete');
+    else txt.textContent = pct + '% ' + t('profileCompletion');
     txt.style.color = pct === 100 ? 'var(--green)' : 'var(--ink3)';
   }
 }
@@ -7183,7 +8561,7 @@ function openPrivacyPolicy() {
 
 // ── Logout ──
 function confirmLogout() {
-  showConfirm('确认退出登录？\n退出后需重新登录', function() {
+  showConfirm(t('confirmLogout'), function() {
     _doLogout();
   });
 }
@@ -7400,7 +8778,7 @@ async function openMomentDetail(mid) {
 }
 async function deleteTrajItem(id, el) {
   if (!id) return;
-  showConfirm('确定删除这条记录？\n删除后将从时间轴、地图、统计、朋友圈同步移除。', function() {
+  showConfirm(t('confirmDelete'), function() {
     _doDeleteTrajItem(id, el);
   });
 }
@@ -7481,7 +8859,7 @@ function renderTodayList(){
       'style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:11px;color:#E74C3C;cursor:pointer;padding:3px 10px;border:1.5px solid rgba(231,76,60,.3);border-radius:99px;background:rgba(231,76,60,.06);font-weight:600;white-space:nowrap">删除</span>'+
       '</div>';
   }).join('');
-  listEl.innerHTML = html || '<div style="text-align:center;padding:18px;color:var(--ink3);font-size:12px">今天还没有记录</div>';
+  listEl.innerHTML = html || '<div style="text-align:center;padding:18px;color:var(--ink3);font-size:12px">'+t('noRecordYet')+'</div>';
   requestAnimationFrame(function(){
     updateScrollState(document.getElementById('todayListScroll'),'todayFade','todayBadge',items.length);
   });
@@ -7725,9 +9103,9 @@ function _showReunionCard(info) {
     // Body
     + '<div class="rm-body">'
     + '<div class="rm-tag">⚡ Reunion Moment</div>'
-    + '<div class="rm-title">你们相遇了！</div>'
+    + '<div class="rm-title">'+t('reunionTitle')+'</div>'
     + '<div class="rm-who">你和 <strong>' + esc(info.name) + '</strong> 今天碰面啦</div>'
-    + '<div class="rm-meta">' + dateStr + ' · ' + timeStr + ' · 今年第 ' + info.yearCount + ' 次</div>'
+    + '<div class="rm-meta">' + dateStr + ' · ' + timeStr + ' · '+t('reunionThisYear') + info.yearCount + ' 次</div>'
     // Distance track
     + '<div class="rm-track" id="rmTrack">'
     + '<div class="rm-track-fill" id="rmFill" style="width:0%"></div>'
@@ -7742,7 +9120,7 @@ function _showReunionCard(info) {
     // Action buttons
     + '<div style="display:flex;gap:8px;margin-top:12px">'
     + '<button onclick="shareReunionMoment(\''+esc(info.name)+'\')" style="flex:1;padding:10px;border-radius:12px;background:var(--blue2);color:#fff;font-size:13px;font-weight:700;cursor:pointer;border:none;font-family:inherit">↗ 分享给 ' + esc(info.name) + '</button>'
-    + '<button onclick="openAddEvent()" style="flex:1;padding:10px;border-radius:12px;background:var(--bg);color:var(--ink2);font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);font-family:inherit">📝 添加记录</button>'
+    + '<button onclick="openAddEvent()" style="flex:1;padding:10px;border-radius:12px;background:var(--bg);color:var(--ink2);font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);font-family:inherit">'+t('addRecord3')+'</button>'
     + '</div>'
     + '</div>'
     + '</div>';
@@ -8028,9 +9406,9 @@ function fmtTime(iso) {
 function fmtAgo(iso) {
   if (!iso) return '未知';
   var min = Math.floor((Date.now() - new Date(iso)) / 60000);
-  if (min < 5) return '刚刚更新';
-  if (min < 60) return min + ' 分钟前';
-  if (min < 1440) return Math.floor(min/60) + ' 小时前';
+  if (min < 5) return t('justNow');
+  if (min < 60) return min + ' '+t('minuteAgo2');
+  if (min < 1440) return Math.floor(min/60) + ' '+t('hourAgo');
   return '超过1天';
 }
 function genInviteCode() { return getInviteCode(); }
@@ -8179,8 +9557,8 @@ function showPhotoCategoryPicker(file) {
   var sheet = document.createElement('div');
   sheet.style.cssText = 'width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:20px 18px 36px';
   sheet.innerHTML = '<div style="width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 16px"></div>' +
-    '<div style="font-size:16px;font-weight:700;color:var(--ink);margin-bottom:5px">这张照片存入哪里？</div>' +
-    '<div style="font-size:12px;color:var(--ink3);margin-bottom:16px">选择后自动保存到相册</div>' +
+    '<div style="font-size:16px;font-weight:700;color:var(--ink);margin-bottom:5px">'+t('saveWhere')+'</div>' +
+    '<div style="font-size:12px;color:var(--ink3);margin-bottom:16px">'+t('autoSaveAlbum')+'</div>' +
     '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px" id="catBtns"></div>';
   var cats = [{id:'life',label:'生活',icon:'&#127807;',bg:'var(--blue-lt)',color:'var(--blue2)',border:'var(--blue-lt)'},{id:'work',label:'工作',icon:'&#128188;',bg:'#FFF3E0',color:'#E07A00',border:'#FFF3E0'},{id:'family',label:'家人',icon:'&#128106;',bg:'#FCE4EC',color:'#C2185B',border:'#FCE4EC'}];
   var btnRow = sheet.querySelector('#catBtns');
@@ -8192,7 +9570,7 @@ function showPhotoCategoryPicker(file) {
     btnRow.appendChild(b);
   });
   var cancelBtn = document.createElement('button');
-  cancelBtn.textContent = '取消';
+  cancelBtn.textContent = t('cancel');
   cancelBtn.style.cssText = 'width:100%;padding:13px;border-radius:14px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:14px;cursor:pointer;-webkit-appearance:none';
   cancelBtn.onclick = function() { ov.remove(); };
   sheet.appendChild(cancelBtn);
@@ -8493,14 +9871,14 @@ function openChangePwdSheet() {
   var sheet = document.createElement('div');
   sheet.style.cssText = 'width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:20px 18px 36px';
   sheet.innerHTML = '<div style="width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 18px"></div>' +
-    '<div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:16px">修改密码</div>' +
-    '<div style="margin-bottom:12px"><div style="font-size:11px;font-weight:600;color:var(--ink2);margin-bottom:5px">新密码（至少8位）</div>' +
+    '<div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:16px">'+t('changePwdTitle')+'</div>' +
+    '<div style="margin-bottom:12px"><div style="font-size:11px;font-weight:600;color:var(--ink2);margin-bottom:5px">'+t('newPwd')+'</div>' +
     '<input id="cpNewPwd" type="password" placeholder="请输入新密码" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;background:var(--bg);color:var(--ink);box-sizing:border-box"></div>' +
-    '<div style="margin-bottom:20px"><div style="font-size:11px;font-weight:600;color:var(--ink2);margin-bottom:5px">确认新密码</div>' +
+    '<div style="margin-bottom:20px"><div style="font-size:11px;font-weight:600;color:var(--ink2);margin-bottom:5px">'+t('confirmPwd')+'</div>' +
     '<input id="cpConfirmPwd" type="password" placeholder="再次输入新密码" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;background:var(--bg);color:var(--ink);box-sizing:border-box"></div>' +
     '<div style="display:flex;gap:10px">' +
     '<button id="cpCancelBtn" style="flex:1;padding:13px;border-radius:14px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:14px;cursor:pointer;-webkit-appearance:none">取消</button>' +
-    '<button id="cpConfirmBtn" style="flex:1.5;padding:13px;border-radius:14px;border:none;background:var(--blue2);color:#fff;font-size:14px;font-weight:600;cursor:pointer;-webkit-appearance:none">确认修改</button>' +
+    '<button id="cpConfirmBtn" style="flex:1.5;padding:13px;border-radius:14px;border:none;background:var(--blue2);color:#fff;font-size:14px;font-weight:600;cursor:pointer;-webkit-appearance:none">'+t('confirmChange')+'</button>' +
     '</div>';
   ov.appendChild(sheet);
   ov.addEventListener('click', function(e){if(e.target===ov) ov.remove();});
@@ -8533,11 +9911,11 @@ function openForgotPwdSheet() {
   var sheet = document.createElement('div');
   sheet.style.cssText = 'width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:20px 18px 36px';
   sheet.innerHTML = '<div style="width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 18px"></div>' +
-    '<div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px">找回密码</div>' +
-    '<div style="font-size:12px;color:var(--ink3);margin-bottom:16px">选择找回方式</div>' +
+    '<div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px">'+t('forgotTitle')+'</div>' +
+    '<div style="font-size:12px;color:var(--ink3);margin-bottom:16px">'+t('chooseMethod')+'</div>' +
     '<div style="display:flex;gap:8px;margin-bottom:16px">' +
-    '<button id="fpTabEmail" style="flex:1;padding:10px;border-radius:12px;border:none;background:var(--blue2);color:#fff;font-size:13px;font-weight:600;cursor:pointer;-webkit-appearance:none">邮箱找回</button>' +
-    '<button id="fpTabPhone" style="flex:1;padding:10px;border-radius:12px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:13px;cursor:pointer;-webkit-appearance:none">手机找回</button>' +
+    '<button id="fpTabEmail" style="flex:1;padding:10px;border-radius:12px;border:none;background:var(--blue2);color:#fff;font-size:13px;font-weight:600;cursor:pointer;-webkit-appearance:none">'+t('byEmail2')+'</button>' +
+    '<button id="fpTabPhone" style="flex:1;padding:10px;border-radius:12px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:13px;cursor:pointer;-webkit-appearance:none">'+t('byPhone2')+'</button>' +
     '</div>' +
     '<div id="fpPanelEmail">' +
     '<div style="font-size:11px;font-weight:600;color:var(--ink2);margin-bottom:5px">注册邮箱</div>' +
@@ -8658,24 +10036,24 @@ function openBindEmailSheet() {
   var sheet = document.createElement('div');
   sheet.style.cssText = 'width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:20px 18px 36px';
 
-  var title = hasEmail ? '修改登录邮箱' : '绑定登录邮箱';
+  var title = hasEmail ? t('changeEmailTitle') : t('bindEmailTitle');
   var curVal = hasEmail ? currentEmail.textContent : '';
   sheet.innerHTML =
     '<div style="width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 18px"></div>' +
     '<div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px">' + title + '</div>' +
-    '<div style="font-size:12px;color:var(--ink3);margin-bottom:18px">绑定后可用邮箱登录和找回密码</div>' +
-    (curVal ? '<div style="font-size:12px;color:var(--ink3);margin-bottom:10px">当前邮箱：' + curVal + '</div>' : '') +
+    '<div style="font-size:12px;color:var(--ink3);margin-bottom:18px">' + t('changeEmailDesc') + '</div>' +
+    (curVal ? '<div style="font-size:12px;color:var(--ink3);margin-bottom:10px">' + t('currentEmail') + curVal + '</div>' : '') +
     '<div style="margin-bottom:12px">' +
-    '<div style="font-size:11px;font-weight:600;color:var(--ink2);margin-bottom:5px">新邮箱地址</div>' +
-    '<input id="bindEmailInput" type="email" placeholder="请输入邮箱" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;background:var(--bg);color:var(--ink);box-sizing:border-box">' +
+    '<div style="font-size:11px;font-weight:600;color:var(--ink2);margin-bottom:5px">' + t('newEmailAddr') + '</div>' +
+    '<input id="bindEmailInput" type="email" placeholder="' + t('enterEmail') + '" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;background:var(--bg);color:var(--ink);box-sizing:border-box">' +
     '</div>' +
     '<div style="margin-bottom:20px">' +
-    '<div style="font-size:11px;font-weight:600;color:var(--ink2);margin-bottom:5px">设置密码（至少8位）</div>' +
-    '<input id="bindEmailPwd" type="password" placeholder="设置登录密码" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;background:var(--bg);color:var(--ink);box-sizing:border-box">' +
+    '<div style="font-size:11px;font-weight:600;color:var(--ink2);margin-bottom:5px">' + t('setPwd') + '</div>' +
+    '<input id="bindEmailPwd" type="password" placeholder="' + t('setPwdHint') + '" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;background:var(--bg);color:var(--ink);box-sizing:border-box">' +
     '</div>' +
     '<div style="display:flex;gap:10px">' +
-    '<button id="bindEmailCancel" style="flex:1;padding:13px;border-radius:14px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:14px;cursor:pointer;-webkit-appearance:none">取消</button>' +
-    '<button id="bindEmailConfirm" style="flex:1.5;padding:13px;border-radius:14px;border:none;background:var(--blue2);color:#fff;font-size:14px;font-weight:600;cursor:pointer;-webkit-appearance:none">确认绑定</button>' +
+    '<button id="bindEmailCancel" style="flex:1;padding:13px;border-radius:14px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:14px;cursor:pointer;-webkit-appearance:none">' + t('cancel') + '</button>' +
+    '<button id="bindEmailConfirm" style="flex:1.5;padding:13px;border-radius:14px;border:none;background:var(--blue2);color:#fff;font-size:14px;font-weight:600;cursor:pointer;-webkit-appearance:none">' + t('confirmBind') + '</button>' +
     '</div>';
 
   ov.appendChild(sheet);
@@ -8720,10 +10098,10 @@ function openBindPhoneSheet() {
   step1.innerHTML =
     '<div style="width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 18px"></div>' +
     '<div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px">' + title + '</div>' +
-    '<div style="font-size:12px;color:var(--ink3);margin-bottom:18px">绑定后可用手机号登录和找回密码</div>' +
+    '<div style="font-size:12px;color:var(--ink3);margin-bottom:18px">'+t('changePhoneDesc')+'</div>' +
     (curVal ? '<div style="font-size:12px;color:var(--blue2);margin-bottom:10px">当前：' + curVal + '</div>' : '') +
     '<div style="margin-bottom:16px">' +
-    '<div style="font-size:11px;font-weight:600;color:var(--ink2);margin-bottom:5px">新手机号</div>' +
+    '<div style="font-size:11px;font-weight:600;color:var(--ink2);margin-bottom:5px">'+t('newPhone')+'</div>' +
     '<div style="display:flex;gap:6px">' +
     '<select id="bindPhoneCC" style="width:90px;border:1.5px solid var(--border);border-radius:12px;padding:12px 6px;font-size:13px;background:var(--bg);color:var(--ink)">' +
     '<option value="+64">NZ +64</option><option value="+61">AU +61</option><option value="+86">CN +86</option><option value="+1">US +1</option><option value="+44">UK +44</option>' +
@@ -8957,10 +10335,10 @@ function openSmartNotes() {
   back.onclick = function(){ ov.remove(); };
   var hTitle = document.createElement('div');
   hTitle.style.cssText = 'flex:1;font-size:17px;font-weight:700;color:var(--ink)';
-  hTitle.textContent = 'AI 智能笔记分析';
+  hTitle.textContent = t('sSmartNotes');
   var histBtn = document.createElement('div');
   histBtn.style.cssText = 'font-size:12px;color:var(--blue2);cursor:pointer;padding:6px 10px;border-radius:10px;background:var(--blue-lt);font-weight:600;white-space:nowrap';
-  histBtn.textContent = '历史';
+  histBtn.textContent = t('history');
   histBtn.onclick = function(){ _snShowHistory(); };
   hdr.appendChild(back); hdr.appendChild(hTitle); hdr.appendChild(histBtn);
 
@@ -8999,11 +10377,11 @@ function openSmartNotes() {
   inputTop.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:10px';
   var inputLbl = document.createElement('div');
   inputLbl.style.cssText = 'font-size:12px;font-weight:700;color:var(--ink3)';
-  inputLbl.textContent = '✍️ 粘贴或输入笔记内容';
+  inputLbl.textContent = t('pasteNotes');
   var charCount = document.createElement('div');
   charCount.id = 'snCharCount';
   charCount.style.cssText = 'font-size:11px;color:var(--ink4)';
-  charCount.textContent = '0 字';
+  charCount.textContent = '0 ' + t('chars');
   inputTop.appendChild(inputLbl); inputTop.appendChild(charCount);
 
   var ta = document.createElement('textarea');
@@ -9012,7 +10390,7 @@ function openSmartNotes() {
   ta.style.cssText = 'width:100%;min-height:180px;max-height:40vh;border:none;outline:none;font-size:14px;color:var(--ink);line-height:1.75;background:transparent;resize:vertical;font-family:inherit;box-sizing:border-box';
   ta.addEventListener('input', function(){
     var n = ta.value.length;
-    charCount.textContent = n > 0 ? n + ' 字' : '0 字';
+    charCount.textContent = n > 0 ? n + ' ' + t('chars') : '0 ' + t('chars');
     charCount.style.color = n > 6000 ? 'var(--red)' : 'var(--ink4)';
   });
   inputCard.appendChild(inputTop); inputCard.appendChild(ta);
@@ -9039,7 +10417,7 @@ function openSmartNotes() {
   metaRow.style.cssText = 'display:flex;align-items:center;gap:10px;background:var(--card);border-radius:14px;padding:12px 14px;border:1px solid var(--border)';
   var dateLbl = document.createElement('div');
   dateLbl.style.cssText = 'font-size:12px;color:var(--ink3);flex-shrink:0';
-  dateLbl.textContent = '记录日期：';
+  dateLbl.textContent = t('recordDate');
   var dateInp = document.createElement('input');
   dateInp.type='date'; dateInp.id='snDate';
   dateInp.value = new Date().toISOString().slice(0,10);
@@ -9052,7 +10430,7 @@ function openSmartNotes() {
   saveCb.type='checkbox'; saveCb.id='snSaveToLife'; saveCb.checked=true;
   saveCb.style.cssText='width:16px;height:16px;accent-color:var(--blue2)';
   saveToggle.appendChild(saveCb);
-  saveToggle.appendChild(document.createTextNode('存入人生轨迹'));
+  saveToggle.appendChild(document.createTextNode(t('saveToJourney')));
   metaRow.appendChild(dateLbl); metaRow.appendChild(dateInp);
   metaRow.appendChild(divider); metaRow.appendChild(saveToggle);
   body.appendChild(metaRow);
@@ -9063,7 +10441,7 @@ function openSmartNotes() {
   var analyzeBtn = document.createElement('button');
   analyzeBtn.id='snAnalyzeBtn';
   analyzeBtn.style.cssText='width:100%;padding:15px;border-radius:15px;background:var(--blue2);color:#fff;font-size:16px;font-weight:700;border:none;cursor:pointer;-webkit-appearance:none;display:flex;align-items:center;justify-content:center;gap:8px';
-  analyzeBtn.innerHTML='&#10024; AI 分析';
+  analyzeBtn.innerHTML='&#10024; ' + t('aiAnalyze');
   analyzeBtn.onclick = function(){ _snAnalyze(); };
   footer.appendChild(analyzeBtn);
 
@@ -9332,13 +10710,13 @@ async function _snAnalyze() {
 
   // 总结
   html += '<div style="padding:14px 16px;border-bottom:1px solid var(--border)">'
-    + '<div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:6px">&#128203; 核心总结</div>'
+    + '<div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:6px">'+t('summaryKey')+'</div>'
     + '<div style="font-size:13px;color:var(--ink);line-height:1.7">'+esc(data.summary||'')+'</div></div>';
 
   // 要点
   if(data.keyPoints&&data.keyPoints.length) {
     html += '<div style="padding:14px 16px;border-bottom:1px solid var(--border)">'
-      + '<div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:8px">&#127775; 关键要点</div>'
+      + '<div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:8px">'+t('keyPoints')+'</div>'
       + data.keyPoints.map(function(p){ return '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px"><div style="width:6px;height:6px;border-radius:50%;background:'+color+';flex-shrink:0;margin-top:5px"></div><div style="font-size:13px;color:var(--ink);line-height:1.6">'+esc(p)+'</div></div>'; }).join('')
       + '</div>';
   }
@@ -9346,7 +10724,7 @@ async function _snAnalyze() {
   // 待办/行动项
   if(data.actionItems&&data.actionItems.length) {
     html += '<div style="padding:14px 16px;border-bottom:1px solid var(--border)">'
-      + '<div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:8px">&#9989; 行动清单</div>'
+      + '<div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:8px">'+t('actionList')+'</div>'
       + data.actionItems.map(function(a,i){ return '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px"><div style="width:18px;height:18px;border-radius:5px;border:1.5px solid var(--border);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--ink4)">'+(i+1)+'</div><div style="font-size:13px;color:var(--ink);line-height:1.6">'+esc(a)+'</div></div>'; }).join('')
       + '</div>';
   }
@@ -9354,7 +10732,7 @@ async function _snAnalyze() {
   // 风险/注意
   if(data.risks&&data.risks.length) {
     html += '<div style="padding:14px 16px;border-bottom:1px solid var(--border)">'
-      + '<div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:8px">&#9888;&#65039; 注意事项</div>'
+      + '<div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:8px">'+t('notesWarning')+'</div>'
       + data.risks.map(function(r){ return '<div style="padding:7px 10px;background:#FFF8E1;border-radius:8px;font-size:12px;color:#9C6A00;margin-bottom:5px">'+esc(r)+'</div>'; }).join('')
       + '</div>';
   }
@@ -9362,14 +10740,14 @@ async function _snAnalyze() {
   // AI建议
   if(data.advice) {
     html += '<div style="padding:14px 16px;border-bottom:1px solid var(--border)">'
-      + '<div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:6px">&#129504; AI 专属建议</div>'
+      + '<div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:6px">'+t('aiSuggest')+'</div>'
       + '<div style="background:'+bg+';border-radius:10px;padding:10px 12px;font-size:13px;color:'+color+';line-height:1.7;border-left:3px solid '+color+'">'+esc(data.advice)+'</div></div>';
   }
 
   // 操作按钮
   html += '<div style="display:flex;gap:8px;padding:12px 14px">'
     + '<button onclick="_snSaveResult(\''+esc(date)+'\',\''+esc(data.title||'笔记')+'\',\''+esc(data.summary||'')+'\','+saveToLife+')" style="flex:1;padding:11px;border-radius:12px;background:var(--blue2);color:#fff;font-size:13px;font-weight:700;border:none;cursor:pointer;-webkit-appearance:none">&#128190; 保存到轨迹</button>'
-    + '<button onclick="_snCopyResult(\''+esc(JSON.stringify(data)).replace(/'/g,"\\'")+'\',\''+type+'\')" style="flex:1;padding:11px;border-radius:12px;background:var(--bg);color:var(--ink);font-size:13px;font-weight:600;border:1.5px solid var(--border);cursor:pointer;-webkit-appearance:none">&#128203; 复制报告</button>'
+    + '<button onclick="_snCopyResult(\''+esc(JSON.stringify(data)).replace(/'/g,"\\'")+'\',\''+type+'\')" style="flex:1;padding:11px;border-radius:12px;background:var(--bg);color:var(--ink);font-size:13px;font-weight:600;border:1.5px solid var(--border);cursor:pointer;-webkit-appearance:none">'+t('copyReport')+'</button>'
     + '</div></div>';
 
   resultArea.innerHTML = html;
@@ -9438,7 +10816,7 @@ function openLifeArchive() {
   back.onclick = function(){ ov.remove(); };
   var hTitle = document.createElement('div');
   hTitle.style.cssText = 'flex:1;font-size:17px;font-weight:700;color:var(--ink)';
-  hTitle.textContent = '人生轨迹档案';
+  hTitle.textContent = t('sLifeArchive');
   hdr.appendChild(back); hdr.appendChild(hTitle);
 
   // ── Scroll body ──
@@ -9446,25 +10824,24 @@ function openLifeArchive() {
   body.style.cssText = 'flex:1;overflow-y:auto;padding:16px';
 
   // 模板选择
-  var tplSection = _archiveSection('&#128196; 档案模板', [
-    { id:'general',   label:'通用人生档案',   desc:'完整记录，适合个人留存' },
-    { id:'visa',      label:'签证行程证明',   desc:'按日期列出地点轨迹，含GPS' },
-    { id:'work',      label:'工作履历档案',   desc:'筛选工作记录，适合简历附件' },
-    { id:'family',    label:'家庭历史记录',   desc:'家庭相关记录，永久珍藏' },
+  var tplSection = _archiveSection('&#128196; ' + t('archiveTemplate'), [
+    { id:'general',   label:t('tplGeneral'),   desc:t('tplGeneralDesc') },
+    { id:'visa',      label:t('tplVisa'),      desc:t('tplVisaDesc') },
+    { id:'work',      label:t('tplWork'),      desc:t('tplWorkDesc') },
+    { id:'family',    label:t('tplFamily'),    desc:t('tplFamilyDesc') },
   ], 'tpl', 'general');
   body.appendChild(tplSection);
 
   // 时间范围
-  var dateSection = _archiveSection('&#128197; 时间范围', [
-    { id:'all',       label:'全部时间',       desc:'' },
-    { id:'year',      label:'近一年',         desc:'' },
-    { id:'halfyear',  label:'近半年',         desc:'' },
-    { id:'month3',    label:'近三个月',       desc:'' },
-    { id:'custom',    label:'自定义',         desc:'' },
+  var dateSection = _archiveSection('&#128197; ' + t('timeRange'), [
+    { id:'all',       label:t('timeAll'),    desc:'' },
+    { id:'year',      label:t('timeYear'),   desc:'' },
+    { id:'half_year',  label:t('timeHalfYear'), desc:'' },
+    { id:'three_months', label:t('timeThreeMonths'), desc:'' },
+    { id:'custom',     label:t('timeCustom'),  desc:'' },
   ], 'daterange', 'all');
   body.appendChild(dateSection);
 
-  // 自定义日期
   var customDates = document.createElement('div');
   customDates.id = 'archiveCustomDates';
   customDates.style.cssText = 'display:none;gap:10px;margin-bottom:14px';
@@ -9472,7 +10849,7 @@ function openLifeArchive() {
     var inp = document.createElement('input');
     inp.type='date'; inp.id=id;
     inp.style.cssText='flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:11px;font-size:13px;background:var(--card);color:var(--ink);-webkit-appearance:none';
-    inp.placeholder = i===0?'开始日期':'结束日期';
+    inp.placeholder = i===0 ? t('startDate') : t('endDate');
     customDates.appendChild(inp);
   });
   body.appendChild(customDates);
@@ -9485,17 +10862,17 @@ function openLifeArchive() {
   kwLabel.textContent = '🔍 关键词筛选（可选）';
   var kwInp = document.createElement('input');
   kwInp.type='text'; kwInp.id='archiveKeyword';
-  kwInp.placeholder='输入地点、事件、人名…多个用空格分隔';
+  kwInp.placeholder=t('keywordPlaceholder');
   kwInp.style.cssText='width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:13px;background:var(--card);color:var(--ink);box-sizing:border-box;-webkit-appearance:none;outline:none';
   kwWrap.appendChild(kwLabel); kwWrap.appendChild(kwInp);
   body.appendChild(kwWrap);
 
   // 内容类型
-  var typeSection = _archiveSection('&#127775; 包含内容', [
-    { id:'all_types',  label:'全部类型',  desc:'' },
-    { id:'gps_only',   label:'仅含位置',  desc:'有GPS坐标的记录' },
-    { id:'photo_only', label:'仅含照片',  desc:'有图片的记录' },
-    { id:'people',     label:'含同行人',  desc:'有家人同行的记录' },
+  var typeSection = _archiveSection('&#127775; ' + t('contentType'), [
+    { id:'all_types',  label:t('typeAll'),     desc:'' },
+    { id:'gps_only',   label:t('typeGPS'),     desc:t('typeGPSDesc') },
+    { id:'photo_only', label:t('typePhoto'),   desc:t('typePhotoDesc') },
+    { id:'people',     label:t('typePeople'),  desc:t('typePeopleDesc') },
   ], 'contenttype', 'all_types');
   body.appendChild(typeSection);
 
@@ -9511,11 +10888,11 @@ function openLifeArchive() {
   archiveFooter.style.cssText = 'flex-shrink:0;padding:12px 16px calc(env(safe-area-inset-bottom,0px)+12px);background:var(--card);border-top:1px solid var(--border);display:flex;gap:8px';
   var previewBtn2 = document.createElement('button');
   previewBtn2.style.cssText = 'flex:1;padding:14px;border-radius:14px;border:1.5px solid var(--blue2);background:transparent;color:var(--blue2);font-size:14px;font-weight:600;cursor:pointer;-webkit-appearance:none';
-  previewBtn2.innerHTML = '&#128269; 预览';
+  previewBtn2.innerHTML = '&#128269; ' + t('preview');
   previewBtn2.onclick = function(){ _archivePreview(); };
   var genBtn2 = document.createElement('button');
   genBtn2.style.cssText = 'flex:2;padding:14px;border-radius:14px;border:none;background:var(--blue2);color:#fff;font-size:14px;font-weight:700;cursor:pointer;-webkit-appearance:none';
-  genBtn2.innerHTML = '&#128196; 生成 PDF';
+  genBtn2.innerHTML = '&#128196; ' + t('generatePDF');
   genBtn2.onclick = function(){ _doGeneratePDF(); };
   archiveFooter.appendChild(previewBtn2); archiveFooter.appendChild(genBtn2);
   // 顶部生成按钮改为预览
@@ -9674,8 +11051,8 @@ async function _archivePreview() {
   if(!hits.length) {
     preview.innerHTML = '<div style="text-align:center;padding:16px">'
       + '<div style="font-size:28px;margin-bottom:8px">&#128269;</div>'
-      + '<div style="font-size:13px;color:var(--ink3)">暂无匹配记录</div>'
-      + '<div style="font-size:11px;color:var(--ink4);margin-top:4px">试试扩大时间范围或清空关键词</div>'
+      + '<div style="font-size:13px;color:var(--ink3)">'+t('noMatch')+'</div>'
+      + '<div style="font-size:11px;color:var(--ink4);margin-top:4px">'+t('expandHint')+'</div>'
       + '</div>';
     return;
   }
@@ -9698,13 +11075,13 @@ async function _archivePreview() {
     + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px">'
     + '<div style="text-align:center;background:var(--card);border-radius:8px;padding:8px 4px">'
     +   '<div style="font-size:18px;font-weight:700;color:var(--ink)">'+photoCount+'</div>'
-    +   '<div style="font-size:10px;color:var(--ink3)">含照片</div></div>'
+    +   '<div style="font-size:10px;color:var(--ink3)">'+t('withPhoto')+'</div></div>'
     + '<div style="text-align:center;background:var(--card);border-radius:8px;padding:8px 4px">'
     +   '<div style="font-size:18px;font-weight:700;color:var(--ink)">'+gpsCount+'</div>'
-    +   '<div style="font-size:10px;color:var(--ink3)">GPS定位</div></div>'
+    +   '<div style="font-size:10px;color:var(--ink3)">'+t('gpsLoc')+'</div></div>'
     + '<div style="text-align:center;background:var(--card);border-radius:8px;padding:8px 4px">'
     +   '<div style="font-size:18px;font-weight:700;color:var(--ink)">'+peopleCount+'</div>'
-    +   '<div style="font-size:10px;color:var(--ink3)">同行人</div></div>'
+    +   '<div style="font-size:10px;color:var(--ink3)">'+t('companion')+'</div></div>'
     + '</div>';
 
   // 记录列表（最多显示30条，可点击）
@@ -9740,7 +11117,7 @@ async function _archivePreview() {
     : '';
 
   preview.innerHTML = statsHtml
-    + '<div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:6px">记录明细（点击可查看详情）</div>'
+    + '<div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:6px">'+t('recordDetail')+'</div>'
     + '<div id="archiveRecordList" style="background:var(--card);border-radius:10px;padding:0 10px">' + listRows + '</div>'
     + moreNote;
 
@@ -9882,7 +11259,7 @@ async function exportLifePDF(moments_override, filter_ctx) {
     + '<div class="stat-box"><div class="stat-num">'+moments.length+'</div><div class="stat-lbl">总记录数</div></div>'
     + '<div class="stat-box"><div class="stat-num">'+totalDays+'</div><div class="stat-lbl">记录天数</div></div>'
     + '<div class="stat-box"><div class="stat-num">'+photoCount+'</div><div class="stat-lbl">照片记录</div></div>'
-    + '<div class="stat-box"><div class="stat-num">'+gpsCount+'</div><div class="stat-lbl">GPS定位</div></div>'
+    + '<div class="stat-box"><div class="stat-num">'+gpsCount+'</div><div class="stat-lbl">'+t('gpsLoc')+'</div></div>'
     + '</div>'
     // Top places
     + '<div style="margin-bottom:20px">'
@@ -9955,7 +11332,7 @@ function openMomentSearch() {
   var results = document.createElement('div');
   results.id = 'searchResults';
   results.style.cssText = 'flex:1;overflow-y:auto;padding:12px 16px';
-  results.innerHTML = '<div style="text-align:center;padding:40px;color:var(--ink3)">输入关键词开始搜索</div>';
+  results.innerHTML = '<div style="text-align:center;padding:40px;color:var(--ink3)">'+t('searchHint')+'</div>';
 
   ov.appendChild(header); ov.appendChild(hint); ov.appendChild(results);
   document.body.appendChild(ov);
@@ -9966,7 +11343,7 @@ function openMomentSearch() {
     var q = inp.value.trim();
     clearBtn.style.display = q ? 'block' : 'none';
     clearTimeout(searchTimer);
-    if (!q) { results.innerHTML = '<div style="text-align:center;padding:40px;color:var(--ink3)">输入关键词开始搜索</div>'; return; }
+    if (!q) { results.innerHTML = '<div style="text-align:center;padding:40px;color:var(--ink3)">'+t('searchHint')+'</div>'; return; }
     searchTimer = setTimeout(function(){ doSearch(q); }, 300);
   });
 }
@@ -9975,7 +11352,7 @@ async function doSearch(q) {
   track('search', q);
   var results = document.getElementById('searchResults');
   if (!results) return;
-  results.innerHTML = '<div style="text-align:center;padding:30px;color:var(--ink3)">搜索中...</div>';
+  results.innerHTML = '<div style="text-align:center;padding:30px;color:var(--ink3)">'+t('searching')+'</div>';
 
   var cl = sb();
   var uid = await getUid();
@@ -10003,7 +11380,7 @@ async function doSearch(q) {
     items.sort(function(a,b){ return new Date(b.taken_at) - new Date(a.taken_at); });
 
     if (!items.length) {
-      results.innerHTML = '<div style="text-align:center;padding:40px;color:var(--ink3)">没有找到相关记录</div>';
+      results.innerHTML = '<div style="text-align:center;padding:40px;color:var(--ink3)">'+t('noResults')+'</div>';
       return;
     }
 
@@ -10167,6 +11544,16 @@ window.addEventListener('DOMContentLoaded', function() {
 
 <!-- Jitsi Meet API -->
 <script async src="https://meet.jit.si/external_api.js"></script>
+<!-- ════ VOICE RECORDING BAR ════ -->
+<div class="voice-rec-bar" id="voiceRecBar">
+  <div style="font-size:28px">🎤</div>
+  <div class="voice-rec-timer" id="voiceRecTimer">00:00</div>
+  <div class="voice-rec-hint">松手发送 · 上滑取消</div>
+  <div class="voice-rec-actions">
+    <button class="voice-rec-cancel" onclick="voiceCancel()">取消</button>
+    <button class="voice-rec-send" onclick="voiceSendNow()">发送</button>
+  </div>
+</div>
 <!-- Supabase SDK 异步加载，不阻塞页面渲染 -->
 
 
@@ -10208,7 +11595,7 @@ window.addEventListener('DOMContentLoaded', function() {
     <div class="cam-after" id="camAfter">
       <div class="cam-after-title">保存到哪里？</div>
       <div class="cam-save-opts">
-        <div class="cam-save-opt" onclick="camSave('life')"><div class="cam-save-ico">🗺</div><div class="cam-save-lbl">人生轨迹</div><div class="cam-save-sub">GPS定位</div></div>
+        <div class="cam-save-opt" onclick="camSave('life')"><div class="cam-save-ico">🗺</div><div class="cam-save-lbl">'+t('lifeJourney2')+'</div><div class="cam-save-sub">'+t('gpsLoc')+'</div></div>
         <div class="cam-save-opt" onclick="camSave('moments')"><div class="cam-save-ico">✨</div><div class="cam-save-lbl">朋友圈</div><div class="cam-save-sub">分享家人</div></div>
         <div class="cam-save-opt" onclick="camSave('health')"><div class="cam-save-ico">📋</div><div class="cam-save-lbl">健康档案</div><div class="cam-save-sub">OCR识别</div></div>
         <div class="cam-save-opt" onclick="camSave('private')"><div class="cam-save-ico">🔒</div><div class="cam-save-lbl">私密保存</div><div class="cam-save-sub">仅自己</div></div>
@@ -10308,8 +11695,8 @@ window.addEventListener('DOMContentLoaded', function() {
   <div class="sheet" style="max-height:92vh">
     <div class="sheet-handle"><div class="sheet-bar"></div></div>
     <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 18px 12px">
-      <div style="font-size:17px;font-weight:700;color:var(--ink)">编辑个人资料</div>
-      <button onclick="saveProfile()" style="padding:8px 20px;border-radius:99px;background:var(--blue2);color:#fff;font-size:13px;font-weight:700;cursor:pointer;border:none;font-family:inherit">保存</button>
+      <div style="font-size:17px;font-weight:700;color:var(--ink)" data-i18n-key="editProfileTitle">编辑个人资料</div>
+      <button onclick="saveProfile()" data-i18n-key="save" style="padding:8px 20px;border-radius:99px;background:var(--blue2);color:#fff;font-size:13px;font-weight:700;cursor:pointer;border:none;font-family:inherit">保存</button>
     </div>
 
     <!-- Avatar -->
@@ -10318,20 +11705,20 @@ window.addEventListener('DOMContentLoaded', function() {
         <div id="editAvPreview" style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#B8D0F0,#8AAEE0);font-size:36px;display:flex;align-items:center;justify-content:center;border:3px solid var(--blue-soft);cursor:pointer;overflow:hidden" onclick="triggerAvatarUpload()">😊</div>
         <div style="position:absolute;bottom:0;right:0;width:26px;height:26px;border-radius:50%;background:var(--blue2);border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer" onclick="triggerAvatarUpload()">📷</div>
       </div>
-      <div style="font-size:11px;color:var(--ink3);margin-bottom:8px">点击更换头像照片</div>
+      <div style="font-size:11px;color:var(--ink3);margin-bottom:8px" data-i18n-key="changeAvatar">点击更换头像照片</div>
       <div class="emoji-picker" id="emojiPicker"></div>
     </div>
 
     <!-- 基本信息 -->
-    <div style="padding:0 18px 4px;font-size:10px;font-weight:700;color:var(--ink3);letter-spacing:.6px;text-transform:uppercase">基本信息</div>
+    <div style="padding:0 18px 4px;font-size:10px;font-weight:700;color:var(--ink3);letter-spacing:.6px;text-transform:uppercase" data-i18n-key="basicInfo">基本信息</div>
 
     <div class="edit-row">
-      <label class="edit-label">昵称 <span style="color:var(--red)">*</span></label>
+      <label class="edit-label" data-i18n-key="nicknameLbl">昵称 <span style="color:var(--red)">*</span></label>
       <input class="edit-input" type="text" placeholder="家人叫你什么？" id="editNameInput" maxlength="20">
     </div>
     <div class="edit-row">
-      <label class="edit-label">真实姓名（可选）</label>
-      <input class="edit-input" type="text" placeholder="仅家庭圈内可见" id="editRealNameInput" maxlength="30">
+      <label class="edit-label" data-i18n-key="realNameLbl">真实姓名（可选）</label>
+      <input class="edit-input" type="text" data-i18n-placeholder="familyOnly" placeholder="仅家庭圈内可见" id="editRealNameInput" maxlength="30">
     </div>
     <div class="edit-row">
       <label class="edit-label">个性签名（可选）</label>
@@ -10340,17 +11727,17 @@ window.addEventListener('DOMContentLoaded', function() {
 
     <!-- 我在家里是 -->
     <div class="edit-row">
-      <label class="edit-label">我在家里是</label>
+      <label class="edit-label" data-i18n-key="roleInFamily">我在家里是</label>
       <div style="display:flex;flex-wrap:wrap;gap:7px" id="rolePicker">
         <!-- Rendered by JS -->
       </div>
     </div>
 
     <!-- 联系方式 -->
-    <div style="padding:10px 18px 4px;font-size:10px;font-weight:700;color:var(--ink3);letter-spacing:.6px;text-transform:uppercase">联系方式</div>
+    <div style="padding:10px 18px 4px;font-size:10px;font-weight:700;color:var(--ink3);letter-spacing:.6px;text-transform:uppercase" data-i18n-key="contactInfo">联系方式</div>
 
     <div class="edit-row">
-      <label class="edit-label">手机号</label>
+      <label class="edit-label" data-i18n-key="sPhone">手机号</label>
       <div style="display:flex;gap:7px;align-items:center">
         <select id="editPhoneCC" style="width:86px;border:1.5px solid var(--border);border-radius:11px;padding:10px 6px;font-size:13px;background:var(--card);color:var(--ink);font-family:inherit">
           <option value="+64">🇳🇿 +64</option>
@@ -10364,19 +11751,19 @@ window.addEventListener('DOMContentLoaded', function() {
       </div>
     </div>
     <div class="edit-row">
-      <label class="edit-label">邮箱</label>
+      <label class="edit-label" data-i18n-key="sEmail2">邮箱</label>
       <input class="edit-input" type="email" placeholder="email@example.com" id="editEmailInput" maxlength="60">
     </div>
 
     <!-- 个人详情 -->
-    <div style="padding:10px 18px 4px;font-size:10px;font-weight:700;color:var(--ink3);letter-spacing:.6px;text-transform:uppercase">个人详情</div>
+    <div style="padding:10px 18px 4px;font-size:10px;font-weight:700;color:var(--ink3);letter-spacing:.6px;text-transform:uppercase" data-i18n-key="personalDetails">个人详情</div>
 
     <div class="edit-row">
       <label class="edit-label">生日（可选）</label>
       <input class="edit-input" type="date" id="editBirthdayInput">
     </div>
     <div class="edit-row">
-      <label class="edit-label">性别（可选）</label>
+      <label class="edit-label" data-i18n-key="genderLbl">性别（可选）</label>
       <div style="display:flex;gap:8px" id="genderPicker">
         <div class="role-chip" data-val="male" onclick="pickGender(this)">👨 男</div>
         <div class="role-chip" data-val="female" onclick="pickGender(this)">👩 女</div>
@@ -10389,13 +11776,13 @@ window.addEventListener('DOMContentLoaded', function() {
     </div>
 
     <!-- 紧急联系人 -->
-    <div style="padding:10px 18px 4px;font-size:10px;font-weight:700;color:var(--ink3);letter-spacing:.6px;text-transform:uppercase">紧急联系人</div>
+    <div style="padding:10px 18px 4px;font-size:10px;font-weight:700;color:var(--ink3);letter-spacing:.6px;text-transform:uppercase" data-i18n-key="emergencyContact">紧急联系人</div>
     <div class="edit-row">
-      <label class="edit-label">紧急联系人姓名</label>
+      <label class="edit-label" data-i18n-key="emergencyName">紧急联系人姓名</label>
       <input class="edit-input" type="text" placeholder="例如：妈妈" id="editEmergencyName" maxlength="20">
     </div>
     <div class="edit-row">
-      <label class="edit-label">紧急联系人手机</label>
+      <label class="edit-label" data-i18n-key="emergencyPhone">紧急联系人手机</label>
       <input class="edit-input" type="tel" placeholder="手机号码" id="editEmergencyPhone" maxlength="20">
     </div>
 
