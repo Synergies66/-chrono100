@@ -852,6 +852,15 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
             <input type="file" accept="image/*" multiple webkitdirectory style="display:none" onchange="importPhotos(this.files)">
           </label>
         </div>
+        <!-- 相册入口 -->
+        <div onclick="openAlbum()" style="display:flex;align-items:center;gap:12px;padding:13px 15px;background:var(--card);border-radius:14px;margin-top:8px;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.06)">
+          <div style="width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg,#E8F4FD,#C9E8FF);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">&#128247;</div>
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:700;color:var(--ink)">&#25105;&#30340;&#30456;&#20876;</div>
+            <div style="font-size:11px;color:var(--ink3);margin-top:1px">&#29983;&#27963; &middot; &#24037;&#20316; &middot; &#23478;&#20154;</div>
+          </div>
+          <div style="font-size:18px;color:var(--ink4)">&#8250;</div>
+        </div>
         <!-- Auto-scan banner (Feature 2) -->
         <div id="autoScanBanner" style="margin-top:8px;background:linear-gradient(135deg,#EBF0FF,#E2ECFF);border-radius:12px;padding:11px 14px;display:flex;align-items:center;gap:10px;cursor:pointer" onclick="requestAutoPhotoScan()">
           <div style="font-size:22px">🔮</div>
@@ -1032,6 +1041,28 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
 
       <!-- Account -->
       <div class="settings-section">
+        <!-- 文件夹入口 -->
+        <div class="settings-section">
+          <div class="settings-section-title">&#25991;&#20214;&#22841;</div>
+          <div class="settings-list">
+            <div class="settings-row" onclick="openFolders('life')">
+              <div class="settings-ico" style="background:#E8F5E9">&#127807;</div>
+              <div class="settings-row-body">
+                <div class="settings-row-label">&#29983;&#27963;&#25991;&#20214;&#22841;</div>
+                <div class="settings-row-sub">&#20581;&#24247;&#12289;&#26085;&#24120;&#25991;&#20214;</div>
+              </div>
+              <div class="settings-row-val">&#8250;</div>
+            </div>
+            <div class="settings-row" onclick="openFolders('work')">
+              <div class="settings-ico" style="background:#FFF8E1">&#128188;</div>
+              <div class="settings-row-body">
+                <div class="settings-row-label">&#24037;&#20316;&#25991;&#20214;&#22841;</div>
+                <div class="settings-row-sub">&#21512;&#21516;&#12289;&#25253;&#21578;&#12289;&#25991;&#26723;</div>
+              </div>
+              <div class="settings-row-val">&#8250;</div>
+            </div>
+          </div>
+        </div>
         <div class="settings-section-title" data-i18n-key="sAccount">账号</div>
         <div class="settings-list">
           <div class="settings-row" onclick="openEditProfile()">
@@ -1368,7 +1399,7 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
         <!-- 系统相机：iOS/Android 自动存相册，同时传给 App -->
         <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:11px;border-radius:12px;background:var(--blue2);color:#fff;font-size:13px;font-weight:600;cursor:pointer">
           📷 拍照存相册
-          <input type="file" accept="image/*" capture="environment" id="evCameraInput" style="display:none" onchange="if(this.files&&this.files[0])savePhotoToAlbum(this.files[0]);previewEvPhotos(this.files)">
+          <input type="file" accept="image/*" capture="environment" id="evCameraInput" style="display:none" onchange="if(this.files&&this.files[0]){previewEvPhotos(this.files);showSaveToAlbumHint(this.files[0]);}">
         </label>
         <!-- 从相册选已有照片 -->
         <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:11px;border-radius:12px;background:var(--bg);color:var(--ink);font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border)">
@@ -4549,8 +4580,8 @@ function renderSummary(moments, tab) {
     +'' // AI故事按钮已屏蔽
     +'</div>';
 
-  // Photo strip
-  if (photos.length) {
+  // Photo strip (removed - use album instead)
+  if (false && photos.length) {
     html += '<div style="font-size:11px;font-weight:600;color:var(--ink2);margin:10px 0 6px">📸 ' + t('photosLeft') + '</div>'
       + '<div class="summary-photo-strip">' + photos.map(function(u){ return '<img class="summary-photo-thumb" src="'+esc(u)+'" loading="lazy" onerror="this.style.display=\'none\'">'; }).join('') + '</div>';
   }
@@ -6328,7 +6359,7 @@ var _navCamFile = null; // the photo file from system camera
 function navCamReceive(file) {
   if (!file) return;
   _navCamFile = file;
-  savePhotoToAlbum(file);
+  // 不触发下载跳转，通过目的地选择器保存
 
   // Show local preview + destination picker
   var localSrc = URL.createObjectURL(file);
@@ -7119,7 +7150,6 @@ function savePhotoToAlbum(file) {
   if (!file) return;
   try {
     // iOS Safari: use Web Share API — user taps "存储图像" to save to Photos
-    // navigator.share 在 iframe 中无效，直接下载
     _savePhotoFallback(file);
   } catch(e) {
     console.warn('savePhotoToAlbum error:', e);
@@ -7795,6 +7825,286 @@ function getRoomId(n) { return 'chrono100_dm_' + (n||'').toLowerCase().replace(/
 })();
 
 
+
+// ═══════════════════════════════════════════════════
+// 相册 + 文件夹 + 拍照辅助
+// ═══════════════════════════════════════════════════
+
+// ── 拍照后轻提示（不触发跳转） ──
+function showSaveToAlbumHint(file) {
+  // 显示一个3秒自动消失的提示，用户可选择手动保存
+  var hint = document.createElement('div');
+  hint.style.cssText = 'position:fixed;bottom:120px;left:50%;transform:translateX(-50%);z-index:9999;background:rgba(30,40,80,.92);color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(0,0,0,.3);white-space:nowrap';
+  hint.innerHTML = '<span>&#128247; &#29031;&#29255;&#24050;&#28155;&#21152;</span>' +
+    '<button onclick="triggerSaveToAlbum(window._lastCamFile);this.closest(\'div\').remove()" style="background:rgba(255,255,255,.2);border:none;color:#fff;padding:5px 12px;border-radius:12px;font-size:12px;cursor:pointer;-webkit-appearance:none">&#20445;&#23384;&#21040;&#26412;&#22320;</button>';
+  window._lastCamFile = file;
+  document.body.appendChild(hint);
+  setTimeout(function(){ if(hint.parentNode) hint.remove(); }, 4000);
+}
+
+function triggerSaveToAlbum(file) {
+  if (!file) return;
+  try {
+    var url = URL.createObjectURL(file);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'CHRONO100_' + Date.now() + '.jpg';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
+    toast('&#128247; &#35831;&#22312;&#19979;&#36733;&#21015;&#34920;&#20013;&#25214;&#21040;&#29031;&#29255;&#24182;&#20445;&#23384;');
+  } catch(e) {}
+}
+
+// ── 照片分类选择（navCam相机专用） ──
+function showPhotoCategoryPicker(file) {
+  if (!file) return;
+  var ex = document.getElementById('photoCatOv');
+  if (ex) ex.remove();
+  var ov = document.createElement('div');
+  ov.id = 'photoCatOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9500;background:rgba(18,24,52,.55);display:flex;align-items:flex-end;justify-content:center';
+  ov.innerHTML =
+    '<div style="width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:20px 18px 36px">' +
+    '<div style="width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 16px"></div>' +
+    '<div style="font-size:16px;font-weight:700;color:var(--ink);margin-bottom:5px">&#128247; &#36825;&#24352;&#29031;&#29255;&#23384;&#20837;&#21738;&#37324;&#65311;</div>' +
+    '<div style="font-size:12px;color:var(--ink3);margin-bottom:16px">&#36873;&#25324;&#21518;&#33258;&#21160;&#20445;&#23384;&#21040;&#30456;&#20876;&#23545;&#24212;&#20998;&#31867;</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">' +
+    '<button onclick="savePhotoToCategory(\'life\')" style="padding:18px 6px;border-radius:16px;border:2px solid var(--blue-lt);background:var(--blue-lt);cursor:pointer;text-align:center;-webkit-appearance:none">' +
+    '<div style="font-size:26px;margin-bottom:5px">&#127807;</div><div style="font-size:13px;font-weight:700;color:var(--blue2)">&#29983;&#27963;</div></button>' +
+    '<button onclick="savePhotoToCategory(\'work\')" style="padding:18px 6px;border-radius:16px;border:2px solid #FFF3E0;background:#FFF3E0;cursor:pointer;text-align:center;-webkit-appearance:none">' +
+    '<div style="font-size:26px;margin-bottom:5px">&#128188;</div><div style="font-size:13px;font-weight:700;color:#E07A00">&#24037;&#20316;</div></button>' +
+    '<button onclick="savePhotoToCategory(\'family\')" style="padding:18px 6px;border-radius:16px;border:2px solid #FCE4EC;background:#FCE4EC;cursor:pointer;text-align:center;-webkit-appearance:none">' +
+    '<div style="font-size:26px;margin-bottom:5px">&#128106;</div><div style="font-size:13px;font-weight:700;color:#C2185B">&#23478;&#20154;</div></button>' +
+    '</div>' +
+    '<button onclick="document.getElementById(\'photoCatOv\').remove()" style="width:100%;padding:13px;border-radius:14px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:14px;cursor:pointer;-webkit-appearance:none">&#21462;&#28040;</button>' +
+    '</div>';
+  ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
+  window._pendingCatFile = file;
+  document.body.appendChild(ov);
+}
+
+async function savePhotoToCategory(category) {
+  var ov = document.getElementById('photoCatOv');
+  if (ov) ov.remove();
+  var file = window._pendingCatFile;
+  if (!file) return;
+  var client = sb();
+  if (!client) { toast('&#10060; &#25968;&#25454;&#24211;&#26410;&#36830;&#25509;'); return; }
+  var uid = await getUid();
+  var catLabels = { life:'&#127807; &#29983;&#27963;', work:'&#128188; &#24037;&#20316;', family:'&#128106; &#23478;&#20154;' };
+  toast('&#128247; &#27491;&#22312;&#19978;&#20256;...');
+  try {
+    var url = await uploadImageToStorage(file, uid);
+    if (!url) { toast('&#10060; &#19978;&#20256;&#22833;&#36133;'); return; }
+    var res = await client.from('album_photos').insert({
+      user_id: uid, photo_url: url, category: category,
+      taken_at: new Date(file.lastModified || Date.now()).toISOString(),
+      file_name: file.name || 'photo.jpg', file_size: file.size || 0
+    });
+    if (res.error) {
+      await client.from('moments').insert({
+        user_id: uid, title: catLabels[category] + ' &#30456;&#20876;',
+        photo_url: url, taken_at: new Date(file.lastModified || Date.now()).toISOString(),
+        mood: category, visibility: null
+      });
+    }
+    toast('&#10003; &#24050;&#23384;&#20837;' + catLabels[category]);
+    window._pendingCatFile = null;
+    if (window._albumOvOpen) loadAlbum(_albumCurrentCat);
+  } catch(e) { toast('&#10060; &#20445;&#23384;&#22833;&#36133;'); }
+}
+
+// ── 相册 ──
+var _albumCurrentCat = 'all';
+var _albumOvOpen = false;
+
+function openAlbum() {
+  _albumOvOpen = true;
+  var ex = document.getElementById('albumOv');
+  if (ex) ex.remove();
+  var ov = document.createElement('div');
+  ov.id = 'albumOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:900;background:var(--bg);display:flex;flex-direction:column;overflow:hidden';
+  ov.innerHTML =
+    '<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px 10px;background:var(--card);border-bottom:1px solid var(--border)">' +
+    '<div onclick="document.getElementById(\'albumOv\').remove();window._albumOvOpen=false" style="font-size:24px;cursor:pointer;padding:4px 8px;color:var(--ink3)">&#8592;</div>' +
+    '<div style="font-size:17px;font-weight:700;color:var(--ink)">&#128247; &#25105;&#30340;&#30456;&#20876;</div>' +
+    '<div style="width:40px"></div></div>' +
+    '<div style="display:flex;gap:6px;padding:10px 14px;background:var(--card);border-bottom:1px solid var(--border)">' +
+    '<button id="acat-all" onclick="filterAlbum(\'all\')" style="flex:1;padding:8px 2px;border-radius:20px;border:none;background:var(--blue2);color:#fff;font-size:12px;font-weight:600;cursor:pointer;-webkit-appearance:none">&#20840;&#37096;</button>' +
+    '<button id="acat-life" onclick="filterAlbum(\'life\')" style="flex:1;padding:8px 2px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:12px;cursor:pointer;-webkit-appearance:none">&#127807; &#29983;&#27963;</button>' +
+    '<button id="acat-work" onclick="filterAlbum(\'work\')" style="flex:1;padding:8px 2px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:12px;cursor:pointer;-webkit-appearance:none">&#128188; &#24037;&#20316;</button>' +
+    '<button id="acat-family" onclick="filterAlbum(\'family\')" style="flex:1;padding:8px 2px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:12px;cursor:pointer;-webkit-appearance:none">&#128106; &#23478;&#20154;</button>' +
+    '</div>' +
+    '<div id="albumGrid" style="flex:1;overflow-y:auto;padding:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:2px"></div>';
+  document.body.appendChild(ov);
+  loadAlbum('all');
+}
+
+async function loadAlbum(cat) {
+  _albumCurrentCat = cat;
+  var grid = document.getElementById('albumGrid');
+  if (!grid) return;
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--ink3)">&#21152;&#36733;&#20013;&#8230;</div>';
+  var client = sb(); if (!client) return;
+  var uid = await getUid();
+  try {
+    var q = client.from('album_photos').select('*').eq('user_id', uid).order('taken_at', {ascending:false}).limit(300);
+    if (cat !== 'all') q = q.eq('category', cat);
+    var res = await q;
+    var photos = res.data || [];
+    // 降级：从moments读
+    if (!photos.length) {
+      var mq = client.from('moments').select('id,photo_url,taken_at,mood').eq('user_id', uid).not('photo_url', 'is', null).order('taken_at', {ascending:false}).limit(300);
+      if (cat !== 'all') mq = mq.eq('mood', cat);
+      var mr = await mq;
+      photos = (mr.data||[]).filter(function(m){ return m.photo_url; }).map(function(m){
+        return { photo_url:m.photo_url, taken_at:m.taken_at, category:m.mood||'life' };
+      });
+    }
+    if (!photos.length) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--ink3);font-size:13px">&#128247;<br><br>&#36824;&#27809;&#26377;&#29031;&#29255;<br><span style="font-size:11px">&#25320;&#29031;&#21518;&#36873;&#25324;&#20998;&#31867;&#21363;&#21487;&#20445;&#23384;</span></div>';
+      return;
+    }
+    var catIco = { life:'&#127807;', work:'&#128188;', family:'&#128106;' };
+    grid.innerHTML = photos.map(function(p){
+      var ico = catIco[p.category] || '&#127807;';
+      return '<div onclick="viewAlbumPhoto(\'' + esc(p.photo_url) + '\')" style="position:relative;aspect-ratio:1;overflow:hidden;border-radius:3px;cursor:pointer;background:var(--border)">' +
+        '<img src="' + esc(p.photo_url) + '" style="width:100%;height:100%;object-fit:cover" loading="lazy">' +
+        '<div style="position:absolute;bottom:2px;right:3px;font-size:11px;text-shadow:0 1px 3px rgba(0,0,0,.5)">' + ico + '</div></div>';
+    }).join('');
+  } catch(e) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--ink3)">&#21152;&#36733;&#22833;&#36133;</div>';
+  }
+}
+
+function filterAlbum(cat) {
+  _albumCurrentCat = cat;
+  ['all','life','work','family'].forEach(function(c){
+    var b = document.getElementById('acat-'+c); if (!b) return;
+    if (c===cat){ b.style.background='var(--blue2)'; b.style.color='#fff'; b.style.border='none'; }
+    else { b.style.background='transparent'; b.style.color='var(--ink3)'; b.style.border='1.5px solid var(--border)'; }
+  });
+  loadAlbum(cat);
+}
+
+function viewAlbumPhoto(src) {
+  var ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#000;display:flex;align-items:center;justify-content:center';
+  ov.innerHTML = '<img src="'+esc(src)+'" style="max-width:100%;max-height:100%;object-fit:contain">' +
+    '<div onclick="this.parentNode.remove()" style="position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer">&#10005;</div>';
+  ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
+  document.body.appendChild(ov);
+}
+
+// ── 文件夹（仅支持 PDF + 图片，iOS Safari 可直接打开）──
+var _folderCurrentCat = 'life';
+
+function openFolders(cat) {
+  if (cat) _folderCurrentCat = cat;
+  var ex = document.getElementById('foldersOv'); if(ex) ex.remove();
+  var ov = document.createElement('div');
+  ov.id = 'foldersOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:900;background:var(--bg);display:flex;flex-direction:column;overflow:hidden';
+  ov.innerHTML =
+    '<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px 10px;background:var(--card);border-bottom:1px solid var(--border)">' +
+    '<div onclick="document.getElementById(\'foldersOv\').remove()" style="font-size:24px;cursor:pointer;padding:4px 8px;color:var(--ink3)">&#8592;</div>' +
+    '<div style="font-size:17px;font-weight:700;color:var(--ink)">&#128193; &#25105;&#30340;&#25991;&#20214;&#22841;</div>' +
+    '<div style="width:40px"></div></div>' +
+    '<div style="display:flex;gap:10px;padding:12px 14px;background:var(--card);border-bottom:1px solid var(--border)">' +
+    '<button id="fcat-life" onclick="switchFolder(\'life\')" style="flex:1;padding:10px;border-radius:14px;border:none;background:var(--blue2);color:#fff;font-size:13px;font-weight:600;cursor:pointer;-webkit-appearance:none">&#127807; &#29983;&#27963;</button>' +
+    '<button id="fcat-work" onclick="switchFolder(\'work\')" style="flex:1;padding:10px;border-radius:14px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:13px;cursor:pointer;-webkit-appearance:none">&#128188; &#24037;&#20316;</button>' +
+    '</div>' +
+    '<div style="margin:10px 14px 0;padding:10px 14px;background:#FFF8E1;border-radius:12px;font-size:11px;color:#9C6A00;display:flex;align-items:center;gap:8px">' +
+    '&#128161; &#25903;&#25345; PDF &#21644;&#22270;&#29255;&#30452;&#25509;&#25171;&#24320;&#65292;&#20854;&#20182;&#26684;&#24335;&#35831;&#29992;&#30005;&#33041;&#35266;&#30475;' +
+    '</div>' +
+    '<div id="folderFileList" style="flex:1;overflow-y:auto;padding:14px"></div>' +
+    '<div style="padding:12px 14px;background:var(--card);border-top:1px solid var(--border)">' +
+    '<label style="display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;border-radius:14px;background:var(--blue2);color:#fff;font-size:14px;font-weight:600;cursor:pointer">' +
+    '&#128206; &#19978;&#20256;&#25991;&#20214;&#65288;PDF / &#22270;&#29255;&#65289;' +
+    '<input type="file" accept=".pdf,image/*" style="display:none" onchange="uploadToFolder(this.files[0])">' +
+    '</label></div>';
+  document.body.appendChild(ov);
+  loadFolderFiles(_folderCurrentCat);
+}
+
+function switchFolder(cat) {
+  _folderCurrentCat = cat;
+  ['life','work'].forEach(function(c){
+    var b = document.getElementById('fcat-'+c); if(!b) return;
+    if(c===cat){ b.style.background='var(--blue2)'; b.style.color='#fff'; b.style.border='none'; }
+    else { b.style.background='transparent'; b.style.color='var(--ink3)'; b.style.border='1.5px solid var(--border)'; }
+  });
+  loadFolderFiles(cat);
+}
+
+async function loadFolderFiles(cat) {
+  var list = document.getElementById('folderFileList'); if (!list) return;
+  list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--ink3)">&#21152;&#36733;&#20013;&#8230;</div>';
+  var client = sb(); if (!client) { list.innerHTML='<div style="text-align:center;padding:30px;color:var(--ink3)">&#26410;&#36830;&#25509;&#25968;&#25454;&#24211;</div>'; return; }
+  var uid = await getUid();
+  try {
+    var res = await client.from('folder_files').select('*').eq('user_id', uid).eq('category', cat).order('created_at', {ascending:false});
+    var files = res.data || [];
+    if (!files.length) {
+      list.innerHTML = '<div style="text-align:center;padding:50px 20px;color:var(--ink3)">' +
+        '<div style="font-size:48px;margin-bottom:12px">&#128193;</div>' +
+        '<div style="font-size:14px;font-weight:600;margin-bottom:6px">&#25991;&#20214;&#22841;&#26159;&#31354;&#30340;</div>' +
+        '<div style="font-size:12px">&#28857;&#20987;&#19979;&#26041;&#19978;&#20256; PDF &#25110;&#22270;&#29255;&#25991;&#20214;</div></div>';
+      return;
+    }
+    list.innerHTML = files.map(function(f){
+      var isPdf = (f.file_name||'').toLowerCase().endsWith('.pdf');
+      var isImg = /\.(jpg|jpeg|png|gif|webp)$/i.test(f.file_name||'');
+      var ico = isPdf ? '&#128196;' : isImg ? '&#128444;' : '&#128206;';
+      var kb = f.file_size > 1048576 ? (f.file_size/1048576).toFixed(1)+'MB' : Math.round((f.file_size||0)/1024)+'KB';
+      var dt = f.created_at ? new Date(f.created_at).toLocaleDateString('zh-CN') : '';
+      var canOpen = isPdf || isImg;
+      return '<div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--card);border-radius:14px;margin-bottom:10px">' +
+        '<div style="width:46px;height:46px;border-radius:12px;background:' + (isPdf?'#FFEBEE':isImg?'#E3F2FD':'#F5F5F5') + ';display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">' + ico + '</div>' +
+        '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(f.file_name||'&#25991;&#20214;') + '</div>' +
+        '<div style="font-size:11px;color:var(--ink3);margin-top:2px">' + kb + ' &middot; ' + dt + '</div></div>' +
+        (canOpen && f.file_url
+          ? '<a href="' + esc(f.file_url) + '" target="_blank" style="padding:7px 14px;background:var(--blue2);color:#fff;border-radius:10px;font-size:12px;font-weight:600;text-decoration:none;flex-shrink:0">&#25171;&#24320;</a>'
+          : '<span style="font-size:11px;color:var(--ink4);flex-shrink:0">&#30005;&#33041;&#26597;&#30475;</span>') +
+        '</div>';
+    }).join('');
+  } catch(e) {
+    list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--ink3)">&#21152;&#36733;&#22833;&#36133;</div>';
+  }
+}
+
+async function uploadToFolder(file) {
+  if (!file) return;
+  // 只允许PDF和图片
+  var isPdf = file.type === 'application/pdf';
+  var isImg = file.type.startsWith('image/');
+  if (!isPdf && !isImg) {
+    toast('&#128161; &#30446;&#21069;&#21482;&#25903;&#25345; PDF &#21644;&#22270;&#29255;&#65292;&#20854;&#20182;&#26684;&#24335;&#35831;&#29992;&#30005;&#33041;');
+    return;
+  }
+  var client = sb(); if (!client) { toast('&#10060; &#25968;&#25454;&#24211;&#26410;&#36830;&#25509;'); return; }
+  var uid = await getUid();
+  toast('&#128206; &#19978;&#20256;&#20013;&#8230;');
+  try {
+    var safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    var path = uid + '/folders/' + _folderCurrentCat + '/' + Date.now() + '_' + safeName;
+    var up = await client.storage.from('moments').upload(path, file, { contentType: file.type });
+    if (up.error) { toast('&#10060; &#19978;&#20256;&#22833;&#36133;'); return; }
+    var pub = client.storage.from('moments').getPublicUrl(path);
+    await client.from('folder_files').insert({
+      user_id: uid, category: _folderCurrentCat,
+      file_name: file.name, file_url: pub.data.publicUrl,
+      file_size: file.size, file_type: file.type
+    });
+    toast('&#10003; &#25991;&#20214;&#24050;&#19978;&#20256;');
+    loadFolderFiles(_folderCurrentCat);
+  } catch(e) { toast('&#10060; &#19978;&#20256;&#22833;&#36133;'); }
+}
+
 checkInviteParam();
 checkOAuthCallback();
 checkWechatCallback();
@@ -7821,7 +8131,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
   // 如果有保存的昵称，直接进入App
   var savedName = localStorage.getItem('c100_name');
-  if (false && savedName && savedName !== '用户') { // 禁用自动进入，必须有session
+  if (false && savedName && savedName !== '用户') {
     userName = savedName;
     if (loginEl) loginEl.style.display = 'none';
     if (appEl) appEl.style.display = 'flex';
