@@ -842,20 +842,27 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
         </div>
 
         <!-- Import row — inline compact -->
+        <div style="display:flex;gap:7px;margin-top:8px">
+          <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:10px;border-radius:12px;background:var(--blue2);color:#fff;font-size:12px;font-weight:600;cursor:pointer">
+            <span>📷</span><span data-i18n-key="importPhotos">导入照片</span>
+            <input type="file" accept="image/*" multiple style="display:none" onchange="importPhotos(this.files)">
+          </label>
+          <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:10px;border-radius:12px;background:var(--ink);color:#fff;font-size:12px;font-weight:600;cursor:pointer">
+            <span>📁</span><span data-i18n-key="importFolder">整个文件夹</span>
+            <input type="file" accept="image/*" multiple webkitdirectory style="display:none" onchange="importPhotos(this.files)">
+          </label>
+        </div>
         <!-- 我的相册 -->
         <div style="background:var(--card);border-radius:16px;margin-top:8px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
           <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 14px">
             <div style="display:flex;align-items:center;gap:10px">
               <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#E8F4FD,#C9E8FF);display:flex;align-items:center;justify-content:center;font-size:20px">&#128247;</div>
-              <div>
-                <div style="font-size:14px;font-weight:700;color:var(--ink)">我的相册</div>
-                <div style="font-size:10px;color:var(--ink3);margin-top:1px">生活 &middot; 工作 &middot; 家人</div>
-              </div>
+              <div><div style="font-size:14px;font-weight:700;color:var(--ink)">我的相册</div>
+              <div style="font-size:10px;color:var(--ink3);margin-top:1px">生活 &middot; 工作 &middot; 家人</div></div>
             </div>
             <div style="display:flex;gap:8px;align-items:center">
               <label style="display:flex;align-items:center;gap:4px;padding:7px 14px;border-radius:20px;background:var(--blue2);color:#fff;font-size:12px;font-weight:600;cursor:pointer">
-                &#65291; 添加照片
-                <input type="file" accept="image/*" multiple style="display:none" onchange="importPhotosToAlbum(this.files)">
+                &#65291; 添加照片<input type="file" accept="image/*" multiple style="display:none" onchange="importPhotosToAlbum(this.files)">
               </label>
               <div onclick="openAlbum()" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);font-size:12px;color:var(--ink3);cursor:pointer;white-space:nowrap">查看全部</div>
             </div>
@@ -1041,16 +1048,12 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
 
       <!-- Account -->
       <div class="settings-section">
-        <!-- 文件夹入口 -->
         <div class="settings-section">
-          <div class="settings-section-title">&#25991;&#20214;&#22841;</div>
+          <div class="settings-section-title">文件夹</div>
           <div class="settings-list">
             <div class="settings-row" onclick="openFolders('life')">
               <div class="settings-ico" style="background:#E8F5E9">&#128193;</div>
-              <div class="settings-row-body">
-                <div class="settings-row-label">&#25991;&#20214;&#22841;</div>
-                <div class="settings-row-sub">&#29983;&#27963; &middot; &#24037;&#20316;</div>
-              </div>
+              <div class="settings-row-body"><div class="settings-row-label">文件夹</div></div>
               <div class="settings-row-val">&#8250;</div>
             </div>
           </div>
@@ -1063,67 +1066,35 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
             <span class="settings-value" id="meNameShort">用户</span>
             <span class="settings-arr">›</span>
           </div>
-          <div class="settings-row">
+          <div class="settings-row" onclick="openBindEmailSheet()">
             <div class="settings-ico" style="background:#FFF3E0">📧</div>
             <div class="settings-label">登录邮箱</div>
-            <span class="settings-value" id="meEmailShort" style="font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis">—</span>
+            <span class="settings-value" id="meEmailShort" style="font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis">未绑定</span>
+            <span class="settings-arr">›</span>
           </div>
-          <div class="settings-row">
+          <div class="settings-row" onclick="copyUserId()">
             <div class="settings-ico" style="background:#E3F5EE">🆔</div>
             <div class="settings-label">用户ID</div>
             <span class="settings-value" id="meUserId" style="font-size:10px;color:var(--ink3)">—</span>
+            <span class="settings-arr" style="font-size:11px;color:var(--ink4)">复制</span>
           </div>
-          <div class="settings-row">
+          <div class="settings-row" onclick="openBindPhoneSheet()">
             <div class="settings-ico" style="background:#E3F5EE">📱</div>
-            <div class="settings-label" data-i18n-key="sPhone">手机号</div>
-            <span class="settings-value" id="mePhone">—</span>
-          </div>
-          <div class="settings-row" onclick="toast('邮箱绑定即将上线')">
-            <div class="settings-ico" style="background:#FFF3E0">📧</div>
-            <div class="settings-label" data-i18n-key="sEmail">邮箱</div>
-            <span class="settings-value" id="meEmailShort">—</span>
+            <div class="settings-label">手机号</div>
+            <span class="settings-value" id="mePhone">未绑定</span>
             <span class="settings-arr">›</span>
           </div>
-        </div>
-      </div>
+          <div class="settings-row" onclick="openChangePwdSheet()">
+            <div class="settings-ico" style="background:#FCE4EC">&#128274;</div>
+            <div class="settings-label">修改密码</div>
+            <span class="settings-arr">&#8250;</span>
+          </div>
+          <div class="settings-row" onclick="openForgotPwdSheet()">
+            <div class="settings-ico" style="background:#E8F5E9">&#128273;</div>
+            <div class="settings-label">忘记/找回密码</div>
+            <span class="settings-arr">&#8250;</span>
+          </div>
 
-      <!-- Privacy & Safety -->
-      <div class="settings-section">
-        <div class="settings-section-title" data-i18n-key="sPrivacy">隐私与安全</div>
-        <div class="settings-list">
-          <div class="settings-row" onclick="requestLocationPermission()">
-            <div class="settings-ico" style="background:#EBF0FF">📍</div>
-            <div class="settings-label" data-i18n-key="sLocation">位置权限</div>
-            <span class="settings-value" id="locPermValue">检测中</span>
-            <span class="settings-arr">›</span>
-          </div>
-          <div class="settings-row">
-            <div class="settings-ico" style="background:#E3F5EE">🔒</div>
-            <div class="settings-label" data-i18n-key="sEncrypt">端对端加密</div>
-            <span class="settings-val-pill" data-i18n-key="sEnabled">已启用</span>
-          </div>
-          <div class="settings-row" onclick="exportMyData()">
-            <div class="settings-ico" style="background:#F3F0FF">📦</div>
-            <div class="settings-label" data-i18n-key="sExport">导出我的数据</div>
-            <span class="settings-arr">›</span>
-          </div>
-          <div class="settings-row" onclick="openPrivacyPolicy()">
-            <div class="settings-ico" style="background:#F3F0FF">🛡</div>
-            <div class="settings-label" data-i18n-key="sPrivacyPolicy">隐私政策</div>
-            <span class="settings-arr">›</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Notifications -->
-      <div class="settings-section">
-        <div class="settings-section-title" data-i18n-key="sNotify">通知</div>
-        <div class="settings-list">
-          <div class="settings-row">
-            <div class="settings-ico" style="background:#FFF3E0">🔔</div>
-            <div class="settings-label" data-i18n-key="sReunion">Reunion 通知</div>
-            <div class="toggle" id="tog-reunion" onclick="toggleSetting('reunion',this)"><div class="toggle-knob"></div></div>
-          </div>
           <div class="settings-row">
             <div class="settings-ico" style="background:#FFF3E0">⚠️</div>
             <div class="settings-label" data-i18n-key="sSafeAlert">家人安全提醒</div>
@@ -4572,7 +4543,7 @@ function renderSummary(moments, tab) {
     +'' // AI故事按钮已屏蔽
     +'</div>';
 
-  // Photo strip (removed - use album instead)
+  // Photo strip (removed)
   if (false && photos.length) {
     html += '<div style="font-size:11px;font-weight:600;color:var(--ink2);margin:10px 0 6px">📸 ' + t('photosLeft') + '</div>'
       + '<div class="summary-photo-strip">' + photos.map(function(u){ return '<img class="summary-photo-thumb" src="'+esc(u)+'" loading="lazy" onerror="this.style.display=\'none\'">'; }).join('') + '</div>';
@@ -6351,7 +6322,7 @@ var _navCamFile = null; // the photo file from system camera
 function navCamReceive(file) {
   if (!file) return;
   _navCamFile = file;
-  // 不触发下载跳转，通过目的地选择器保存
+  showPhotoCategoryPicker(file);
 
   // Show local preview + destination picker
   var localSrc = URL.createObjectURL(file);
@@ -7247,20 +7218,13 @@ async function deleteTrajItem(id, el) {
   if (row) row.style.opacity = '0.4';
 
   var cl = sb();
-  var uid = await getUid();
-  // Delete from Supabase — 同时加 user_id 确保权限匹配
+  // Delete from Supabase
   if (cl) {
-    var res = await cl.from('moments').delete().eq('id', id).eq('user_id', uid);
+    var res = await cl.from('moments').delete().eq('id', id);
     if (res.error) {
       toast('❌ 删除失败：' + (res.error.message || ''));
       if (row) row.style.opacity = '1';
       return;
-    }
-    // 二次验证：确认记录已从DB消失
-    var check = await cl.from('moments').select('id').eq('id', id).single();
-    if (check.data) {
-      // 记录还在，尝试无user_id再删一次
-      await cl.from('moments').delete().eq('id', id);
     }
   }
 
@@ -7292,14 +7256,9 @@ async function deleteTrajItem(id, el) {
   renderTimeline(_momentsCache);                 // re-run title count + summary trigger
   if (MOMENTS_DATA.length >= 0) buildMomentsFeed(); // moments feed (uses filtered cache)
 
-  // 立即清除今日缓存，强制从DB重新拉取
   window._todayItemsCache = [];
-  var todayListEl = document.getElementById('todayList');
-  if (todayListEl) todayListEl.innerHTML = '';
-  // 立即从DOM移除当前行
   if (row && row.parentNode) row.parentNode.removeChild(row);
-  // 强制重新加载今日动态（确保删除后消失）
-  toast('🗑 已删除，同步更新中…');
+  toast('已删除');
   await loadTodayActivity();
 
   // Refresh summary stats if visible
@@ -7318,13 +7277,14 @@ function renderTodayList(){
   var html=items.map(function(it){
     var thumbHtml=it.thumb?'<img src="'+esc(it.thumb)+'" style="width:44px;height:44px;border-radius:9px;object-fit:cover;flex-shrink:0" onerror="this.style.display=\'none\'">':'<div class="ev-ico" style="background:'+it.bg+'">'+it.ico+'</div>';
     var itemIdx = items.indexOf(it);
-    return '<div class="ev" style="position:relative;align-items:center;padding-right:46px" onclick="gotoPage(\''+it.page+'\')">'
-      +'<span class="ev-t">'+it.t+'</span>'+thumbHtml
-      +'<div class="ev-main" style="min-width:0;flex:1"><div class="ev-lbl" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(it.lbl)+'</div>'
-      +(it.sub?'<div class="ev-sub">'+esc(it.sub)+'</div>':'')+'</div>'
-      +'<button onclick="event.stopPropagation();deleteTodayByIndex('+itemIdx+')" '
-      +'style="position:absolute;right:10px;top:50%;transform:translateY(-50%);padding:3px 10px;border-radius:99px;border:1.5px solid rgba(231,76,60,.3);background:rgba(231,76,60,.06);color:#E74C3C;font-size:11px;font-weight:600;cursor:pointer;-webkit-appearance:none">删除</button>'
-      +'</div>';
+    return '<div class="ev" style="position:relative;align-items:center;padding-right:52px" onclick="gotoPage(\''+it.page+'\')">'+
+      '<span class="ev-t">'+it.t+'</span>'+thumbHtml+
+      '<div class="ev-main" style="min-width:0;flex:1"><div class="ev-lbl" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(it.lbl)+'</div>'+
+      (it.sub?'<div class="ev-sub">'+esc(it.sub)+'</div>':'')+
+      '</div>'+
+      '<span onclick="event.stopPropagation();deleteTodayByIndex('+itemIdx+')" '+
+      'style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:11px;color:#E74C3C;cursor:pointer;padding:3px 10px;border:1.5px solid rgba(231,76,60,.3);border-radius:99px;background:rgba(231,76,60,.06);font-weight:600;white-space:nowrap">删除</span>'+
+      '</div>';
   }).join('');
   listEl.innerHTML = html || '<div style="text-align:center;padding:18px;color:var(--ink3);font-size:12px">今天还没有记录</div>';
   requestAnimationFrame(function(){
@@ -7825,171 +7785,180 @@ function getRoomId(n) { return 'chrono100_dm_' + (n||'').toLowerCase().replace(/
 
 
 
-// ═══════════════════════════════════════════════════
-// 相册 + 文件夹 + 拍照辅助
-// ═══════════════════════════════════════════════════
+// ════ Album + Folder + Password JS ════
 
-// ── 拍照后轻提示（不触发跳转） ──
 function showSaveToAlbumHint(file) {
-  // 显示一个3秒自动消失的提示，用户可选择手动保存
   var hint = document.createElement('div');
   hint.style.cssText = 'position:fixed;bottom:120px;left:50%;transform:translateX(-50%);z-index:9999;background:rgba(30,40,80,.92);color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(0,0,0,.3);white-space:nowrap';
-  hint.innerHTML = '<span>&#128247; &#29031;&#29255;&#24050;&#28155;&#21152;</span>' +
-    '<button onclick="triggerSaveToAlbum(window._lastCamFile);this.closest(\'div\').remove()" style="background:rgba(255,255,255,.2);border:none;color:#fff;padding:5px 12px;border-radius:12px;font-size:12px;cursor:pointer;-webkit-appearance:none">&#20445;&#23384;&#21040;&#26412;&#22320;</button>';
   window._lastCamFile = file;
+  var btn = document.createElement('button');
+  btn.textContent = '保存到本地';
+  btn.style.cssText = 'background:rgba(255,255,255,.2);border:none;color:#fff;padding:5px 12px;border-radius:12px;font-size:12px;cursor:pointer';
+  btn.onclick = function() { triggerSaveToLocal(window._lastCamFile); hint.remove(); };
+  var sp = document.createElement('span');
+  sp.textContent = '照片已添加';
+  hint.appendChild(sp);
+  hint.appendChild(btn);
   document.body.appendChild(hint);
   setTimeout(function(){ if(hint.parentNode) hint.remove(); }, 4000);
 }
 
-function triggerSaveToAlbum(file) {
+function triggerSaveToLocal(file) {
   if (!file) return;
   try {
     var url = URL.createObjectURL(file);
     var a = document.createElement('a');
-    a.href = url;
-    a.download = 'CHRONO100_' + Date.now() + '.jpg';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    a.href = url; a.download = 'CHRONO100_' + Date.now() + '.jpg';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
-    toast('&#128247; &#35831;&#22312;&#19979;&#36733;&#21015;&#34920;&#20013;&#25214;&#21040;&#29031;&#29255;&#24182;&#20445;&#23384;');
   } catch(e) {}
 }
 
-// ── 照片分类选择（navCam相机专用） ──
 function showPhotoCategoryPicker(file) {
   if (!file) return;
-  var ex = document.getElementById('photoCatOv');
-  if (ex) ex.remove();
+  var ex = document.getElementById('photoCatOv'); if(ex) ex.remove();
   var ov = document.createElement('div');
   ov.id = 'photoCatOv';
   ov.style.cssText = 'position:fixed;inset:0;z-index:9500;background:rgba(18,24,52,.55);display:flex;align-items:flex-end;justify-content:center';
-  ov.innerHTML =
-    '<div style="width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:20px 18px 36px">' +
-    '<div style="width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 16px"></div>' +
-    '<div style="font-size:16px;font-weight:700;color:var(--ink);margin-bottom:5px">&#128247; &#36825;&#24352;&#29031;&#29255;&#23384;&#20837;&#21738;&#37324;&#65311;</div>' +
-    '<div style="font-size:12px;color:var(--ink3);margin-bottom:16px">&#36873;&#25324;&#21518;&#33258;&#21160;&#20445;&#23384;&#21040;&#30456;&#20876;&#23545;&#24212;&#20998;&#31867;</div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">' +
-    '<button onclick="savePhotoToCategory(\'life\')" style="padding:18px 6px;border-radius:16px;border:2px solid var(--blue-lt);background:var(--blue-lt);cursor:pointer;text-align:center;-webkit-appearance:none">' +
-    '<div style="font-size:26px;margin-bottom:5px">&#127807;</div><div style="font-size:13px;font-weight:700;color:var(--blue2)">&#29983;&#27963;</div></button>' +
-    '<button onclick="savePhotoToCategory(\'work\')" style="padding:18px 6px;border-radius:16px;border:2px solid #FFF3E0;background:#FFF3E0;cursor:pointer;text-align:center;-webkit-appearance:none">' +
-    '<div style="font-size:26px;margin-bottom:5px">&#128188;</div><div style="font-size:13px;font-weight:700;color:#E07A00">&#24037;&#20316;</div></button>' +
-    '<button onclick="savePhotoToCategory(\'family\')" style="padding:18px 6px;border-radius:16px;border:2px solid #FCE4EC;background:#FCE4EC;cursor:pointer;text-align:center;-webkit-appearance:none">' +
-    '<div style="font-size:26px;margin-bottom:5px">&#128106;</div><div style="font-size:13px;font-weight:700;color:#C2185B">&#23478;&#20154;</div></button>' +
-    '</div>' +
-    '<button onclick="document.getElementById(\'photoCatOv\').remove()" style="width:100%;padding:13px;border-radius:14px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:14px;cursor:pointer;-webkit-appearance:none">&#21462;&#28040;</button>' +
-    '</div>';
+  var sheet = document.createElement('div');
+  sheet.style.cssText = 'width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:20px 18px 36px';
+  sheet.innerHTML = '<div style="width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 16px"></div>' +
+    '<div style="font-size:16px;font-weight:700;color:var(--ink);margin-bottom:5px">这张照片存入哪里？</div>' +
+    '<div style="font-size:12px;color:var(--ink3);margin-bottom:16px">选择后自动保存到相册</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px" id="catBtns"></div>';
+  var cats = [{id:'life',label:'生活',icon:'&#127807;',bg:'var(--blue-lt)',color:'var(--blue2)',border:'var(--blue-lt)'},{id:'work',label:'工作',icon:'&#128188;',bg:'#FFF3E0',color:'#E07A00',border:'#FFF3E0'},{id:'family',label:'家人',icon:'&#128106;',bg:'#FCE4EC',color:'#C2185B',border:'#FCE4EC'}];
+  var btnRow = sheet.querySelector('#catBtns');
+  cats.forEach(function(c) {
+    var b = document.createElement('button');
+    b.style.cssText = 'padding:18px 6px;border-radius:16px;border:2px solid '+c.border+';background:'+c.bg+';cursor:pointer;text-align:center;-webkit-appearance:none';
+    b.innerHTML = '<div style="font-size:26px;margin-bottom:5px">'+c.icon+'</div><div style="font-size:13px;font-weight:700;color:'+c.color+'">'+c.label+'</div>';
+    b.onclick = function() { savePhotoToCategory(c.id); };
+    btnRow.appendChild(b);
+  });
+  var cancelBtn = document.createElement('button');
+  cancelBtn.textContent = '取消';
+  cancelBtn.style.cssText = 'width:100%;padding:13px;border-radius:14px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:14px;cursor:pointer;-webkit-appearance:none';
+  cancelBtn.onclick = function() { ov.remove(); };
+  sheet.appendChild(cancelBtn);
+  ov.appendChild(sheet);
   ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
   window._pendingCatFile = file;
   document.body.appendChild(ov);
 }
 
 async function savePhotoToCategory(category) {
-  var ov = document.getElementById('photoCatOv');
-  if (ov) ov.remove();
-  var file = window._pendingCatFile;
-  if (!file) return;
-  var client = sb();
-  if (!client) { toast('&#10060; &#25968;&#25454;&#24211;&#26410;&#36830;&#25509;'); return; }
+  var ov = document.getElementById('photoCatOv'); if(ov) ov.remove();
+  var file = window._pendingCatFile; if(!file) return;
+  var cl = sb(); if(!cl) { toast('连接失败'); return; }
   var uid = await getUid();
-  var catLabels = { life:'&#127807; &#29983;&#27963;', work:'&#128188; &#24037;&#20316;', family:'&#128106; &#23478;&#20154;' };
-  toast('&#128247; &#27491;&#22312;&#19978;&#20256;...');
+  toast('上传中...');
   try {
     var url = await uploadImageToStorage(file, uid);
-    if (!url) { toast('&#10060; &#19978;&#20256;&#22833;&#36133;'); return; }
-    var res = await client.from('album_photos').insert({
-      user_id: uid, photo_url: url, category: category,
-      taken_at: new Date(file.lastModified || Date.now()).toISOString(),
-      file_name: file.name || 'photo.jpg', file_size: file.size || 0
-    });
-    if (res.error) {
-      await client.from('moments').insert({
-        user_id: uid, title: catLabels[category] + ' &#30456;&#20876;',
-        photo_url: url, taken_at: new Date(file.lastModified || Date.now()).toISOString(),
-        mood: category, visibility: null
-      });
-    }
-    toast('&#10003; &#24050;&#23384;&#20837;' + catLabels[category]);
+    if (!url) { toast('上传失败'); return; }
+    var res = await cl.from('album_photos').insert({user_id:uid,photo_url:url,category:category,taken_at:new Date(file.lastModified||Date.now()).toISOString(),file_name:file.name||'photo.jpg',file_size:file.size||0});
+    if (res.error) await cl.from('moments').insert({user_id:uid,title:'照片',photo_url:url,taken_at:new Date(file.lastModified||Date.now()).toISOString(),mood:category,visibility:null});
+    toast('已保存到相册');
     window._pendingCatFile = null;
-    if (window._albumOvOpen) loadAlbum(_albumCurrentCat);
-  } catch(e) { toast('&#10060; &#20445;&#23384;&#22833;&#36133;'); }
+  } catch(e) { toast('保存失败'); }
 }
 
-// ── 相册 ──
+async function importPhotosToAlbum(files) {
+  if (!files||!files.length) return;
+  window._pendingCatFile = files[0];
+  showPhotoCategoryPicker(files[0]);
+}
+
 var _albumCurrentCat = 'all';
-var _albumOvOpen = false;
 
 function openAlbum(cat) {
   if (cat) _albumCurrentCat = cat;
-  _albumOvOpen = true;
-  var ex = document.getElementById('albumOv');
-  if (ex) ex.remove();
+  var ex = document.getElementById('albumOv'); if(ex) ex.remove();
   var ov = document.createElement('div');
   ov.id = 'albumOv';
   ov.style.cssText = 'position:fixed;inset:0;z-index:900;background:var(--bg);display:flex;flex-direction:column;overflow:hidden';
-  ov.innerHTML =
-    '<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px 10px;background:var(--card);border-bottom:1px solid var(--border)">' +
-    '<div onclick="document.getElementById(\'albumOv\').remove();window._albumOvOpen=false" style="font-size:24px;cursor:pointer;padding:4px 8px;color:var(--ink3)">&#8592;</div>' +
-    '<div style="font-size:17px;font-weight:700;color:var(--ink)">&#128247; &#25105;&#30340;&#30456;&#20876;</div>' +
-    '<div style="width:40px"></div></div>' +
-    '<div style="display:flex;gap:6px;padding:10px 14px;background:var(--card);border-bottom:1px solid var(--border)">' +
-    '<button id="acat-all" onclick="filterAlbum(\'all\')" style="flex:1;padding:8px 2px;border-radius:20px;border:none;background:var(--blue2);color:#fff;font-size:12px;font-weight:600;cursor:pointer;-webkit-appearance:none">&#20840;&#37096;</button>' +
-    '<button id="acat-life" onclick="filterAlbum(\'life\')" style="flex:1;padding:8px 2px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:12px;cursor:pointer;-webkit-appearance:none">&#127807; &#29983;&#27963;</button>' +
-    '<button id="acat-work" onclick="filterAlbum(\'work\')" style="flex:1;padding:8px 2px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:12px;cursor:pointer;-webkit-appearance:none">&#128188; &#24037;&#20316;</button>' +
-    '<button id="acat-family" onclick="filterAlbum(\'family\')" style="flex:1;padding:8px 2px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:12px;cursor:pointer;-webkit-appearance:none">&#128106; &#23478;&#20154;</button>' +
-    '</div>' +
-    '<div id="albumGrid" style="flex:1;overflow-y:auto;padding:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:2px"></div>';
+  var header = document.createElement('div');
+  header.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:16px 18px 10px;background:var(--card);border-bottom:1px solid var(--border)';
+  var backBtn = document.createElement('div');
+  backBtn.innerHTML = '&#8592;';
+  backBtn.style.cssText = 'font-size:24px;cursor:pointer;padding:4px 8px;color:var(--ink3)';
+  backBtn.onclick = function() { ov.remove(); };
+  var title = document.createElement('div');
+  title.style.cssText = 'font-size:17px;font-weight:700;color:var(--ink)';
+  title.textContent = '我的相册';
+  var addLabel = document.createElement('label');
+  addLabel.style.cssText = 'display:flex;align-items:center;gap:3px;padding:6px 12px;border-radius:20px;background:var(--blue2);color:#fff;font-size:12px;font-weight:600;cursor:pointer';
+  addLabel.textContent = '+ 添加';
+  var fileInput = document.createElement('input');
+  fileInput.type = 'file'; fileInput.accept = 'image/*'; fileInput.multiple = true;
+  fileInput.style.display = 'none';
+  fileInput.onchange = function() { importPhotosToAlbum(this.files); };
+  addLabel.appendChild(fileInput);
+  header.appendChild(backBtn); header.appendChild(title); header.appendChild(addLabel);
+  var tabs = document.createElement('div');
+  tabs.style.cssText = 'display:flex;gap:6px;padding:10px 14px;background:var(--card);border-bottom:1px solid var(--border)';
+  [{id:'all',label:'全部'},{id:'life',label:'&#127807; 生活'},{id:'work',label:'&#128188; 工作'},{id:'family',label:'&#128106; 家人'}].forEach(function(t) {
+    var b = document.createElement('button');
+    b.id = 'acat-'+t.id; b.innerHTML = t.label;
+    b.style.cssText = 'flex:1;padding:8px 2px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:12px;cursor:pointer;-webkit-appearance:none';
+    b.onclick = function() { filterAlbum(t.id); };
+    tabs.appendChild(b);
+  });
+  var grid = document.createElement('div');
+  grid.id = 'albumGrid';
+  grid.style.cssText = 'flex:1;overflow-y:auto;padding:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:2px';
+  ov.appendChild(header); ov.appendChild(tabs); ov.appendChild(grid);
   document.body.appendChild(ov);
-  loadAlbum('all');
+  filterAlbum(_albumCurrentCat);
 }
 
 async function loadAlbum(cat) {
   _albumCurrentCat = cat;
-  var grid = document.getElementById('albumGrid');
-  if (!grid) return;
-  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--ink3)">&#21152;&#36733;&#20013;&#8230;</div>';
-  var client = sb(); if (!client) return;
+  var grid = document.getElementById('albumGrid'); if(!grid) return;
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--ink3)">加载中...</div>';
+  var cl = sb(); if(!cl) return;
   var uid = await getUid();
   try {
-    var q = client.from('album_photos').select('*').eq('user_id', uid).order('taken_at', {ascending:false}).limit(300);
-    if (cat !== 'all') q = q.eq('category', cat);
+    var q = cl.from('album_photos').select('*').eq('user_id',uid).order('taken_at',{ascending:false}).limit(300);
+    if (cat!=='all') q = q.eq('category',cat);
     var res = await q;
-    var photos = res.data || [];
-    // 降级：从moments读
+    var photos = res.data||[];
     if (!photos.length) {
-      var mq = client.from('moments').select('id,photo_url,taken_at,mood').eq('user_id', uid).not('photo_url', 'is', null).order('taken_at', {ascending:false}).limit(300);
-      if (cat !== 'all') mq = mq.eq('mood', cat);
+      var mq = cl.from('moments').select('id,photo_url,taken_at,mood').eq('user_id',uid).not('photo_url','is',null).order('taken_at',{ascending:false}).limit(300);
+      if (cat!=='all') mq = mq.eq('mood',cat);
       var mr = await mq;
-      photos = (mr.data||[]).filter(function(m){ return m.photo_url; }).map(function(m){
-        return { photo_url:m.photo_url, taken_at:m.taken_at, category:m.mood||'life' };
-      });
+      photos = (mr.data||[]).filter(function(m){return m.photo_url;}).map(function(m){return {photo_url:m.photo_url,taken_at:m.taken_at,category:m.mood||'life',id:m.id};});
     }
+    grid.innerHTML = '';
     if (!photos.length) {
-      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--ink3);font-size:13px">&#128247;<br><br>&#36824;&#27809;&#26377;&#29031;&#29255;<br><span style="font-size:11px">&#25320;&#29031;&#21518;&#36873;&#25324;&#20998;&#31867;&#21363;&#21487;&#20445;&#23384;</span></div>';
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--ink3)">还没有照片<br><span style="font-size:11px">点右上角添加</span></div>';
       return;
     }
-    var catIco = { life:'&#127807;', work:'&#128188;', family:'&#128106;' };
-    grid.innerHTML = photos.map(function(p){
-      var ico = catIco[p.category] || '&#127807;';
-      var pid = p.id ? esc(p.id) : '';
-      var purl = esc(p.photo_url);
-      return '<div style="position:relative;aspect-ratio:1;overflow:hidden;border-radius:3px;background:var(--border)">' +
-        '<img src="' + purl + '" onclick="viewAlbumPhoto(\'' + purl + '\')" style="width:100%;height:100%;object-fit:cover;cursor:pointer" loading="lazy">' +
-        '<div style="position:absolute;bottom:2px;right:3px;font-size:11px;text-shadow:0 1px 3px rgba(0,0,0,.5)">' + ico + '</div>' +
-        '<button onclick="deleteAlbumPhoto(\'' + pid + '\',\'' + purl + '\',this)" style="position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;font-size:12px;line-height:1;cursor:pointer;-webkit-appearance:none">&#10005;</button>' +
-        '</div>';
-    }).join('');
-  } catch(e) {
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--ink3)">&#21152;&#36733;&#22833;&#36133;</div>';
-  }
+    var catIco = {life:'&#127807;',work:'&#128188;',family:'&#128106;'};
+    photos.forEach(function(p) {
+      var cell = document.createElement('div');
+      cell.style.cssText = 'position:relative;aspect-ratio:1;overflow:hidden;border-radius:3px;background:var(--border)';
+      var img = document.createElement('img');
+      img.src = p.photo_url; img.style.cssText = 'width:100%;height:100%;object-fit:cover;cursor:pointer'; img.loading = 'lazy';
+      img.onclick = function() { viewAlbumPhoto(p.photo_url); };
+      var ico = document.createElement('div');
+      ico.style.cssText = 'position:absolute;bottom:2px;right:3px;font-size:11px;text-shadow:0 1px 3px rgba(0,0,0,.5)';
+      ico.innerHTML = catIco[p.category]||'&#127807;';
+      var delBtn = document.createElement('button');
+      delBtn.innerHTML = '&#10005;';
+      delBtn.style.cssText = 'position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;font-size:12px;line-height:1;cursor:pointer;-webkit-appearance:none';
+      delBtn.onclick = function() { deleteAlbumPhoto(p.id||'', p.photo_url, delBtn); };
+      cell.appendChild(img); cell.appendChild(ico); cell.appendChild(delBtn);
+      grid.appendChild(cell);
+    });
+  } catch(e) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--ink3)">加载失败</div>'; }
 }
 
 function filterAlbum(cat) {
   _albumCurrentCat = cat;
-  ['all','life','work','family'].forEach(function(c){
-    var b = document.getElementById('acat-'+c); if (!b) return;
-    if (c===cat){ b.style.background='var(--blue2)'; b.style.color='#fff'; b.style.border='none'; }
-    else { b.style.background='transparent'; b.style.color='var(--ink3)'; b.style.border='1.5px solid var(--border)'; }
+  ['all','life','work','family'].forEach(function(c) {
+    var b = document.getElementById('acat-'+c); if(!b) return;
+    if(c===cat){b.style.background='var(--blue2)';b.style.color='#fff';b.style.border='none';}
+    else{b.style.background='transparent';b.style.color='var(--ink3)';b.style.border='1.5px solid var(--border)';}
   });
   loadAlbum(cat);
 }
@@ -7997,218 +7966,470 @@ function filterAlbum(cat) {
 function viewAlbumPhoto(src) {
   var ov = document.createElement('div');
   ov.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#000;display:flex;align-items:center;justify-content:center';
-  ov.innerHTML = '<img src="'+esc(src)+'" style="max-width:100%;max-height:100%;object-fit:contain">' +
-    '<div onclick="this.parentNode.remove()" style="position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer">&#10005;</div>';
+  var img = document.createElement('img');
+  img.src = src; img.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain';
+  var closeBtn = document.createElement('div');
+  closeBtn.innerHTML = '&#10005;';
+  closeBtn.style.cssText = 'position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer';
+  closeBtn.onclick = function() { ov.remove(); };
+  ov.appendChild(img); ov.appendChild(closeBtn);
   ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
   document.body.appendChild(ov);
 }
 
-// ── 文件夹（仅支持 PDF + 图片，iOS Safari 可直接打开）──
+async function deleteAlbumPhoto(id, url, btn) {
+  if(btn) btn.textContent = '...';
+  var cl = sb(); var uid = await getUid();
+  try {
+    if(cl && id) await cl.from('album_photos').delete().eq('id',id);
+    else if(cl && url) {
+      await cl.from('album_photos').delete().eq('photo_url',url).eq('user_id',uid);
+      await cl.from('moments').delete().eq('photo_url',url).eq('user_id',uid);
+    }
+    var cell = btn ? btn.parentNode : null;
+    if(cell && cell.parentNode) cell.parentNode.removeChild(cell);
+    toast('已删除');
+  } catch(e) { toast('删除失败'); if(btn) btn.textContent='x'; }
+}
+
 var _folderCurrentCat = 'life';
 
 function openFolders(cat) {
-  if (cat) _folderCurrentCat = cat;
+  if(cat) _folderCurrentCat = cat;
   var ex = document.getElementById('foldersOv'); if(ex) ex.remove();
   var ov = document.createElement('div');
   ov.id = 'foldersOv';
   ov.style.cssText = 'position:fixed;inset:0;z-index:900;background:var(--bg);display:flex;flex-direction:column;overflow:hidden';
-  ov.innerHTML =
-    '<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px 10px;background:var(--card);border-bottom:1px solid var(--border)">' +
-    '<div onclick="document.getElementById(\'foldersOv\').remove()" style="font-size:24px;cursor:pointer;padding:4px 8px;color:var(--ink3)">&#8592;</div>' +
-    '<div style="font-size:17px;font-weight:700;color:var(--ink)">&#128193; &#25105;&#30340;&#25991;&#20214;&#22841;</div>' +
-    '<div style="width:40px"></div></div>' +
-    '<div style="display:flex;gap:10px;padding:12px 14px;background:var(--card);border-bottom:1px solid var(--border)">' +
-    '<button id="fcat-life" onclick="switchFolder(\'life\')" style="flex:1;padding:10px;border-radius:14px;border:none;background:var(--blue2);color:#fff;font-size:13px;font-weight:600;cursor:pointer;-webkit-appearance:none">&#127807; &#29983;&#27963;</button>' +
-    '<button id="fcat-work" onclick="switchFolder(\'work\')" style="flex:1;padding:10px;border-radius:14px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:13px;cursor:pointer;-webkit-appearance:none">&#128188; &#24037;&#20316;</button>' +
-    '</div>' +
-    '<div style="margin:10px 14px 0;padding:10px 14px;background:#FFF8E1;border-radius:12px;font-size:11px;color:#9C6A00;display:flex;align-items:center;gap:8px">' +
-    '&#128161; &#25903;&#25345; PDF &#21644;&#22270;&#29255;&#30452;&#25509;&#25171;&#24320;&#65292;&#20854;&#20182;&#26684;&#24335;&#35831;&#29992;&#30005;&#33041;&#35266;&#30475;' +
-    '</div>' +
-    '<div id="folderFileList" style="flex:1;overflow-y:auto;padding:14px"></div>' +
-    '<div style="padding:12px 14px;background:var(--card);border-top:1px solid var(--border)">' +
-    '<label style="display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;border-radius:14px;background:var(--blue2);color:#fff;font-size:14px;font-weight:600;cursor:pointer">' +
-    '&#128206; &#19978;&#20256;&#25991;&#20214;&#65288;PDF / &#22270;&#29255;&#65289;' +
-    '<input type="file" accept=".pdf,image/*" style="display:none" onchange="uploadToFolder(this.files[0])">' +
-    '</label></div>';
+  var header = document.createElement('div');
+  header.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:16px 18px 10px;background:var(--card);border-bottom:1px solid var(--border)';
+  var backBtn = document.createElement('div');
+  backBtn.innerHTML = '&#8592;'; backBtn.style.cssText = 'font-size:24px;cursor:pointer;padding:4px 8px;color:var(--ink3)';
+  backBtn.onclick = function() { ov.remove(); };
+  var title = document.createElement('div');
+  title.style.cssText = 'font-size:17px;font-weight:700;color:var(--ink)'; title.textContent = '我的文件夹';
+  header.appendChild(backBtn); header.appendChild(title); header.appendChild(document.createElement('div'));
+  var tabRow = document.createElement('div');
+  tabRow.style.cssText = 'display:flex;gap:10px;padding:12px 14px;background:var(--card);border-bottom:1px solid var(--border)';
+  [{id:'life',label:'&#127807; 生活'},{id:'work',label:'&#128188; 工作'}].forEach(function(t) {
+    var b = document.createElement('button');
+    b.id = 'fcat-'+t.id; b.innerHTML = t.label;
+    b.style.cssText = 'flex:1;padding:10px;border-radius:14px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:13px;cursor:pointer;-webkit-appearance:none';
+    b.onclick = function() { switchFolder(t.id); };
+    tabRow.appendChild(b);
+  });
+  var notice = document.createElement('div');
+  notice.style.cssText = 'margin:10px 14px 0;padding:10px 14px;background:#FFF8E1;border-radius:12px;font-size:11px;color:#9C6A00';
+  notice.textContent = '支持 PDF 和图片直接打开，其他格式请用电脑查看';
+  var fileList = document.createElement('div');
+  fileList.id = 'folderFileList'; fileList.style.cssText = 'flex:1;overflow-y:auto;padding:14px';
+  var footer = document.createElement('div');
+  footer.style.cssText = 'padding:12px 14px;background:var(--card);border-top:1px solid var(--border)';
+  var uploadLabel = document.createElement('label');
+  uploadLabel.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;border-radius:14px;background:var(--blue2);color:#fff;font-size:14px;font-weight:600;cursor:pointer';
+  uploadLabel.textContent = '上传文件 (PDF / 图片)';
+  var fileIn = document.createElement('input');
+  fileIn.type = 'file'; fileIn.accept = '.pdf,image/*'; fileIn.style.display = 'none';
+  fileIn.onchange = function() { uploadToFolder(this.files[0]); };
+  uploadLabel.appendChild(fileIn); footer.appendChild(uploadLabel);
+  ov.appendChild(header); ov.appendChild(tabRow); ov.appendChild(notice); ov.appendChild(fileList); ov.appendChild(footer);
   document.body.appendChild(ov);
-  loadFolderFiles(_folderCurrentCat);
+  switchFolder(_folderCurrentCat);
 }
 
 function switchFolder(cat) {
   _folderCurrentCat = cat;
-  ['life','work'].forEach(function(c){
+  ['life','work'].forEach(function(c) {
     var b = document.getElementById('fcat-'+c); if(!b) return;
-    if(c===cat){ b.style.background='var(--blue2)'; b.style.color='#fff'; b.style.border='none'; }
-    else { b.style.background='transparent'; b.style.color='var(--ink3)'; b.style.border='1.5px solid var(--border)'; }
+    if(c===cat){b.style.background='var(--blue2)';b.style.color='#fff';b.style.border='none';}
+    else{b.style.background='transparent';b.style.color='var(--ink3)';b.style.border='1.5px solid var(--border)';}
   });
   loadFolderFiles(cat);
 }
 
 async function loadFolderFiles(cat) {
-  var list = document.getElementById('folderFileList'); if (!list) return;
-  list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--ink3)">&#21152;&#36733;&#20013;&#8230;</div>';
-  var client = sb(); if (!client) { list.innerHTML='<div style="text-align:center;padding:30px;color:var(--ink3)">&#26410;&#36830;&#25509;&#25968;&#25454;&#24211;</div>'; return; }
+  var list = document.getElementById('folderFileList'); if(!list) return;
+  list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--ink3)">加载中...</div>';
+  var cl = sb(); if(!cl) { list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--ink3)">未连接数据库</div>'; return; }
   var uid = await getUid();
   try {
-    var res = await client.from('folder_files').select('*').eq('user_id', uid).eq('category', cat).order('created_at', {ascending:false});
-    var files = res.data || [];
-    if (!files.length) {
-      list.innerHTML = '<div style="text-align:center;padding:50px 20px;color:var(--ink3)">' +
-        '<div style="font-size:48px;margin-bottom:12px">&#128193;</div>' +
-        '<div style="font-size:14px;font-weight:600;margin-bottom:6px">&#25991;&#20214;&#22841;&#26159;&#31354;&#30340;</div>' +
-        '<div style="font-size:12px">&#28857;&#20987;&#19979;&#26041;&#19978;&#20256; PDF &#25110;&#22270;&#29255;&#25991;&#20214;</div></div>';
-      return;
-    }
-    list.innerHTML = files.map(function(f){
-      var isPdf = (f.file_name||'').toLowerCase().endsWith('.pdf');
-      var isImg = /\.(jpg|jpeg|png|gif|webp)$/i.test(f.file_name||'');
+    var res = await cl.from('folder_files').select('*').eq('user_id',uid).eq('category',cat).order('created_at',{ascending:false});
+    var files = res.data||[];
+    if(!files.length) { list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--ink3)">文件夹是空的<br><span style="font-size:11px">点下方上传文件</span></div>'; return; }
+    list.innerHTML = '';
+    files.forEach(function(f) {
+      var ext = (f.file_name||'').split('.').pop().toLowerCase();
+      var isPdf = ext==='pdf', isImg = ['jpg','jpeg','png','gif','webp'].indexOf(ext)>=0;
       var ico = isPdf ? '&#128196;' : isImg ? '&#128444;' : '&#128206;';
-      var kb = f.file_size > 1048576 ? (f.file_size/1048576).toFixed(1)+'MB' : Math.round((f.file_size||0)/1024)+'KB';
+      var kb = f.file_size>1048576 ? (f.file_size/1048576).toFixed(1)+'MB' : Math.round((f.file_size||0)/1024)+'KB';
       var dt = f.created_at ? new Date(f.created_at).toLocaleDateString('zh-CN') : '';
-      var canOpen = isPdf || isImg;
-      return '<div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--card);border-radius:14px;margin-bottom:10px">' +
-        '<div style="width:46px;height:46px;border-radius:12px;background:' + (isPdf?'#FFEBEE':isImg?'#E3F2FD':'#F5F5F5') + ';display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">' + ico + '</div>' +
-        '<div style="flex:1;min-width:0">' +
-        '<div style="font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(f.file_name||'&#25991;&#20214;') + '</div>' +
-        '<div style="font-size:11px;color:var(--ink3);margin-top:2px">' + kb + ' &middot; ' + dt + '</div></div>' +
-        (canOpen && f.file_url
-          ? '<a href="' + esc(f.file_url) + '" target="_blank" style="padding:7px 14px;background:var(--blue2);color:#fff;border-radius:10px;font-size:12px;font-weight:600;text-decoration:none;flex-shrink:0">&#25171;&#24320;</a>'
-          : '<span style="font-size:11px;color:var(--ink4);flex-shrink:0">&#30005;&#33041;&#26597;&#30475;</span>') +
-        '</div>';
-    }).join('');
-  } catch(e) {
-    list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--ink3)">&#21152;&#36733;&#22833;&#36133;</div>';
-  }
+      var row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:14px;background:var(--card);border-radius:14px;margin-bottom:10px';
+      var icoDiv = document.createElement('div');
+      icoDiv.innerHTML = ico;
+      icoDiv.style.cssText = 'width:44px;height:44px;border-radius:12px;background:'+(isPdf?'#FFEBEE':isImg?'#E3F2FD':'#F5F5F5')+';display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0';
+      var info = document.createElement('div');
+      info.style.cssText = 'flex:1;min-width:0';
+      info.innerHTML = '<div style="font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(f.file_name||'文件')+'</div><div style="font-size:11px;color:var(--ink3);margin-top:2px">'+kb+' · '+dt+'</div>';
+      row.appendChild(icoDiv); row.appendChild(info);
+      if((isPdf||isImg)&&f.file_url) {
+        var link = document.createElement('a');
+        link.href = f.file_url; link.target = '_blank';
+        link.style.cssText = 'padding:7px 14px;background:var(--blue2);color:#fff;border-radius:10px;font-size:12px;font-weight:600;text-decoration:none;flex-shrink:0';
+        link.textContent = '打开';
+        row.appendChild(link);
+      }
+      list.appendChild(row);
+    });
+  } catch(e) { list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--ink3)">加载失败</div>'; }
 }
 
 async function uploadToFolder(file) {
-  if (!file) return;
-  // 只允许PDF和图片
-  var isPdf = file.type === 'application/pdf';
-  var isImg = file.type.startsWith('image/');
-  if (!isPdf && !isImg) {
-    toast('&#128161; &#30446;&#21069;&#21482;&#25903;&#25345; PDF &#21644;&#22270;&#29255;&#65292;&#20854;&#20182;&#26684;&#24335;&#35831;&#29992;&#30005;&#33041;');
-    return;
-  }
-  var client = sb(); if (!client) { toast('&#10060; &#25968;&#25454;&#24211;&#26410;&#36830;&#25509;'); return; }
+  if(!file) return;
+  var isPdf = file.type==='application/pdf', isImg = file.type.startsWith('image/');
+  if(!isPdf&&!isImg) { toast('目前只支持 PDF 和图片'); return; }
+  var cl = sb(); if(!cl) { toast('连接失败'); return; }
   var uid = await getUid();
-  toast('&#128206; &#19978;&#20256;&#20013;&#8230;');
+  toast('上传中...');
   try {
-    var safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-    var path = uid + '/folders/' + _folderCurrentCat + '/' + Date.now() + '_' + safeName;
-    var up = await client.storage.from('moments').upload(path, file, { contentType: file.type });
-    if (up.error) { toast('&#10060; &#19978;&#20256;&#22833;&#36133;'); return; }
-    var pub = client.storage.from('moments').getPublicUrl(path);
-    await client.from('folder_files').insert({
-      user_id: uid, category: _folderCurrentCat,
-      file_name: file.name, file_url: pub.data.publicUrl,
-      file_size: file.size, file_type: file.type
-    });
-    toast('&#10003; &#25991;&#20214;&#24050;&#19978;&#20256;');
+    var safeName = file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+    var path = uid+'/folders/'+_folderCurrentCat+'/'+Date.now()+'_'+safeName;
+    var up = await cl.storage.from('moments').upload(path,file,{contentType:file.type});
+    if(up.error) { toast('上传失败'); return; }
+    var pub = cl.storage.from('moments').getPublicUrl(path);
+    await cl.from('folder_files').insert({user_id:uid,category:_folderCurrentCat,file_name:file.name,file_url:pub.data.publicUrl,file_size:file.size,file_type:file.type});
+    toast('文件已上传');
     loadFolderFiles(_folderCurrentCat);
-  } catch(e) { toast('&#10060; &#19978;&#20256;&#22833;&#36133;'); }
+  } catch(e) { toast('上传失败'); }
 }
-
-
-function deleteTodayItemSafe(id) {
-  if (!confirm('确定删除这条记录？')) return;
-  if (id) {
-    deleteTodayItem(id);
-  } else {
-    // 没有id就强制重新加载
-    window._todayItemsCache = [];
-    loadTodayActivity();
-    toast('&#35831;&#21047;&#26032;&#39029;&#38754;&#21518;&#20877;&#21024;&#38500;');
-  }
-}
-
 
 async function deleteTodayByIndex(idx) {
-  var items = window._todayItemsCache || [];
-  var it = items[idx];
-  if (!it) { loadTodayActivity(); return; }
-  var id = it.momentId;
-  var lbl = it.lbl || '';
-
-  // 立即从界面移除
-  window._todayItemsCache = items.filter(function(_,i){ return i !== idx; });
+  var items = window._todayItemsCache||[];
+  var it = items[idx]; if(!it) { loadTodayActivity(); return; }
+  var id = it.momentId, lbl = it.lbl||'';
+  window._todayItemsCache = items.filter(function(_,i){return i!==idx;});
   renderTodayList();
   toast('删除中...');
-
-  var cl = sb();
-  var uid = await getUid();
-
-  if (cl) {
-    try {
-      if (id) {
-        // 有DB id，直接删除
-        await cl.from('moments').delete().eq('id', id);
-        _momentsCache = (_momentsCache||[]).filter(function(m){ return m.id !== id; });
-        window._trajMomentsCache = (window._trajMomentsCache||[]).filter(function(m){ return m.id !== id; });
-        MOMENTS_DATA = (MOMENTS_DATA||[]).filter(function(m){ return m.id !== id; });
-        try { renderTrajList(); } catch(e) {}
-      } else {
-        // 没有id，按标题查找DB记录再删
-        var now = new Date();
-        var windowStart = new Date(Date.now() - 48*60*60*1000).toISOString();
-        var findRes = await cl.from('moments')
-          .select('id')
-          .eq('user_id', uid)
-          .eq('title', lbl)
-          .gte('taken_at', windowStart)
-          .limit(1)
-          .maybeSingle();
-        if (findRes.data && findRes.data.id) {
-          await cl.from('moments').delete().eq('id', findRes.data.id);
-        }
-        // 同时从 _localEvents 删除
-        _localEvents = (_localEvents||[]).filter(function(e){ return e.title !== lbl; });
-        try { localStorage.setItem('c100_local_events', JSON.stringify(_localEvents)); } catch(ex) {}
-      }
-      toast('已删除');
-    } catch(e) {
-      console.warn('deleteTodayByIndex error:', e);
-      toast('已从列表移除');
-    }
-  } else {
-    // 离线：只删本地
-    _localEvents = (_localEvents||[]).filter(function(e){ return e.title !== lbl; });
-    try { localStorage.setItem('c100_local_events', JSON.stringify(_localEvents)); } catch(ex) {}
-    toast('已删除');
-  }
-
-  setTimeout(function(){ loadTodayActivity(); }, 1000);
-}
-
-
-async function deleteAlbumPhoto(id, url, btn) {
-  if (btn) btn.textContent = '...';
-  var cl = sb();
-  var uid = await getUid();
   try {
-    if (cl && id) {
-      await cl.from('album_photos').delete().eq('id', id);
-    } else if (cl && url) {
-      // 按url删
-      await cl.from('album_photos').delete().eq('photo_url', url).eq('user_id', uid);
-      await cl.from('moments').delete().eq('photo_url', url).eq('user_id', uid);
+    var cl = sb(); var uid = await getUid();
+    if(cl && id) {
+      await cl.from('moments').delete().eq('id',id);
+      _momentsCache = (_momentsCache||[]).filter(function(m){return m.id!==id;});
+      window._trajMomentsCache = (window._trajMomentsCache||[]).filter(function(m){return m.id!==id;});
+      MOMENTS_DATA = (MOMENTS_DATA||[]).filter(function(m){return m.id!==id;});
+      try{renderTrajList();}catch(e){}
+    } else if(cl && uid) {
+      var ws = new Date(Date.now()-48*60*60*1000).toISOString();
+      var fr = await cl.from('moments').select('id').eq('user_id',uid).eq('title',lbl).gte('taken_at',ws).limit(1).maybeSingle();
+      if(fr.data&&fr.data.id) await cl.from('moments').delete().eq('id',fr.data.id);
+      _localEvents = (_localEvents||[]).filter(function(e){return e.title!==lbl;});
+      try{localStorage.setItem('c100_local_events',JSON.stringify(_localEvents));}catch(ex){}
     }
-    // 从DOM移除
-    var cell = btn ? btn.closest('div[style*="aspect-ratio"]') : null;
-    if (cell && cell.parentNode) cell.parentNode.removeChild(cell);
     toast('已删除');
-  } catch(e) {
-    toast('删除失败');
-    if (btn) btn.textContent = 'x';
-  }
+  } catch(e) { toast('已从列表移除'); }
+  setTimeout(function(){loadTodayActivity();},1000);
 }
 
-async function importPhotosToAlbum(files) {
-  if (!files || !files.length) return;
-  var file = files[0]; // 先处理第一张
-  showPhotoCategoryPicker(file);
-  // 如果多张，存起来队列处理
-  window._pendingAlbumFiles = Array.from(files).slice(1);
+function openChangePwdSheet() {
+  var ex = document.getElementById('changePwdOv'); if(ex) ex.remove();
+  var ov = document.createElement('div');
+  ov.id = 'changePwdOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9200;background:rgba(18,24,52,.55);display:flex;align-items:flex-end;justify-content:center';
+  var sheet = document.createElement('div');
+  sheet.style.cssText = 'width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:20px 18px 36px';
+  sheet.innerHTML = '<div style="width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 18px"></div>' +
+    '<div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:16px">修改密码</div>' +
+    '<div style="margin-bottom:12px"><div style="font-size:11px;font-weight:600;color:var(--ink2);margin-bottom:5px">新密码（至少8位）</div>' +
+    '<input id="cpNewPwd" type="password" placeholder="请输入新密码" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;background:var(--bg);color:var(--ink);box-sizing:border-box"></div>' +
+    '<div style="margin-bottom:20px"><div style="font-size:11px;font-weight:600;color:var(--ink2);margin-bottom:5px">确认新密码</div>' +
+    '<input id="cpConfirmPwd" type="password" placeholder="再次输入新密码" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;background:var(--bg);color:var(--ink);box-sizing:border-box"></div>' +
+    '<div style="display:flex;gap:10px">' +
+    '<button id="cpCancelBtn" style="flex:1;padding:13px;border-radius:14px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:14px;cursor:pointer;-webkit-appearance:none">取消</button>' +
+    '<button id="cpConfirmBtn" style="flex:1.5;padding:13px;border-radius:14px;border:none;background:var(--blue2);color:#fff;font-size:14px;font-weight:600;cursor:pointer;-webkit-appearance:none">确认修改</button>' +
+    '</div>';
+  ov.appendChild(sheet);
+  ov.addEventListener('click', function(e){if(e.target===ov) ov.remove();});
+  document.body.appendChild(ov);
+  sheet.querySelector('#cpCancelBtn').onclick = function(){ov.remove();};
+  sheet.querySelector('#cpConfirmBtn').onclick = doChangePwd;
+}
+
+async function doChangePwd() {
+  var newPwd = (document.getElementById('cpNewPwd').value||'').trim();
+  var cfm = (document.getElementById('cpConfirmPwd').value||'').trim();
+  if(!newPwd||!cfm){toast('请填写所有字段');return;}
+  if(newPwd.length<8){toast('新密码至少需要8位');return;}
+  if(newPwd!==cfm){toast('两次密码不一致');return;}
+  var cl = sb(); if(!cl){toast('连接失败');return;}
+  toast('修改中...');
+  try {
+    var res = await cl.auth.updateUser({password:newPwd});
+    if(res.error){toast('修改失败: '+res.error.message);return;}
+    toast('密码已修改成功');
+    var ov = document.getElementById('changePwdOv'); if(ov) ov.remove();
+  } catch(e){toast('修改失败，请重试');}
+}
+
+function openForgotPwdSheet() {
+  var ex = document.getElementById('forgotPwdOv'); if(ex) ex.remove();
+  var ov = document.createElement('div');
+  ov.id = 'forgotPwdOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9200;background:rgba(18,24,52,.55);display:flex;align-items:flex-end;justify-content:center';
+  var sheet = document.createElement('div');
+  sheet.style.cssText = 'width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:20px 18px 36px';
+  sheet.innerHTML = '<div style="width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 18px"></div>' +
+    '<div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px">找回密码</div>' +
+    '<div style="font-size:12px;color:var(--ink3);margin-bottom:16px">选择找回方式</div>' +
+    '<div style="display:flex;gap:8px;margin-bottom:16px">' +
+    '<button id="fpTabEmail" style="flex:1;padding:10px;border-radius:12px;border:none;background:var(--blue2);color:#fff;font-size:13px;font-weight:600;cursor:pointer;-webkit-appearance:none">邮箱找回</button>' +
+    '<button id="fpTabPhone" style="flex:1;padding:10px;border-radius:12px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:13px;cursor:pointer;-webkit-appearance:none">手机找回</button>' +
+    '</div>' +
+    '<div id="fpPanelEmail">' +
+    '<div style="font-size:11px;font-weight:600;color:var(--ink2);margin-bottom:5px">注册邮箱</div>' +
+    '<input id="fpEmail" type="email" placeholder="请输入注册邮箱" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;background:var(--bg);color:var(--ink);box-sizing:border-box;margin-bottom:14px">' +
+    '<button id="fpSendEmailBtn" style="width:100%;padding:13px;border-radius:14px;border:none;background:var(--blue2);color:#fff;font-size:14px;font-weight:600;cursor:pointer;-webkit-appearance:none">发送重置邮件</button>' +
+    '</div>' +
+    '<div id="fpPanelPhone" style="display:none">' +
+    '<div style="font-size:11px;font-weight:600;color:var(--ink2);margin-bottom:5px">注册手机号</div>' +
+    '<div style="display:flex;gap:6px;margin-bottom:12px">' +
+    '<select id="fpPhoneCC" style="width:90px;border:1.5px solid var(--border);border-radius:12px;padding:12px 6px;font-size:13px;background:var(--bg);color:var(--ink)">' +
+    '<option value="+64">NZ +64</option><option value="+61">AU +61</option><option value="+86">CN +86</option><option value="+1">US +1</option>' +
+    '</select>' +
+    '<input id="fpPhone" type="tel" placeholder="手机号码" style="flex:1;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;background:var(--bg);color:var(--ink)">' +
+    '</div>' +
+    '<button id="fpSendPhoneBtn" style="width:100%;padding:13px;border-radius:14px;border:none;background:var(--blue2);color:#fff;font-size:14px;font-weight:600;cursor:pointer;-webkit-appearance:none;margin-bottom:12px">发送验证码</button>' +
+    '<div id="fpOtpRow" style="display:none">' +
+    '<div style="font-size:11px;font-weight:600;color:var(--ink2);margin-bottom:5px">输入验证码</div>' +
+    '<div style="display:flex;gap:8px">' +
+    '<input id="fpOtp" type="text" placeholder="6位验证码" maxlength="6" style="flex:1;padding:12px;border:1.5px solid var(--border);border-radius:12px;font-size:16px;letter-spacing:4px;background:var(--bg);color:var(--ink);text-align:center">' +
+    '<button id="fpVerifyBtn" style="padding:12px 16px;border-radius:12px;border:none;background:var(--blue2);color:#fff;font-size:13px;font-weight:600;cursor:pointer;-webkit-appearance:none">验证</button>' +
+    '</div></div></div>' +
+    '<button id="fpCancelBtn" style="width:100%;padding:12px;border-radius:14px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:13px;cursor:pointer;-webkit-appearance:none;margin-top:14px">取消</button>';
+  ov.appendChild(sheet);
+  ov.addEventListener('click', function(e){if(e.target===ov) ov.remove();});
+  document.body.appendChild(ov);
+  sheet.querySelector('#fpCancelBtn').onclick = function(){ov.remove();};
+  sheet.querySelector('#fpTabEmail').onclick = function(){switchFpTab('email');};
+  sheet.querySelector('#fpTabPhone').onclick = function(){switchFpTab('phone');};
+  sheet.querySelector('#fpSendEmailBtn').onclick = doForgotByEmail;
+  sheet.querySelector('#fpSendPhoneBtn').onclick = doForgotByPhone;
+  sheet.querySelector('#fpVerifyBtn').onclick = doVerifyPhoneOtp;
+}
+
+function switchFpTab(tab) {
+  var ep = document.getElementById('fpPanelEmail');
+  var pp = document.getElementById('fpPanelPhone');
+  if(ep) ep.style.display = tab==='email'?'block':'none';
+  if(pp) pp.style.display = tab==='phone'?'block':'none';
+  var eb = document.getElementById('fpTabEmail'), pb = document.getElementById('fpTabPhone');
+  if(tab==='email'){if(eb){eb.style.background='var(--blue2)';eb.style.color='#fff';eb.style.border='none';}if(pb){pb.style.background='transparent';pb.style.color='var(--ink3)';pb.style.border='1.5px solid var(--border)';}}
+  else{if(pb){pb.style.background='var(--blue2)';pb.style.color='#fff';pb.style.border='none';}if(eb){eb.style.background='transparent';eb.style.color='var(--ink3)';eb.style.border='1.5px solid var(--border)';}}
+}
+
+async function doForgotByEmail() {
+  var email = (document.getElementById('fpEmail').value||'').trim();
+  if(!email){toast('请输入邮箱');return;}
+  var cl = sb(); if(!cl){toast('连接失败');return;}
+  toast('发送中...');
+  try {
+    var res = await cl.auth.resetPasswordForEmail(email,{redirectTo:'https://chrono100.com/'});
+    if(res.error){toast('发送失败: '+res.error.message);return;}
+    toast('重置邮件已发送，请检查邮箱');
+  } catch(e){toast('发送失败');}
+}
+
+async function doForgotByPhone() {
+  var cc = document.getElementById('fpPhoneCC').value;
+  var num = (document.getElementById('fpPhone').value||'').trim().replace(/ /g,'');
+  if(!num){toast('请输入手机号');return;}
+  var cl = sb(); if(!cl){toast('连接失败');return;}
+  toast('发送中...');
+  try {
+    var res = await cl.auth.signInWithOtp({phone:cc+num});
+    if(res.error){toast('发送失败: '+res.error.message);return;}
+    window._fpPhone = cc+num;
+    var otp = document.getElementById('fpOtpRow'); if(otp) otp.style.display='block';
+    toast('验证码已发送');
+  } catch(e){toast('发送失败');}
+}
+
+async function doVerifyPhoneOtp() {
+  var otp = (document.getElementById('fpOtp').value||'').trim();
+  if(!otp||otp.length<6){toast('请输入6位验证码');return;}
+  var cl = sb(); if(!cl) return;
+  toast('验证中...');
+  try {
+    var res = await cl.auth.verifyOtp({phone:window._fpPhone,token:otp,type:'sms'});
+    if(res.error){toast('验证码错误或已过期');return;}
+    var ov = document.getElementById('forgotPwdOv'); if(ov) ov.remove();
+    toast('验证成功，请设置新密码');
+    openChangePwdSheet();
+  } catch(e){toast('验证失败');}
+}
+
+
+// ════ 账号绑定功能 ════
+
+function copyUserId() {
+  var uid = document.getElementById('meUserId');
+  var text = uid ? uid.textContent : '';
+  if (!text || text === '—') { toast('用户ID暂未加载'); return; }
+  try {
+    navigator.clipboard.writeText(text).then(function(){
+      toast('用户ID已复制');
+    }).catch(function(){
+      fallbackCopy(text);
+    });
+  } catch(e) { fallbackCopy(text); }
+}
+
+function fallbackCopy(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;opacity:0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); toast('用户ID已复制'); } catch(e) { toast('复制失败'); }
+  document.body.removeChild(ta);
+}
+
+function openBindEmailSheet() {
+  var currentEmail = document.getElementById('meEmailShort');
+  var hasEmail = currentEmail && currentEmail.textContent !== '未绑定' && currentEmail.textContent !== '—';
+  var ex = document.getElementById('bindEmailOv'); if(ex) ex.remove();
+  var ov = document.createElement('div');
+  ov.id = 'bindEmailOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9200;background:rgba(18,24,52,.55);display:flex;align-items:flex-end;justify-content:center';
+  var sheet = document.createElement('div');
+  sheet.style.cssText = 'width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:20px 18px 36px';
+
+  var title = hasEmail ? '修改登录邮箱' : '绑定登录邮箱';
+  var curVal = hasEmail ? currentEmail.textContent : '';
+  sheet.innerHTML =
+    '<div style="width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 18px"></div>' +
+    '<div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px">' + title + '</div>' +
+    '<div style="font-size:12px;color:var(--ink3);margin-bottom:18px">绑定后可用邮箱登录和找回密码</div>' +
+    (curVal ? '<div style="font-size:12px;color:var(--ink3);margin-bottom:10px">当前邮箱：' + curVal + '</div>' : '') +
+    '<div style="margin-bottom:12px">' +
+    '<div style="font-size:11px;font-weight:600;color:var(--ink2);margin-bottom:5px">新邮箱地址</div>' +
+    '<input id="bindEmailInput" type="email" placeholder="请输入邮箱" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;background:var(--bg);color:var(--ink);box-sizing:border-box">' +
+    '</div>' +
+    '<div style="margin-bottom:20px">' +
+    '<div style="font-size:11px;font-weight:600;color:var(--ink2);margin-bottom:5px">设置密码（至少8位）</div>' +
+    '<input id="bindEmailPwd" type="password" placeholder="设置登录密码" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;background:var(--bg);color:var(--ink);box-sizing:border-box">' +
+    '</div>' +
+    '<div style="display:flex;gap:10px">' +
+    '<button id="bindEmailCancel" style="flex:1;padding:13px;border-radius:14px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:14px;cursor:pointer;-webkit-appearance:none">取消</button>' +
+    '<button id="bindEmailConfirm" style="flex:1.5;padding:13px;border-radius:14px;border:none;background:var(--blue2);color:#fff;font-size:14px;font-weight:600;cursor:pointer;-webkit-appearance:none">确认绑定</button>' +
+    '</div>';
+
+  ov.appendChild(sheet);
+  ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
+  document.body.appendChild(ov);
+  sheet.querySelector('#bindEmailCancel').onclick = function(){ ov.remove(); };
+  sheet.querySelector('#bindEmailConfirm').onclick = doBindEmail;
+}
+
+async function doBindEmail() {
+  var email = (document.getElementById('bindEmailInput').value||'').trim();
+  var pwd = (document.getElementById('bindEmailPwd').value||'').trim();
+  if (!email) { toast('请输入邮箱'); return; }
+  if (!email.includes('@')) { toast('请输入有效邮箱'); return; }
+  var cl = sb(); if(!cl) { toast('连接失败'); return; }
+  toast('绑定中...');
+  try {
+    // Update email
+    var res = await cl.auth.updateUser({ email: email, password: pwd || undefined });
+    if (res.error) { toast('绑定失败: ' + res.error.message); return; }
+    toast('绑定成功！请检查邮箱确认');
+    var ov = document.getElementById('bindEmailOv'); if(ov) ov.remove();
+    // Update display
+    var el = document.getElementById('meEmailShort');
+    if(el) el.textContent = email.length > 20 ? email.slice(0,18)+'...' : email;
+  } catch(e) { toast('绑定失败，请重试'); }
+}
+
+function openBindPhoneSheet() {
+  var currentPhone = document.getElementById('mePhone');
+  var hasPhone = currentPhone && currentPhone.textContent !== '未绑定' && currentPhone.textContent !== '—';
+  var ex = document.getElementById('bindPhoneOv'); if(ex) ex.remove();
+  var ov = document.createElement('div');
+  ov.id = 'bindPhoneOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9200;background:rgba(18,24,52,.55);display:flex;align-items:flex-end;justify-content:center';
+  var sheet = document.createElement('div');
+  sheet.style.cssText = 'width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:20px 18px 36px';
+  var title = hasPhone ? '修改手机号' : '绑定手机号';
+  var curVal = hasPhone ? currentPhone.textContent : '';
+  sheet.innerHTML =
+    '<div style="width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 18px"></div>' +
+    '<div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px">' + title + '</div>' +
+    '<div style="font-size:12px;color:var(--ink3);margin-bottom:18px">绑定后可用手机号登录和找回密码</div>' +
+    (curVal ? '<div style="font-size:12px;color:var(--ink3);margin-bottom:10px">当前手机：' + curVal + '</div>' : '') +
+    '<div style="margin-bottom:12px">' +
+    '<div style="font-size:11px;font-weight:600;color:var(--ink2);margin-bottom:5px">手机号</div>' +
+    '<div style="display:flex;gap:6px">' +
+    '<select id="bindPhoneCC" style="width:90px;border:1.5px solid var(--border);border-radius:12px;padding:12px 6px;font-size:13px;background:var(--bg);color:var(--ink)">' +
+    '<option value="+64">NZ +64</option><option value="+61">AU +61</option><option value="+86">CN +86</option><option value="+1">US +1</option><option value="+44">UK +44</option>' +
+    '</select>' +
+    '<input id="bindPhoneNum" type="tel" placeholder="手机号码" style="flex:1;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;background:var(--bg);color:var(--ink)">' +
+    '</div></div>' +
+    '<div style="margin-bottom:20px" id="bindPhoneOtpRow" style="display:none">' +
+    '<div style="font-size:11px;font-weight:600;color:var(--ink2);margin-bottom:5px">验证码</div>' +
+    '<div style="display:flex;gap:8px">' +
+    '<input id="bindPhoneOtp" type="text" placeholder="6位验证码" maxlength="6" style="flex:1;padding:12px;border:1.5px solid var(--border);border-radius:12px;font-size:16px;letter-spacing:4px;background:var(--bg);color:var(--ink);text-align:center">' +
+    '</div></div>' +
+    '<div style="display:flex;gap:10px">' +
+    '<button id="bindPhoneCancel" style="flex:1;padding:13px;border-radius:14px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:14px;cursor:pointer;-webkit-appearance:none">取消</button>' +
+    '<button id="bindPhoneSend" style="flex:1.5;padding:13px;border-radius:14px;border:none;background:var(--blue2);color:#fff;font-size:14px;font-weight:600;cursor:pointer;-webkit-appearance:none">发送验证码</button>' +
+    '</div>';
+  ov.appendChild(sheet);
+  ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
+  document.body.appendChild(ov);
+  sheet.querySelector('#bindPhoneCancel').onclick = function(){ ov.remove(); };
+  sheet.querySelector('#bindPhoneSend').onclick = function() {
+    var btn = sheet.querySelector('#bindPhoneSend');
+    var otpRow = sheet.querySelector('#bindPhoneOtpRow');
+    if (btn.textContent === '确认绑定') {
+      doVerifyBindPhone();
+    } else {
+      doSendBindOtp(btn, otpRow);
+    }
+  };
+}
+
+async function doSendBindOtp(btn, otpRow) {
+  var cc = document.getElementById('bindPhoneCC').value;
+  var num = (document.getElementById('bindPhoneNum').value||'').trim().replace(/ /g,'');
+  if(!num) { toast('请输入手机号'); return; }
+  var cl = sb(); if(!cl) { toast('连接失败'); return; }
+  toast('发送中...');
+  try {
+    var res = await cl.auth.signInWithOtp({ phone: cc+num });
+    if(res.error) { toast('发送失败: '+res.error.message); return; }
+    window._bindPhone = cc+num;
+    if(otpRow) otpRow.style.display = 'block';
+    if(btn) { btn.textContent = '确认绑定'; }
+    toast('验证码已发送');
+  } catch(e) { toast('发送失败'); }
+}
+
+async function doVerifyBindPhone() {
+  var otp = (document.getElementById('bindPhoneOtp').value||'').trim();
+  if(!otp||otp.length<6) { toast('请输入6位验证码'); return; }
+  var cl = sb(); if(!cl) return;
+  toast('验证中...');
+  try {
+    var res = await cl.auth.verifyOtp({ phone: window._bindPhone, token: otp, type: 'sms' });
+    if(res.error) { toast('验证码错误或已过期'); return; }
+    // Update phone in profile
+    var uid = await getUid();
+    if(cl && uid) {
+      await cl.from('profiles').upsert({ id: uid, phone: window._bindPhone });
+    }
+    toast('手机号绑定成功');
+    var ov = document.getElementById('bindPhoneOv'); if(ov) ov.remove();
+    var el = document.getElementById('mePhone');
+    if(el) el.textContent = window._bindPhone;
+  } catch(e) { toast('绑定失败'); }
 }
 
 checkInviteParam();
