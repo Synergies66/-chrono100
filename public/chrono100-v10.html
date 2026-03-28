@@ -638,7 +638,7 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
 .sdot.ok{background:var(--green)}.sdot.no{background:var(--border)}.sdot.warn{background:var(--red)}
 
 /* ── VOICE MESSAGE ── */
-.voice-btn{width:38px;height:38px;border-radius:50%;background:var(--blue-lt);border:none;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;flex-shrink:0;transition:all .15s}
+.voice-btn{width:38px;height:38px;border-radius:50%;background:var(--blue-lt);border:none;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;flex-shrink:0;transition:all .15s;touch-action:none;user-select:none;-webkit-user-select:none}
 .voice-btn.recording{background:var(--red,#E53935);animation:pulse-rec .7s infinite alternate}
 @keyframes pulse-rec{from{transform:scale(1);box-shadow:0 0 0 0 rgba(229,57,53,.4)}to{transform:scale(1.12);box-shadow:0 0 0 8px rgba(229,57,53,0)}}
 .voice-bubble{display:flex;align-items:center;gap:8px;padding:8px 12px;min-width:140px;max-width:220px}
@@ -1312,7 +1312,7 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
       <span style="font-size:18px;cursor:pointer;color:var(--ink3);flex-shrink:0;padding:0 2px" onclick="toggleEmojiPanelChat()">😊</span>
     </div>
     <button class="voice-btn" id="voiceBtn" ontouchstart="voiceStart(event)" ontouchend="voiceEnd(event)" onmousedown="voiceStart(event)" onmouseup="voiceEnd(event)" onmouseleave="voiceCancelIfRecording()" title="按住录音">🎤</button>
-    <div class="cr-send" onclick="sendMessage()">↑</div>
+    <button class="cr-send" onclick="sendMessage()" type="button">↑</button>
   </div>
   <!-- Media panel -->
   <div id="crMediaPanel" style="display:none;flex-shrink:0;padding:10px 14px 14px;background:var(--card);border-top:1px solid var(--border)">
@@ -4584,7 +4584,7 @@ function renderMessageContent(content,isMe){
   if(!content)return'';
   // 语音消息 [语音] dur | url
   if(content.startsWith('[\u8bed\u97f3] ')) {
-    var parts = content.slice(5).split(' | ');
+    var parts = content.slice(6).split(' | ');
     var dur = parseInt(parts[0]) || 0;
     var url = parts[1] || '';
     var mm = String(Math.floor(dur/60)).padStart(2,'0');
@@ -7330,7 +7330,7 @@ async function startCall(type) {
       await _cc.from('messages').insert({
         room_id: currentRoomId || channel,
         sender_id: myUid, sender_name: userName || '家人',
-        content: cm + ' ' + (userName || '家人') + ' 发起了' + (type === 'voice' ? '语音' : '视频') + '通话，频道：' + channel,
+        content: cm + ' ' + (userName || '家人') + ' 发起了' + (type === 'voice' ? '语音' : '视频') + '通话，点击接听',
         created_at: new Date().toISOString()
       });
     }
