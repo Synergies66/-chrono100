@@ -2313,7 +2313,30 @@ async function doPhoneVerify() {
     if (data.userId) {
       try { localStorage.setItem('c100_uid', data.userId); } catch(e) {}
     }
+    // 临时用手机尾号，进App后自动从DB读取真实昵称
     userName = _phoneOtpFull.slice(-4);
+    // 自动创建profile（手机号账户首次登录）
+    setTimeout(async function() {
+      try {
+        var cl = sb();
+        var uid = data.userId || await getUid();
+        if (!cl || !uid) return;
+        var chk = await cl.from('profiles').select('display_name,emoji').eq('id', uid).maybeSingle();
+        if (chk.data && chk.data.display_name && chk.data.display_name !== '用户') {
+          userName = chk.data.display_name;
+          if (chk.data.emoji) userEmoji = chk.data.emoji;
+          updateUI();
+        } else {
+          await cl.from('profiles').upsert({
+            id: uid,
+            phone: _phoneOtpFull,
+            display_name: userName,
+            emoji: userEmoji || '😊',
+            invite_code: uid.slice(0,8).toUpperCase()
+          }, { onConflict: 'id' });
+        }
+      } catch(e) {}
+    }, 1000);
     enterApp();
   } catch(e) {
     toast('❌ 网络错误，请重试');
