@@ -500,6 +500,9 @@ button,input,textarea{font-family:inherit;-webkit-appearance:none;border:none;ou
 .settings-label{flex:1;font-size:var(--f-md);color:var(--ink);font-weight:500}
 .settings-value{font-size:var(--f-sm);color:var(--ink3);margin-right:4px}
 .settings-arr{font-size:var(--f-lg);color:var(--ink4)}
+.settings-row-body{flex:1;min-width:0}
+.settings-row-label{font-size:14px;font-weight:500;color:var(--ink)}
+.settings-row-sub{font-size:11px;color:var(--ink3);margin-top:2px;line-height:1.4}
 .settings-row .toggle{margin-left:auto}
 /* Security card */
 .security-card{margin:14px 14px 0;background:linear-gradient(135deg,#EBF0FF,#E2ECFF);border:1px solid var(--blue-soft);border-radius:15px;padding:14px}
@@ -744,6 +747,7 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
       <div class="nav-logo" id="navTitle" onclick="gotoPage('life')">CHRONO100</div>
       <div style="display:flex;align-items:center;gap:6px">
         <!-- Real system camera button: opens native camera, photo auto-saves to gallery, app receives the file -->
+        <div class="cam-nav-btn" onclick="openLifeArchive()" title="人生档案" style="font-size:15px">&#128196;</div>
         <div class="cam-nav-btn" onclick="openMomentSearch()" title="搜索" style="font-size:16px">&#128269;</div>
         <label class="cam-nav-btn" title="拍照" style="cursor:pointer">
           📷
@@ -774,7 +778,7 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
       </div>
       <!-- 无联系人时的邀请提示 -->
       <div id="noContactBar" style="display:none !important;margin:10px 16px 0;background:var(--blue-lt);border:1.5px solid var(--blue-soft);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer" onclick="openAddContact()">
-        <span style="font-size:20px">👨‍👩‍👧</span>
+        <span style="font-size:20px">&#128106;</span>
         <div style="flex:1">
           <div style="font-size:13px;font-weight:600;color:var(--blue)" data-i18n-key="inviteFamily">邀请家人加入</div>
           <div style="font-size:11px;color:var(--ink3);margin-top:1px" data-i18n-key="inviteSubtitle">加入后可互相看到位置 · 一键报平安</div>
@@ -916,10 +920,13 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
         </div>
         <!-- 今日总结 panel -->
         <div id="tab4-today" style="padding:12px 14px 14px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-            <div style="font-size:11px;font-weight:600;color:var(--ink3)" id="dailySummaryDate"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div style="font-size:12px;font-weight:700;color:var(--ink)" id="dailySummaryDate"></div>
+  
           </div>
+          <div id="dailySummaryNarrative" style="font-size:13px;color:var(--ink);line-height:1.85;margin-bottom:10px;padding:10px 12px;background:var(--blue-lt);border-radius:12px;border-left:3px solid var(--blue2);display:none"></div>
           <div id="dailySummaryContent" style="font-size:12px;color:var(--ink2);line-height:1.9">加载中...</div>
+          <div id="dailySummaryInsight" style="margin-top:10px;padding:8px 12px;background:var(--bg);border-radius:10px;font-size:11px;color:var(--ink3);display:none"></div>
         </div>
         <!-- 本月/年度/全部 panel -->
         <div id="tab4-summary" style="display:none">
@@ -1053,7 +1060,6 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
         </div>
         <div class="me-name" id="meNameDisplay">用户</div>
         <div class="me-bio" id="meBioDisplay"></div>
-        <div class="me-sub" id="meEmailDisplay">未登录</div>
         <div id="meAccountBadge" style="display:none;margin-top:4px;padding:4px 14px;background:var(--blue-lt);border-radius:20px;font-size:11px;color:var(--blue2);font-weight:600">✅ 已登录账号</div>
         <button class="me-edit-btn" onclick="openEditProfile()">编辑个人资料</button>
         <!-- Real stats row -->
@@ -1069,6 +1075,30 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
 
       <!-- Account -->
       <div class="settings-section">
+
+        <!-- 档案 & 智能分析 — 核心功能入口 -->
+        <div class="settings-section" style="margin-bottom:4px">
+          <div class="settings-section-title">&#128196; 档案 &amp; 智能分析</div>
+          <div class="settings-list">
+            <div class="settings-row" onclick="openLifeArchive()" style="align-items:flex-start;padding:14px">
+              <div class="settings-ico" style="background:linear-gradient(135deg,#E8F0FF,#D0E2FF);margin-top:2px">&#128196;</div>
+              <div class="settings-row-body">
+                <div class="settings-row-label">人生轨迹档案</div>
+                <div class="settings-row-sub">生成PDF证明文件 · 关键词/时间/地点精准筛选</div>
+              </div>
+              <div class="settings-arr">&#8250;</div>
+            </div>
+            <div class="settings-row" onclick="openSmartNotes()" style="align-items:flex-start;padding:14px">
+              <div class="settings-ico" style="background:linear-gradient(135deg,#FFF0E8,#FFE0CC);margin-top:2px">&#129504;</div>
+              <div class="settings-row-body">
+                <div class="settings-row-label">AI 智能笔记分析</div>
+                <div class="settings-row-sub">上传会议纪要/日记 · AI生成结构化总结和建议</div>
+              </div>
+              <div class="settings-arr">&#8250;</div>
+            </div>
+          </div>
+        </div>
+
         <div class="settings-section">
           <div class="settings-section-title">文件夹</div>
           <div class="settings-list">
@@ -1437,7 +1467,7 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
         <div style="font-size:11px;font-weight:600;color:var(--ink3);margin-bottom:7px">👁 谁可以看</div>
         <div style="display:flex;flex-wrap:wrap;gap:6px" id="visibilityBtns">
           <button onclick="setVisibility('all')" id="vis-all" class="vis-btn active">🌐 所有联系人</button>
-          <button onclick="setVisibility('family')" id="vis-family" class="vis-btn">👨‍👩‍👧 仅家人</button>
+          <button onclick="setVisibility('family')" id="vis-family" class="vis-btn">&#128106; 仅家人</button>
           <button onclick="setVisibility('friends')" id="vis-friends" class="vis-btn">🤝 仅好友</button>
         </div>
       </div>
@@ -1509,7 +1539,7 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
       <div style="font-size:11px;font-weight:600;color:var(--ink3);margin-bottom:7px">👁 谁可以看</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap" id="momentVisibilityBtns">
         <button onclick="setMomentVisibility('all',this)" class="vis-btn active" id="mvis-all">🌐 所有联系人</button>
-        <button onclick="setMomentVisibility('family',this)" class="vis-btn" id="mvis-family">👨‍👩‍👧 仅家人</button>
+        <button onclick="setMomentVisibility('family',this)" class="vis-btn" id="mvis-family">&#128106; 仅家人</button>
         <button onclick="setMomentVisibility('friends',this)" class="vis-btn" id="mvis-friends">🤝 仅好友</button>
       </div>
     </div>
@@ -1784,12 +1814,11 @@ var I18N = {
   zh: {
     tagline:'时间 · 关系 · 记忆<br>记录你与家人之间最珍贵的时光',
     loginTitle:'登录 CHRONO100', loginHint:'家人安全 · 人生轨迹 · 私密聊天',
-    tabPhone:'📱 手机', tabEmail:'✉️ 邮箱', tabGuest:'👤 访客',
-    lbl_phone:'手机号', lbl_otp:'验证码', lbl_email:'邮箱', lbl_password:'密码', lbl_guestName:'你的昵称',
+    tabPhone:'📱 手机', tabEmail:'✉️ 邮箱',
+    lbl_phone:'手机号', lbl_otp:'验证码', lbl_email:'邮箱', lbl_password:'密码',
     btnSendOtp:'发送验证码', btnVerify:'验证并登录', btnLogin:'登录', btnRegister:'注册',
-    btnForgot:'忘记密码？', btnGuest:'以访客身份进入',
+    btnForgot:'忘记密码？',
     btnGoogle:'使用 Google 账号登录', btnWechat:'微信登录',
-    guestInfoTitle:'🌟 访客模式', guestInfoText:'无需注册，直接体验所有功能。数据保存在本设备。',
     orWord:'或', termsText:'登录即表示同意', privacyLink:'隐私政策', termsLink:'服务条款',
     otpSent:'验证码已发送 ✅', enterOtp:'请输入验证码', enterPhone:'请输入手机号',
     enterEmail:'请输入邮箱', enterPassword:'请输入密码（至少8位）', enterName:'请输入昵称',
@@ -1850,12 +1879,11 @@ var I18N = {
   en: {
     tagline:'Time · Family · Memory<br>Capture precious moments with your loved ones',
     loginTitle:'Sign in to CHRONO100', loginHint:'Family Safety · Life Journey · Private Chat',
-    tabPhone:'📱 Phone', tabEmail:'✉️ Email', tabGuest:'👤 Guest',
-    lbl_phone:'Phone number', lbl_otp:'OTP code', lbl_email:'Email', lbl_password:'Password', lbl_guestName:'Your name',
+    tabPhone:'📱 Phone', tabEmail:'✉️ Email',
+    lbl_phone:'Phone number', lbl_otp:'OTP code', lbl_email:'Email', lbl_password:'Password',
     btnSendOtp:'Send OTP', btnVerify:'Verify & Sign in', btnLogin:'Sign in', btnRegister:'Register',
-    btnForgot:'Forgot password?', btnGuest:'Continue as Guest',
+    btnForgot:'Forgot password?',
     btnGoogle:'Sign in with Google', btnWechat:'WeChat Login',
-    guestInfoTitle:'🌟 Guest Mode', guestInfoText:'No registration needed. Data is saved on this device.',
     orWord:'or', termsText:'By signing in you agree to our', privacyLink:'Privacy Policy', termsLink:'Terms',
     otpSent:'OTP sent ✅', enterOtp:'Enter the OTP', enterPhone:'Enter your phone number',
     enterEmail:'Enter your email', enterPassword:'Enter password (min 8 chars)', enterName:'Enter your name',
@@ -1916,12 +1944,11 @@ var I18N = {
   'zh-tw': {
     tagline:'時間 · 關係 · 記憶<br>記錄你與家人之間最珍貴的時光',
     loginTitle:'登入 CHRONO100', loginHint:'家人安全 · 人生軌跡 · 私密聊天',
-    tabPhone:'📱 手機', tabEmail:'✉️ 郵箱', tabGuest:'👤 訪客',
-    lbl_phone:'手機號碼', lbl_otp:'驗證碼', lbl_email:'電子郵件', lbl_password:'密碼', lbl_guestName:'你的暱稱',
+    tabPhone:'📱 手機', tabEmail:'✉️ 郵箱',
+    lbl_phone:'手機號碼', lbl_otp:'驗證碼', lbl_email:'電子郵件', lbl_password:'密碼',
     btnSendOtp:'發送驗證碼', btnVerify:'驗證並登入', btnLogin:'登入', btnRegister:'註冊',
-    btnForgot:'忘記密碼？', btnGuest:'以訪客身分進入',
+    btnForgot:'忘記密碼？',
     btnGoogle:'使用 Google 帳號登入', btnWechat:'微信登入',
-    guestInfoTitle:'🌟 訪客模式', guestInfoText:'無需註冊，直接體驗所有功能。',
     orWord:'或', termsText:'登入即表示同意', privacyLink:'隱私政策', termsLink:'服務條款',
     otpSent:'驗證碼已發送 ✅', enterOtp:'請輸入驗證碼', enterPhone:'請輸入手機號碼',
     enterEmail:'請輸入電子郵件', enterPassword:'請輸入密碼（至少8位）', enterName:'請輸入暱稱',
@@ -1975,12 +2002,11 @@ var I18N = {
   ja: {
     tagline:'時間 · 絆 · 記憶<br>家族との大切な瞬間を記録しよう',
     loginTitle:'CHRONO100 にログイン', loginHint:'家族の安全 · 人生の軌跡 · プライベートチャット',
-    tabPhone:'📱 電話', tabEmail:'✉️ メール', tabGuest:'👤 ゲスト',
-    lbl_phone:'電話番号', lbl_otp:'認証コード', lbl_email:'メール', lbl_password:'パスワード', lbl_guestName:'ニックネーム',
+    tabPhone:'📱 電話', tabEmail:'✉️ メール',
+    lbl_phone:'電話番号', lbl_otp:'認証コード', lbl_email:'メール', lbl_password:'パスワード',
     btnSendOtp:'認証コードを送信', btnVerify:'確認してログイン', btnLogin:'ログイン', btnRegister:'登録',
-    btnForgot:'パスワードを忘れた？', btnGuest:'ゲストとして続ける',
+    btnForgot:'パスワードを忘れた？',
     btnGoogle:'Googleでログイン', btnWechat:'WeChatログイン',
-    guestInfoTitle:'🌟 ゲストモード', guestInfoText:'登録不要で全機能を体験できます。',
     orWord:'または', termsText:'ログインで同意します', privacyLink:'プライバシー', termsLink:'利用規約',
     otpSent:'認証コードを送信しました ✅', enterOtp:'認証コードを入力', enterPhone:'電話番号を入力',
     enterEmail:'メールを入力', enterPassword:'パスワードを入力（8文字以上）', enterName:'名前を入力',
@@ -2034,12 +2060,11 @@ var I18N = {
   ko: {
     tagline:'시간 · 관계 · 기억<br>가족과의 소중한 순간을 기록하세요',
     loginTitle:'CHRONO100 로그인', loginHint:'가족 안전 · 인생 여정 · 비밀 채팅',
-    tabPhone:'📱 전화', tabEmail:'✉️ 이메일', tabGuest:'👤 게스트',
-    lbl_phone:'전화번호', lbl_otp:'인증코드', lbl_email:'이메일', lbl_password:'비밀번호', lbl_guestName:'닉네임',
+    tabPhone:'📱 전화', tabEmail:'✉️ 이메일',
+    lbl_phone:'전화번호', lbl_otp:'인증코드', lbl_email:'이메일', lbl_password:'비밀번호',
     btnSendOtp:'인증코드 전송', btnVerify:'확인 및 로그인', btnLogin:'로그인', btnRegister:'회원가입',
-    btnForgot:'비밀번호 찾기', btnGuest:'게스트로 계속',
+    btnForgot:'비밀번호 찾기',
     btnGoogle:'Google로 로그인', btnWechat:'위챗 로그인',
-    guestInfoTitle:'🌟 게스트 모드', guestInfoText:'가입 없이 모든 기능을 바로 이용하세요.',
     orWord:'또는', termsText:'로그인하면 동의합니다', privacyLink:'개인정보처리방침', termsLink:'이용약관',
     otpSent:'인증코드가 발송되었습니다 ✅', enterOtp:'인증코드를 입력하세요', enterPhone:'전화번호를 입력하세요',
     enterEmail:'이메일을 입력하세요', enterPassword:'비밀번호 입력(8자 이상)', enterName:'닉네임을 입력하세요',
@@ -2093,12 +2118,11 @@ var I18N = {
   es: {
     tagline:'Tiempo · Familia · Memoria<br>Captura los momentos más preciados con tu familia',
     loginTitle:'Iniciar sesión en CHRONO100', loginHint:'Seguridad familiar · Trayectoria de vida · Chat privado',
-    tabPhone:'📱 Teléfono', tabEmail:'✉️ Correo', tabGuest:'👤 Invitado',
-    lbl_phone:'Número de teléfono', lbl_otp:'Código OTP', lbl_email:'Correo', lbl_password:'Contraseña', lbl_guestName:'Tu nombre',
+    tabPhone:'📱 Teléfono', tabEmail:'✉️ Correo',
+    lbl_phone:'Número de teléfono', lbl_otp:'Código OTP', lbl_email:'Correo', lbl_password:'Contraseña',
     btnSendOtp:'Enviar OTP', btnVerify:'Verificar e iniciar', btnLogin:'Iniciar sesión', btnRegister:'Registrarse',
-    btnForgot:'¿Olvidaste tu contraseña?', btnGuest:'Continuar como invitado',
+    btnForgot:'¿Olvidaste tu contraseña?',
     btnGoogle:'Iniciar sesión con Google', btnWechat:'Iniciar sesión con WeChat',
-    guestInfoTitle:'🌟 Modo invitado', guestInfoText:'Sin registro. Usa todas las funciones de inmediato.',
     orWord:'o', termsText:'Al iniciar sesión aceptas', privacyLink:'Privacidad', termsLink:'Términos',
     otpSent:'OTP enviado ✅', enterOtp:'Ingresa el código OTP', enterPhone:'Ingresa tu teléfono',
     enterEmail:'Ingresa tu correo', enterPassword:'Contraseña (mín. 8 caracteres)', enterName:'Ingresa tu nombre',
@@ -2178,8 +2202,7 @@ function applyI18n() {
     loginTagline: L.tagline, loginTitle: L.loginTitle, loginHint: L.loginHint,
     'lbl-phone': L.lbl_phone, 'lbl-otp': L.lbl_otp,
     'lbl-email': L.lbl_email, 'lbl-password': L.lbl_password,
-    'lbl-guestName': L.lbl_guestName,
-    guestInfoTitle: L.guestInfoTitle, guestInfoText: L.guestInfoText
+
   };
   Object.keys(idMap).forEach(function(id) {
     var el = document.getElementById(id);
@@ -2187,7 +2210,7 @@ function applyI18n() {
   });
 
   // 3. Login tab buttons
-  ['phone','email','guest'].forEach(function(k) {
+  ['phone','email'].forEach(function(k) {
     var el = document.getElementById('ltab-' + k);
     var key = 'tab' + k.charAt(0).toUpperCase() + k.slice(1);
     if (el && L[key]) el.textContent = L[key];
@@ -2378,10 +2401,13 @@ async function doEmailRegister() {
 
 async function doForgotPassword() {
   var email = (document.getElementById('loginEmail').value || '').trim();
-  if (!email) {
-    email = (prompt('请输入您的注册邮箱 / Enter your email:') || '').trim();
-    if (!email) return;
+  if (email) {
+    await _sendPasswordReset(email);
+  } else {
+    showEmailPrompt(function(v) { _sendPasswordReset(v); });
   }
+}
+async function _sendPasswordReset(email) {
   var client = sb();
   if (!client) { toast('❌ 连接失败'); return; }
   try {
@@ -2393,28 +2419,9 @@ async function doForgotPassword() {
   }
 }
 
-// ── GUEST LOGIN ──
+// ── GUEST LOGIN (disabled) ──
 function doGuestLogin() {
-  toast('❌ 访客模式已关闭，请注册或登录账号');
-  return;
-  var name = (document.getElementById('loginGuestName').value || '').trim();
-  if (!name) { toast(t('enterName')); return; }
-  userName = name;
-  try { localStorage.setItem('c100_name', name); } catch(e) {}
-  // Save to DB so profile persists
-  setTimeout(async function() {
-    var uid = await getUid();
-    var client = sb();
-    if (client && uid) {
-      try {
-        await client.from('profiles').upsert({
-          id: uid, display_name: name, emoji: userEmoji || '😊',
-          invite_code: getInviteCode()
-        }, { onConflict: 'id' });
-      } catch(e) {}
-    }
-  }, 1000);
-  enterApp();
+  toast('❌ 访客模式已关闭，请登录或注册账号');
 }
 
 // ── WECHAT (placeholder — requires WeChat OAuth app) ──
@@ -2465,7 +2472,7 @@ function showWechatSetupModal() {
     + 'window.C100_WECHAT_SECRET = "你的AppSecret";</code><br>'
     + '申请地址：<a href="https://mp.weixin.qq.com" target="_blank" style="color:var(--blue2)">mp.weixin.qq.com</a>'
     + '</div>'
-    + '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="width:100%;padding:13px;border-radius:12px;background:var(--blue2);color:#fff;font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:inherit">知道了</button>'
+    + '<button onclick="document.getElementById(\'snHistOv\').remove()" style="width:100%;padding:13px;border-radius:12px;background:var(--blue2);color:#fff;font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:inherit">知道了</button>'
     + '</div>';
   document.body.appendChild(ov);
   ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
@@ -2782,51 +2789,42 @@ function clearApiKey() {
 
 // Central Claude API caller — handles key check, error messages, CORS
 async function callClaude(prompt, maxTokens) {
+  // ── 优先走后台 Edge Function（用户无需配置Key）──
+  try {
+    var cl = sb();
+    var sessionData = cl ? (await cl.auth.getSession()) : null;
+    var session = sessionData && sessionData.data ? sessionData.data.session : null;
+    var authHeader = session ? ('Bearer ' + session.access_token) : '';
+    var proxyRes = await fetch(EDGE_URL + '/ai-proxy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
+      body: JSON.stringify({ prompt: prompt, max_tokens: maxTokens || 800 })
+    });
+    if (proxyRes.ok) {
+      var proxyData = await proxyRes.json();
+      if (proxyData && proxyData.text) return proxyData.text;
+    }
+    if (proxyRes.status === 429) { toast('⚠️ AI 请求太频繁，请稍后再试'); return null; }
+  } catch(e) { /* 降级到用户自己的Key */ }
+
+  // ── 降级：用用户自己配置的 Key ──
   var key = getApiKey();
-  if (!key) {
-    // Show helpful setup prompt instead of confusing "网络错误"
-    var ov = document.createElement('div');
-    ov.style.cssText = 'position:fixed;inset:0;z-index:950;background:rgba(18,24,52,.55);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px)';
-    ov.innerHTML = '<div style="background:var(--card);border-radius:20px;padding:26px 22px;width:310px;max-width:92vw;text-align:center">'
-      + '<div style="font-size:36px;margin-bottom:10px">✨</div>'
-      + '<div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px">配置 AI 功能</div>'
-      + '<div style="font-size:12px;color:var(--ink3);line-height:1.7;margin-bottom:18px">需要配置 Anthropic API Key 才能使用 AI 故事生成功能。免费申请，1分钟完成配置。</div>'
-      + '<button onclick="this.closest(\'div[style*=fixed]\').remove();gotoPage(\'me\');setTimeout(openApiKeySheet,400)" style="width:100%;padding:12px;border-radius:12px;background:var(--blue2);color:#fff;font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:inherit">前往配置 →</button>'
-      + '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="width:100%;padding:10px;border-radius:12px;background:transparent;color:var(--ink3);font-size:13px;cursor:pointer;border:none;font-family:inherit;margin-top:6px">稍后再说</button>'
-      + '</div>';
-    ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
-    return null;
-  }
+  if (!key) { toast('⚠️ AI 功能暂时不可用，请稍后重试'); return null; }
   var res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': key,
-      'anthropic-version': '2023-06-01'
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: maxTokens || 600,
-      messages: [{ role: 'user', content: prompt }]
-    })
+    headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+    body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: maxTokens || 800, messages: [{ role: 'user', content: prompt }] })
   });
   if (!res.ok) {
     var errData = await res.json().catch(function(){ return {}; });
     var errMsg = (errData.error && errData.error.message) || ('HTTP ' + res.status);
-    if (res.status === 401) {
-      toast('❌ API Key 无效，请重新配置');
-      setTimeout(openApiKeySheet, 800);
-    } else if (res.status === 429) {
-      toast('⚠️ 请求太频繁，请稍后再试');
-    } else {
-      toast('❌ AI 请求失败：' + errMsg.slice(0, 40));
-    }
+    if (res.status === 429) toast('⚠️ 请求太频繁，请稍后再试');
+    else toast('❌ AI 请求失败：' + errMsg.slice(0, 40));
     return null;
   }
   var data = await res.json();
   return (data.content || []).map(function(c){ return c.text || ''; }).join('').trim();
 }
-
 // Update apiKeyStatus on page load
 (function(){
   setTimeout(function(){
@@ -3711,11 +3709,13 @@ function buildMomentsFeed() {
       var imgHtml = '';
       if (m.imageUrls && m.imageUrls.length > 1) {
         var cols = m.imageUrls.length >= 3 ? 'cols3' : 'cols2';
-        imgHtml = '<div class="moment-img-grid-real ' + cols + '">' + m.imageUrls.slice(0,9).map(function(u) {
-          return '<img src="' + esc(u) + '" loading="lazy" onerror="this.parentNode.removeChild(this)">';
+        var _allUrls = JSON.stringify(m.imageUrls.slice(0,9)).replace(/'/g,"\'");
+        imgHtml = '<div class="moment-img-grid-real ' + cols + '">' + m.imageUrls.slice(0,9).map(function(u,ui) {
+          return '<img src="' + esc(u) + '" loading="lazy" style="cursor:pointer" onclick="event.stopPropagation();openPhotoViewer(' + _allUrls + ',' + ui + ')" onerror="this.parentNode.removeChild(this)">';
         }).join('') + '</div>';
       } else if (m.photoUrl) {
-        imgHtml = '<img class="moment-real-img" src="' + esc(m.photoUrl) + '" loading="lazy" onerror="this.style.display=\'none\'">';
+        var _su = JSON.stringify([m.photoUrl]).replace(/'/g,"\'");
+        imgHtml = '<img class="moment-real-img" src="' + esc(m.photoUrl) + '" loading="lazy" style="cursor:pointer" onclick="event.stopPropagation();openPhotoViewer(' + _su + ',0)" onerror="this.style.display=\'none\'">';
       }
       // With-people tag
       var withHtml = m.withPeople
@@ -3735,21 +3735,104 @@ function buildMomentsFeed() {
 }
 
 async function momentMenu(id) {
-  var c2 = confirm('确定删除这条朋友圈动态？\n仅从朋友圈移除，人生轨迹记录保留。');
-  if (!c2) return;
+  showConfirm('确定删除这条朋友圈动态？\n仅从朋友圈移除，人生轨迹记录保留。', function() {
+    _doMomentDelete(id);
+  });
+}
+async function _doMomentDelete(id) {
   var cl = sb(); if (!cl) { toast('❌ 未连接'); return; }
   var uid = await getUid();
-  // Only remove visibility (make it private) rather than deleting the whole record
-  // This keeps the life trajectory entry but removes it from the feed
   var res = await cl.from('moments').update({ visibility: null }).eq('id', id).eq('user_id', uid);
   if (res.error) {
-    // Fallback: delete entirely
     var res2 = await cl.from('moments').delete().eq('id', id).eq('user_id', uid);
     if (res2.error) { toast('❌ 删除失败'); return; }
   }
   MOMENTS_DATA = (MOMENTS_DATA || []).filter(function(m){ return m.id !== id; });
   buildMomentsFeed();
   toast('🗑 已从朋友圈移除');
+}
+
+// ── Photo Viewer: fullscreen + download ──
+function openPhotoViewer(urls, startIdx) {
+  urls = Array.isArray(urls) ? urls : [urls];
+  startIdx = startIdx || 0;
+  var cur = startIdx;
+  var ex = document.getElementById('photoViewerOv'); if(ex) ex.remove();
+  var ov = document.createElement('div');
+  ov.id = 'photoViewerOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9900;background:rgba(0,0,0,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:none';
+
+  // Counter
+  var counter = document.createElement('div');
+  counter.style.cssText = 'position:absolute;top:calc(env(safe-area-inset-top,0px)+14px);left:50%;transform:translateX(-50%);color:rgba(255,255,255,.7);font-size:13px;font-weight:500;z-index:2;white-space:nowrap';
+
+  // Close btn
+  var closeBtn = document.createElement('div');
+  closeBtn.innerHTML = '&#10005;';
+  closeBtn.style.cssText = 'position:absolute;top:calc(env(safe-area-inset-top,0px)+10px);right:16px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;cursor:pointer;z-index:2';
+  closeBtn.onclick = function(){ ov.remove(); };
+
+  // Download btn
+  var dlBtn = document.createElement('div');
+  dlBtn.innerHTML = '&#8595; 保存';
+  dlBtn.style.cssText = 'position:absolute;top:calc(env(safe-area-inset-top,0px)+10px);left:16px;padding:7px 14px;border-radius:20px;background:rgba(255,255,255,.15);color:#fff;font-size:13px;font-weight:600;cursor:pointer;z-index:2';
+  dlBtn.onclick = function(){
+    var url = urls[cur];
+    var a = document.createElement('a');
+    a.href = url; a.download = 'chrono100_' + Date.now() + '.jpg';
+    a.target = '_blank';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    toast('📥 正在保存图片...');
+  };
+
+  // Image
+  var img = document.createElement('img');
+  img.style.cssText = 'max-width:100%;max-height:80vh;object-fit:contain;border-radius:4px;transition:opacity .2s';
+
+  // Nav prev/next
+  var prev = document.createElement('div');
+  prev.innerHTML = '&#8249;';
+  prev.style.cssText = 'position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:44px;color:rgba(255,255,255,.6);cursor:pointer;padding:10px;z-index:2;line-height:1;user-select:none';
+  var next = document.createElement('div');
+  next.innerHTML = '&#8250;';
+  next.style.cssText = 'position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:44px;color:rgba(255,255,255,.6);cursor:pointer;padding:10px;z-index:2;line-height:1;user-select:none';
+
+  // Dot strip
+  var dots = document.createElement('div');
+  dots.style.cssText = 'position:absolute;bottom:calc(env(safe-area-inset-bottom,0px)+18px);left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:2';
+
+  function render() {
+    img.style.opacity = '0';
+    setTimeout(function(){
+      img.src = urls[cur];
+      img.style.opacity = '1';
+    }, 100);
+    counter.textContent = (cur+1) + ' / ' + urls.length;
+    prev.style.display = cur > 0 ? 'block' : 'none';
+    next.style.display = cur < urls.length-1 ? 'block' : 'none';
+    dots.innerHTML = urls.map(function(_,i){
+      return '<div style="width:6px;height:6px;border-radius:50%;background:'+(i===cur?'#fff':'rgba(255,255,255,.35)')+';transition:background .2s"></div>';
+    }).join('');
+  }
+  prev.onclick = function(){ if(cur>0){ cur--; render(); } };
+  next.onclick = function(){ if(cur<urls.length-1){ cur++; render(); } };
+
+  // Swipe support
+  var _tx=0;
+  ov.addEventListener('touchstart',function(e){ _tx=e.touches[0].clientX; },{passive:true});
+  ov.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].clientX-_tx;
+    if(Math.abs(dx)>50){ if(dx<0&&cur<urls.length-1){cur++;render();} else if(dx>0&&cur>0){cur--;render();} }
+  },{passive:true});
+
+  ov.addEventListener('click',function(e){ if(e.target===ov) ov.remove(); });
+
+  ov.appendChild(counter); ov.appendChild(closeBtn); ov.appendChild(dlBtn);
+  if(urls.length>1){ ov.appendChild(prev); ov.appendChild(next); }
+  ov.appendChild(img);
+  if(urls.length>1) ov.appendChild(dots);
+  document.body.appendChild(ov);
+  render();
 }
 function likeMoment(id, el) { if (el) el.textContent = '♥ 1'; toast('❤️ 已点赞'); }
 
@@ -3861,13 +3944,13 @@ function requestAutoPhotoScan() {
     +'<div style="display:flex;flex-direction:column;gap:8px">'
     +'<label style="display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;border-radius:13px;background:var(--blue2);color:#fff;font-size:14px;font-weight:700;cursor:pointer">'
     +'📁 选择照片文件夹（推荐）'
-    +'<input type="file" accept="image/*" multiple webkitdirectory style="display:none" onchange="autoScanProcess(this.files);this.closest(\'div[style*=fixed]\').remove()">'
+    +'<input type="file" accept="image/*" multiple webkitdirectory style="display:none" onchange="autoScanProcess(this.files);document.getElementById(\'snHistOv\').remove()">'
     +'</label>'
     +'<label style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:13px;background:var(--bg);color:var(--ink);font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border)">'
     +'📷 选择单张/多张照片'
-    +'<input type="file" accept="image/*" multiple style="display:none" onchange="autoScanProcess(this.files);this.closest(\'div[style*=fixed]\').remove()">'
+    +'<input type="file" accept="image/*" multiple style="display:none" onchange="autoScanProcess(this.files);document.getElementById(\'snHistOv\').remove()">'
     +'</label>'
-    +'<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="padding:11px;border-radius:12px;background:transparent;color:var(--ink3);font-size:13px;cursor:pointer;border:1.5px solid var(--border);font-family:inherit">取消</button>'
+    +'<button onclick="document.getElementById(\'snHistOv\').remove()" style="padding:11px;border-radius:12px;background:transparent;color:var(--ink3);font-size:13px;cursor:pointer;border:1.5px solid var(--border);font-family:inherit">取消</button>'
     +'</div></div>';
   ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
   document.body.appendChild(ov);
@@ -4006,7 +4089,7 @@ async function autoScanProcess(files) {
     + '</div>'
     + (gpsCount === 0 ? '<div style="font-size:11px;color:var(--ink3);margin-bottom:12px;line-height:1.7;padding:8px;background:var(--bg);border-radius:10px">💡 照片无GPS信息。<br>可在记录上手动填写地点，系统自动匹配坐标。</div>' : '')
     + '<div style="font-size:10px;color:var(--ink4);margin-bottom:12px;line-height:1.6">📝 已保存元数据（时间+GPS）<br>照片缩略图可稍后在「导入照片」中上传</div>'
-    + '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="width:100%;padding:12px;border-radius:12px;background:var(--blue2);color:#fff;font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:inherit">查看人生轨迹 🗺</button>'
+    + '<button onclick="document.getElementById(\'snHistOv\').remove()" style="width:100%;padding:12px;border-radius:12px;background:var(--blue2);color:#fff;font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:inherit">查看人生轨迹 🗺</button>'
     + '</div>';
   ro.addEventListener('click', function(e){ if (e.target === ro) ro.remove(); });
   document.body.appendChild(ro);
@@ -4581,7 +4664,7 @@ async function diagnoseTodayActivity() {
   var client = sb();
   var uid = await getUid();
   var lines = ['🔍 诊断报告（只读）', 'UID: ' + uid.slice(0,16) + '…'];
-  if (!client) { alert('❌ Supabase 未连接'); return; }
+  if (!client) { toast('❌ Supabase 未连接'); return; }
 
   var sel = await client.from('moments').select('id,title,taken_at').eq('user_id', uid)
     .order('taken_at', {ascending: false}).limit(5);
@@ -4597,7 +4680,7 @@ async function diagnoseTodayActivity() {
   lines.push('今日记录数(DB): ' + (sel2.error ? '❌' : (sel2.count || 0)) + ' 条');
   lines.push('本地缓存: ' + (_momentsCache || []).length + ' 条');
   lines.push('今日动态缓存: ' + (window._todayItemsCache || []).length + ' 条');
-  alert(lines.join('\n'));
+  showAlert(lines.join('\n'));
 }
 
 // ── Place/Companion detail drill-down (Feature 1) ──
@@ -4646,7 +4729,7 @@ function _showDetailOverlay(title, moments, subtitle) {
   var ex = document.getElementById('detailOv'); if (ex) ex.remove();
   var ov = document.createElement('div');
   ov.id = 'detailOv';
-  ov.style.cssText = 'position:fixed;inset:0;z-index:900;background:rgba(18,24,52,.5);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:950;background:rgba(18,24,52,.5);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)';
   var itemsHtml = !moments.length
     ? '<div style="text-align:center;padding:28px;color:var(--ink3);font-size:13px">暂无记录</div>'
     : moments.map(function(m){
@@ -4656,10 +4739,11 @@ function _showDetailOverlay(title, moments, subtitle) {
         var imgUrls = [];
         if (m.image_urls){try{imgUrls=JSON.parse(m.image_urls);}catch(e){}}
         if (!imgUrls.length && m.photo_url) imgUrls=[m.photo_url];
+        window._detailImgUrls = imgUrls;
         var imgHtml = imgUrls.length
-          ? '<div style="display:flex;gap:4px;margin-top:8px;overflow-x:auto;padding-bottom:2px">'
-            + imgUrls.slice(0,4).map(function(u){
-                return '<img src="'+esc(u)+'" style="width:72px;height:72px;border-radius:8px;object-fit:cover;flex-shrink:0" onerror="this.style.display=\'none\'">';
+          ? '<div id="detailImgStrip" style="display:flex;gap:4px;margin-top:8px;overflow-x:auto;padding-bottom:2px">'
+            + imgUrls.slice(0,6).map(function(u,idx_){
+                return '<img src="'+esc(u)+'" data-img-idx="'+idx_+'" style="width:72px;height:72px;border-radius:8px;object-fit:cover;flex-shrink:0;cursor:pointer" onerror="this.style.display=\'none\'">';
               }).join('')+'</div>' : '';
         var locBadge = m.lat&&m.lng
           ? '<span style="font-size:10px;color:'+(m.is_city_level?'#27AE72':'var(--blue2)')+'">'+(m.is_city_level?'🏙 城市级':'📍 精准GPS')+'</span>'
@@ -4684,6 +4768,17 @@ function _showDetailOverlay(title, moments, subtitle) {
     +'</div>';
   ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
   document.body.appendChild(ov);
+  // 图片点击事件委托（避免innerHTML里JSON.stringify双引号嵌套问题）
+  var strip = document.getElementById('detailImgStrip');
+  if (strip) {
+    strip.addEventListener('click', function(e) {
+      var img = e.target.closest('[data-img-idx]');
+      if (!img) return;
+      var idx = parseInt(img.getAttribute('data-img-idx'), 10);
+      var urls = window._detailImgUrls || [];
+      if (urls.length) openPhotoViewer(urls, idx);
+    });
+  }
 }
 
 // ── AI Period Story Generator (Feature 3) ──
@@ -4719,8 +4814,10 @@ function copyStory() {
 }
 function shareStory() {
   var s=window._lastStory||'';
-  if(navigator.share){navigator.share({title:'CHRONO100',text:s});}
-  else copyStory();
+  if(navigator.share){
+    try{navigator.share({title:'CHRONO100',text:s}).catch(function(){copyStory();});}
+    catch(e){copyStory();}
+  } else copyStory();
 }
 async function saveEvent() {
   var title = (document.getElementById('eventTitle').value || '').trim();
@@ -4919,7 +5016,7 @@ async function reportSafe() {
       3: '❌ 获取位置超时，请重试'
     };
     toast(msgs[err.code] || ('❌ 位置错误: ' + err.message));
-    alert((msgs[err.code] || ('位置错误: ' + err.message)) + '\n\n请确认：\n1. 手机位置服务已开启\n2. 浏览器已允许此网站访问位置\n3. 点击地址栏左侧锁图标 → 位置 → 允许');
+    showAlert((msgs[err.code] || ('位置错误: ' + err.message)) + '\n\n请确认位置权限已开启\n点击地址栏锁图标 → 位置 → 允许');
   }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 0 });
 }
 
@@ -5215,7 +5312,7 @@ async function initSafetyMap(myLoc, members, locs, profiles) {
 
 function showEmptyCircle() {
   var list = document.getElementById('realMemberList');
-  if (list) list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink3);font-size:12px"><div style="font-size:28px;margin-bottom:8px">👨‍👩‍👧</div><div style="font-weight:600;color:var(--ink);margin-bottom:4px">还没有家人</div>邀请家人加入后可以看到位置</div>';
+  if (list) list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink3);font-size:12px"><div style="font-size:28px;margin-bottom:8px">&#128106;</div><div style="font-weight:600;color:var(--ink);margin-bottom:4px">还没有家人</div>邀请家人加入后可以看到位置</div>';
 }
 
 function toggleLoc() {
@@ -5485,7 +5582,7 @@ function openContactOptions(memberId, name) {
     + '<div style="margin-bottom:16px">'
     + '<label style="font-size:11px;font-weight:600;color:var(--ink3);display:block;margin-bottom:8px">关系类型</label>'
     + '<div style="display:flex;gap:8px">'
-    + '<button id="coFamilyBtn" onclick="coSetRelation(true)" style="flex:1;padding:11px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;border:none;font-family:inherit;background:'+(isFamily?'var(--blue2)':'var(--bg)')+';color:'+(isFamily?'#fff':'var(--ink)')+';border:1.5px solid '+(isFamily?'var(--blue2)':'var(--border)')+'">👨‍👩‍👧 家人</button>'
+    + '<button id="coFamilyBtn" onclick="coSetRelation(true)" style="flex:1;padding:11px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;border:none;font-family:inherit;background:'+(isFamily?'var(--blue2)':'var(--bg)')+';color:'+(isFamily?'#fff':'var(--ink)')+';border:1.5px solid '+(isFamily?'var(--blue2)':'var(--border)')+'">&#128106; 家人</button>'
     + '<button id="coFriendBtn" onclick="coSetRelation(false)" style="flex:1;padding:11px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;border:none;font-family:inherit;background:'+(!isFamily?'var(--blue2)':'var(--bg)')+';color:'+(!isFamily?'#fff':'var(--ink)')+';border:1.5px solid '+(!isFamily?'var(--blue2)':'var(--border)')+'">🤝 好友</button>'
     + '</div></div>'
 
@@ -5526,7 +5623,11 @@ async function coSave(memberId) {
 }
 
 async function coDelete(memberId, name) {
-  if (!confirm('确认删除「' + name + '」？\n双方都将无法看到对方位置和动态')) return;
+  showConfirm('确认删除「' + name + '」？\n双方都将无法看到对方位置和动态', function() {
+    _doCoDelete(memberId);
+  });
+}
+async function _doCoDelete(memberId) {
   var uid = await getUid();
   var client = sb();
   if (client) {
@@ -6055,7 +6156,10 @@ function copyMyInviteLink() {
 function shareMyInviteLink() {
   var link = getInviteLink();
   if (navigator.share) {
-    navigator.share({ title:'CHRONO100 家庭邀请', text:(userName||'家人') + ' 邀请你加入 CHRONO100 家庭圈', url: link });
+    try {
+      navigator.share({ title:'CHRONO100 家庭邀请', text:(userName||'家人') + ' 邀请你加入 CHRONO100 家庭圈', url: link })
+        .catch(function(){ copyMyInviteLink(); });
+    } catch(e) { copyMyInviteLink(); }
   } else { copyMyInviteLink(); }
 }
 
@@ -6523,7 +6627,7 @@ function updateMePage() {
     setT('meNameDisplay', userName || notBound);
     setT('meNameShort', userName || notBound);
     setT('meBioDisplay', userBio || '');
-    setT('meEmailDisplay', userEmail || '已登录 · CHRONO100');
+    // meEmailDisplay removed from hero (shown in account section below)
     setT('navAv', ((userName&&userName[0])||'你').toUpperCase());
     // Real phone/email/id in account settings
     setT('mePhone', userPhone ? (userPhoneCC||'') + userPhone : notBound);
@@ -7037,7 +7141,11 @@ function openPrivacyPolicy() {
 
 // ── Logout ──
 function confirmLogout() {
-  if (!confirm('确认退出登录？\n\n访客模式：下次打开会恢复你的昵称\nGoogle登录：退出后需重新登录')) return;
+  showConfirm('确认退出登录？\n退出后需重新登录', function() {
+    _doLogout();
+  });
+}
+function _doLogout() {
   var client = sb();
   if (client) client.auth.signOut().catch(function(){});
 
@@ -7250,7 +7358,12 @@ async function openMomentDetail(mid) {
 }
 async function deleteTrajItem(id, el) {
   if (!id) return;
-  if (!confirm('确定删除这条记录？\n删除后将从时间轴、地图、统计、朋友圈同步移除。')) return;
+  showConfirm('确定删除这条记录？\n删除后将从时间轴、地图、统计、朋友圈同步移除。', function() {
+    _doDeleteTrajItem(id, el);
+  });
+}
+async function _doDeleteTrajItem(id, el) {
+  if (!id) return;
 
   // Visual feedback
   var row = el ? el.closest('.tl-row') : null;
@@ -7316,7 +7429,8 @@ function renderTodayList(){
   var html=items.map(function(it){
     var thumbHtml=it.thumb?'<img src="'+esc(it.thumb)+'" style="width:44px;height:44px;border-radius:9px;object-fit:cover;flex-shrink:0" onerror="this.style.display=\'none\'">':'<div class="ev-ico" style="background:'+it.bg+'">'+it.ico+'</div>';
     var itemIdx = items.indexOf(it);
-    return '<div class="ev" style="position:relative;align-items:center;padding-right:52px" onclick="gotoPage(\''+it.page+'\')">'+
+    var _evOnClick = it.momentId ? 'openMomentDetail(\'' + it.momentId + '\')' : 'gotoPage(\'' + it.page + '\')';
+    return '<div class="ev" style="position:relative;align-items:center;padding-right:52px;cursor:pointer" onclick="'+_evOnClick+'">'+
       '<span class="ev-t">'+it.t+'</span>'+thumbHtml+
       '<div class="ev-main" style="min-width:0;flex:1"><div class="ev-lbl" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(it.lbl)+'</div>'+
       (it.sub?'<div class="ev-sub">'+esc(it.sub)+'</div>':'')+
@@ -7332,7 +7446,12 @@ function renderTodayList(){
 }
 async function deleteTodayItem(id) {
   if (!id) return;
-  if (!confirm('确定删除这条记录？\n删除后将从时间轴、地图、统计同步移除。')) return;
+  showConfirm('确定删除这条记录？\n删除后将从时间轴、地图、统计同步移除。', function() {
+    _doDeleteTodayItem(id);
+  });
+}
+async function _doDeleteTodayItem(id) {
+  if (!id) return;
   var cl = sb(); if (!cl) return;
   var uid = await getUid();
   var res = await cl.from('moments').delete().eq('id', id).eq('user_id', uid);
@@ -7478,7 +7597,8 @@ async function checkReunionProximity(myLat, myLng) {
         });
       } catch(e) {}
 
-      // Auto-save as a Life Moment (shows in trajectory)
+      // Auto-save as a Life Moment (private — only shows in own trajectory)
+      // User can choose to share to family feed via the Reunion card button
       try {
         await cl.from('moments').insert({
           user_id: uid,
@@ -7488,7 +7608,7 @@ async function checkReunionProximity(myLat, myLng) {
           with_people: memberName,
           mood: '✨',
           is_city_level: false,
-          visibility: 'family'
+          visibility: null   // 私密：仅记录在本人人生轨迹，不自动推送到家人朋友圈
         });
         // Trigger timeline refresh after short delay
         setTimeout(function(){ loadMomentsFromDB(); }, 1500);
@@ -7667,7 +7787,7 @@ function shareReunionMoment(name) {
     ov.remove();
     var text = '✨ Reunion Moment！我和 ' + name + ' 今天碰面了！📍记录于 CHRONO100';
     if (navigator.share) {
-      navigator.share({ title: 'Reunion Moment', text: text });
+      try { navigator.share({ title: 'Reunion Moment', text: text }).catch(function(){}); } catch(e) {}
     } else {
       navigator.clipboard && navigator.clipboard.writeText(text).then(function(){ toast('已复制分享文字'); });
     }
@@ -7753,6 +7873,104 @@ function toast(msg) {
   t.classList.add('show');
   clearTimeout(_tt);
   _tt = setTimeout(function(){ t.classList.remove('show'); }, 2800);
+}
+// ── Custom confirm dialog (replaces confirm() blocked in iOS Safari iframe) ──
+function showConfirm(msg, onOk, onCancel) {
+  var ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9800;background:rgba(18,24,52,.45);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)';
+  var box = document.createElement('div');
+  box.style.cssText = 'background:var(--card);border-radius:20px 20px 0 0;padding:22px 20px 32px;width:100%;max-width:480px;font-family:inherit';
+  var lines = msg.split('\n');
+  var title = lines[0];
+  var sub = lines.slice(1).filter(function(l){return l.trim();}).join(' · ');
+  var titleEl = document.createElement('div');
+  titleEl.style.cssText = 'font-size:15px;font-weight:700;color:var(--ink);margin-bottom:' + (sub ? '6px' : '18px') + ';text-align:center';
+  titleEl.textContent = title;
+  box.appendChild(titleEl);
+  if (sub) {
+    var subEl = document.createElement('div');
+    subEl.style.cssText = 'font-size:12px;color:var(--ink3);margin-bottom:18px;text-align:center;line-height:1.6';
+    subEl.textContent = sub;
+    box.appendChild(subEl);
+  }
+  var btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex;gap:10px';
+  var btnCancel = document.createElement('button');
+  btnCancel.style.cssText = 'flex:1;padding:13px;border-radius:14px;border:1.5px solid var(--border);background:var(--bg);color:var(--ink);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;-webkit-appearance:none';
+  btnCancel.textContent = '取消';
+  var btnOk = document.createElement('button');
+  btnOk.style.cssText = 'flex:1;padding:13px;border-radius:14px;border:none;background:#E53E3E;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;-webkit-appearance:none';
+  btnOk.textContent = '确定';
+  btnRow.appendChild(btnCancel);
+  btnRow.appendChild(btnOk);
+  box.appendChild(btnRow);
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+  function close() { if (ov.parentNode) ov.parentNode.removeChild(ov); }
+  btnCancel.addEventListener('click', function(){ close(); if (onCancel) onCancel(); });
+  btnOk.addEventListener('click', function(){ close(); if (onOk) onOk(); });
+  ov.addEventListener('click', function(e){ if (e.target === ov) { close(); if (onCancel) onCancel(); } });
+}
+// ── Custom alert dialog (replaces alert() blocked in iOS Safari iframe) ──
+function showAlert(msg) {
+  var lines = (msg||'').split('\n').filter(function(l){return l.trim();});
+  var ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9800;background:rgba(18,24,52,.45);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)';
+  var box = document.createElement('div');
+  box.style.cssText = 'background:var(--card);border-radius:20px 20px 0 0;padding:22px 20px 32px;width:100%;max-width:480px;font-family:inherit';
+  lines.forEach(function(l, i) {
+    var p = document.createElement('div');
+    p.style.cssText = 'font-size:' + (i===0?'15px':'13px') + ';font-weight:' + (i===0?'700':'400') + ';color:' + (i===0?'var(--ink)':'var(--ink3)') + ';margin-bottom:' + (i===0&&lines.length>1?'8px':'0') + ';text-align:center;line-height:1.6';
+    p.textContent = l;
+    box.appendChild(p);
+  });
+  var btnOk = document.createElement('button');
+  btnOk.style.cssText = 'width:100%;padding:13px;border-radius:14px;border:none;background:var(--blue2);color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:18px;-webkit-appearance:none';
+  btnOk.textContent = '好的';
+  box.appendChild(btnOk);
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+  function close() { if (ov.parentNode) ov.parentNode.removeChild(ov); }
+  btnOk.addEventListener('click', close);
+  ov.addEventListener('click', function(e){ if (e.target === ov) close(); });
+}
+// ── Custom email input dialog (replaces prompt()) ──
+function showEmailPrompt(onOk) {
+  var ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9800;background:rgba(18,24,52,.45);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)';
+  var box = document.createElement('div');
+  box.style.cssText = 'background:var(--card);border-radius:20px 20px 0 0;padding:22px 20px 32px;width:100%;max-width:480px;font-family:inherit';
+  var title = document.createElement('div');
+  title.style.cssText = 'font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px;text-align:center';
+  title.textContent = '找回密码';
+  var sub = document.createElement('div');
+  sub.style.cssText = 'font-size:12px;color:var(--ink3);margin-bottom:14px;text-align:center';
+  sub.textContent = '请输入您的注册邮箱，我们将发送重置链接';
+  var inp = document.createElement('input');
+  inp.type = 'email'; inp.placeholder = 'email@example.com';
+  inp.style.cssText = 'width:100%;border:1.5px solid var(--border);border-radius:11px;padding:12px 13px;font-size:14px;background:var(--bg);color:var(--ink);font-family:inherit;box-sizing:border-box;margin-bottom:12px;outline:none';
+  var btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex;gap:10px';
+  var btnCancel = document.createElement('button');
+  btnCancel.style.cssText = 'flex:1;padding:13px;border-radius:14px;border:1.5px solid var(--border);background:var(--bg);color:var(--ink);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;-webkit-appearance:none';
+  btnCancel.textContent = '取消';
+  var btnSend = document.createElement('button');
+  btnSend.style.cssText = 'flex:1;padding:13px;border-radius:14px;border:none;background:var(--blue2);color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;-webkit-appearance:none';
+  btnSend.textContent = '发送重置邮件';
+  btnRow.appendChild(btnCancel);
+  btnRow.appendChild(btnSend);
+  box.appendChild(title); box.appendChild(sub); box.appendChild(inp); box.appendChild(btnRow);
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+  setTimeout(function(){ inp.focus(); }, 100);
+  function close() { if (ov.parentNode) ov.parentNode.removeChild(ov); }
+  btnCancel.addEventListener('click', close);
+  btnSend.addEventListener('click', function(){
+    var v = inp.value.trim();
+    if (!v) { inp.style.borderColor = '#E53E3E'; return; }
+    close(); if (onOk) onOk(v);
+  });
+  ov.addEventListener('click', function(e){ if (e.target === ov) close(); });
 }
 function now() { return new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}); }
 function fmt(s) { return String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0'); }
@@ -8565,73 +8783,106 @@ async function doVerifyBindPhone() {
 
 function buildDailySummary() {
   var el = document.getElementById('dailySummaryContent');
+  var narrativeEl = document.getElementById('dailySummaryNarrative');
+  var insightEl = document.getElementById('dailySummaryInsight');
   var dateEl = document.getElementById('dailySummaryDate');
   if (!el) return;
+
   var today = new Date();
-  var todayStr = today.getFullYear() + '年' + (today.getMonth()+1) + '月' + today.getDate() + '日';
+  var weekdays = ['周日','周一','周二','周三','周四','周五','周六'];
+  var todayStr = today.getFullYear() + '年' + (today.getMonth()+1) + '月' + today.getDate() + '日 ' + weekdays[today.getDay()];
   if (dateEl) dateEl.textContent = todayStr;
 
   var items = window._todayItemsCache || [];
   if (!items.length) {
-    el.innerHTML = '<span style="color:var(--ink4)">今天还没有记录，去添加第一条吧</span>';
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink4);font-size:12px">今天还没有记录，去添加第一条吧 ✍️</div>';
+    if (narrativeEl) narrativeEl.style.display = 'none';
+    if (insightEl) insightEl.style.display = 'none';
     return;
   }
 
-  // Build natural language sentences for each record
-  var sentences = [];
-  var compliments = ['棒极了！','真不错！','继续加油！','很充实！','生活真美好～','留下美好记忆了！',''];
-  var cidx = 0;
-
-  items.forEach(function(it) {
-    var parts = [];
+  // ── 1. 条目列表（可点击）──
+  var rows = items.map(function(it) {
     var title = (it.lbl || '').replace(/^[😊❤️😌😔😤🥰😴🎉✨⚡💬🖼📝]\s*/, '').trim();
     if (title.match(/^[0-9a-f]{8}-/i)) title = it.thumb ? '拍了照片' : '记录了一件事';
-    if (!title) return;
-
-    // Time
-    var t = it.t || '';
-    var line = '';
-    if (t) line += '<span style="color:var(--ink4);font-size:10px">' + t + '</span> ';
-
-    // Build sentence: [时间] [地点] [人物] [事件]
+    if (!title) title = it.lbl || '记录';
     var sentence = title;
+    if (it.with_people) sentence = '和 ' + it.with_people + ' · ' + sentence;
 
-    // Add companion if available
-    if (it.with_people) {
-      sentence = '跟' + it.with_people + sentence;
-    }
+    var tags = [];
+    if (it.sub && it.sub.includes('位置')) tags.push('<span style="color:var(--blue2);font-size:10px">📍 有位置</span>');
+    if (it.thumb) tags.push('<span style="color:#F59E0B;font-size:10px">📷 有照片</span>');
 
-    // Add location indicator
-    if (it.sub && it.sub.includes('位置')) {
-      sentence += ' 📍';
-    }
-
-    // Add photo indicator
-    if (it.thumb) sentence += ' 📷';
-
-    // Message records
-    if (it.ico === '💬') {
-      sentence = it.lbl || '';
-      if (it.sub) sentence += '：' + it.sub.slice(0,15);
-    }
-
-    // Add compliment occasionally
-    var compliment = '';
-    if (cidx % 3 === 0 && compliments[cidx % compliments.length]) {
-      compliment = '<span style="color:var(--blue2);font-size:10px"> ' + compliments[cidx % compliments.length] + '</span>';
-    }
-    cidx++;
-
-    sentences.push(
-      '<div style="padding:5px 0;border-bottom:1px solid var(--border);line-height:1.7">' +
-      line + '<b>' + esc(sentence) + '</b>' + compliment +
-      '</div>'
-    );
+    var clickAct = it.momentId ? 'openMomentDetail(\'' + it.momentId + '\')' : '';
+    return '<div onclick="' + clickAct + '" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);cursor:' + (it.momentId?'pointer':'default') + '">'
+      + '<span style="font-size:10px;color:var(--ink4);flex-shrink:0;width:34px;text-align:right">' + (it.t||'') + '</span>'
+      + (it.thumb ? '<img src="'+esc(it.thumb)+'" style="width:36px;height:36px;border-radius:7px;object-fit:cover;flex-shrink:0">' : '<div style="width:36px;height:36px;border-radius:7px;background:'+it.bg+';display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">'+it.ico+'</div>')
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(sentence) + '</div>'
+      + (tags.length ? '<div style="display:flex;gap:6px;margin-top:2px">' + tags.join('') + '</div>' : '')
+      + '</div>'
+      + (it.momentId ? '<span style="color:var(--ink4);font-size:14px">&#8250;</span>' : '')
+      + '</div>';
   });
+  el.innerHTML = rows.join('');
 
-  el.innerHTML = sentences.length
-    ? sentences.join('')
-    : '<span style="color:var(--ink4)">今天还没有记录</span>';
+  // ── 2. 智能叙事总结 ──
+  if (narrativeEl) {
+    var photoCount = items.filter(function(it){ return it.thumb; }).length;
+    var locationCount = items.filter(function(it){ return it.sub && it.sub.includes('位置'); }).length;
+    var peopleSet = {};
+    items.forEach(function(it){ if(it.with_people) peopleSet[it.with_people]=1; });
+    var people = Object.keys(peopleSet);
+    var n = items.length;
+
+    // 时段判断
+    var h = today.getHours();
+    var period = h < 12 ? '上午' : h < 18 ? '下午' : '晚上';
+
+    // 生成叙事句子
+    var narrative = '';
+    if (n === 1) {
+      var it0 = items[0];
+      var t0 = (it0.lbl||'').replace(/^[😊❤️😌😔😤🥰😴🎉✨⚡💬🖼📝]\s*/,'').trim();
+      narrative = '今天记录了「' + esc(t0) + '」';
+      if (it0.thumb) narrative += '，还附上了照片';
+      narrative += '。每一次记录都是时光的印章。';
+    } else {
+      narrative = '今天共留下 ' + n + ' 条记录';
+      if (locationCount > 0) narrative += '，足迹覆盖 ' + locationCount + ' 个地点';
+      if (photoCount > 0) narrative += '，拍下 ' + photoCount + ' 张照片';
+      if (people.length > 0) narrative += '，和「' + people.slice(0,2).map(function(p){return esc(p);}).join('、') + '」一起度过';
+      narrative += '。';
+      // 情感洞察
+      var moods = { '😊':'满足', '❤️':'温暖', '😌':'平静', '😔':'思绪', '🥰':'幸福', '🎉':'喜悦', '✨':'惊喜' };
+      var moodWords = [];
+      items.forEach(function(it){ var ico=it.ico; if(moods[ico]) moodWords.push(moods[ico]); });
+      if (moodWords.length) narrative += '这是充满' + moodWords[0] + '的一天。';
+      else narrative += '这是值得铭记的一天。';
+    }
+    narrativeEl.textContent = narrative;
+    narrativeEl.style.display = 'block';
+  }
+
+  // ── 3. 生活洞察（统计维度）──
+  if (insightEl) {
+    var allMoments = window._allMomentsCache || window._momentsCache || [];
+    var totalDays = 0;
+    if (allMoments.length) {
+      var firstDate = new Date(allMoments[allMoments.length-1].taken_at||allMoments[allMoments.length-1].created_at);
+      totalDays = Math.max(1, Math.round((today-firstDate)/(1000*86400)));
+    }
+    var streak = Math.max(1, items.length > 0 ? 1 : 0);
+    var insights = [];
+    if (totalDays > 0) insights.push('记录了 ' + totalDays + ' 天');
+    if (allMoments.length) insights.push('累计 ' + allMoments.length + ' 条轨迹');
+    var photoTotal = (allMoments).filter(function(m){ return m.photo_url || m.image_urls; }).length;
+    if (photoTotal) insights.push(photoTotal + ' 张照片');
+    if (insights.length) {
+      insightEl.innerHTML = '&#128218; ' + insights.join(' · ') + ' · <span style="color:var(--blue2);cursor:pointer" onclick="exportLifePDF()">生成人生档案</span>';
+      insightEl.style.display = 'block';
+    }
+  }
 }
 
 // Hook into loadTodayActivity to rebuild summary after data loads
@@ -8642,6 +8893,869 @@ renderTodayList = function() {
 };
 
 
+
+
+// ══════════════════════════════════════════════════════════════
+// openSmartNotes — AI 智能笔记分析模块
+// 支持：文字输入 / PDF上传 / 图片上传
+// 输出：结构化总结 + 关键任务 + AI建议
+// ══════════════════════════════════════════════════════════════
+function openSmartNotes() {
+  var ex = document.getElementById('smartNotesOv'); if(ex) ex.remove();
+  var ov = document.createElement('div');
+  ov.id = 'smartNotesOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:910;background:var(--bg);display:flex;flex-direction:column;overflow:hidden';
+
+  // ── Header ──
+  var hdr = document.createElement('div');
+  hdr.style.cssText = 'flex-shrink:0;display:flex;align-items:center;gap:12px;padding:calc(var(--st)+12px) 18px 13px;background:var(--card);border-bottom:1px solid var(--border)';
+  var back = document.createElement('div');
+  back.innerHTML = '&#8592;';
+  back.style.cssText = 'font-size:22px;cursor:pointer;color:var(--ink3);padding:4px 8px 4px 0';
+  back.onclick = function(){ ov.remove(); };
+  var hTitle = document.createElement('div');
+  hTitle.style.cssText = 'flex:1;font-size:17px;font-weight:700;color:var(--ink)';
+  hTitle.textContent = 'AI 智能笔记分析';
+  var histBtn = document.createElement('div');
+  histBtn.style.cssText = 'font-size:12px;color:var(--blue2);cursor:pointer;padding:6px 10px;border-radius:10px;background:var(--blue-lt);font-weight:600;white-space:nowrap';
+  histBtn.textContent = '历史';
+  histBtn.onclick = function(){ _snShowHistory(); };
+  hdr.appendChild(back); hdr.appendChild(hTitle); hdr.appendChild(histBtn);
+
+  // ── Body ──
+  var body = document.createElement('div');
+  body.id = 'snBody';
+  body.style.cssText = 'flex:1;overflow-y:auto;padding:16px 16px 0;display:flex;flex-direction:column;gap:12px';
+
+  // 类型选择
+  var typeRow = document.createElement('div');
+  typeRow.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px';
+  var typeColors = {work:{bg:'var(--blue2)',ico:'&#128188;',label:'工作会议'}, life:{bg:'#27AE60',ico:'&#127775;',label:'生活日记'}, study:{bg:'#8E44AD',ico:'&#128218;',label:'学习笔记'}};
+  Object.keys(typeColors).forEach(function(id){
+    var t = typeColors[id];
+    var btn = document.createElement('button');
+    btn.id = 'sntype-'+id;
+    btn.innerHTML = t.ico + '<br><span style="font-size:11px">' + t.label + '</span>';
+    btn.style.cssText = 'padding:10px 6px;border-radius:13px;border:2px solid var(--border);background:var(--card);color:var(--ink3);font-size:16px;font-weight:600;cursor:pointer;-webkit-appearance:none;line-height:1.4;transition:all .15s';
+    btn.onclick = function(){
+      typeRow.querySelectorAll('button').forEach(function(b){
+        b.style.background='var(--card)'; b.style.color='var(--ink3)'; b.style.borderColor='var(--border)'; b.style.transform='scale(1)';
+      });
+      btn.style.background=t.bg; btn.style.color='#fff'; btn.style.borderColor='transparent'; btn.style.transform='scale(1.03)';
+      window._snCurrentType = id;
+    };
+    if(id==='work'){ btn.style.background=t.bg; btn.style.color='#fff'; btn.style.borderColor='transparent'; window._snCurrentType='work'; }
+    typeRow.appendChild(btn);
+  });
+  body.appendChild(typeRow);
+
+  // 输入区（大卡片）
+  var inputCard = document.createElement('div');
+  inputCard.style.cssText = 'background:var(--card);border-radius:18px;padding:16px;border:1.5px solid var(--border);flex-shrink:0';
+
+  var inputTop = document.createElement('div');
+  inputTop.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:10px';
+  var inputLbl = document.createElement('div');
+  inputLbl.style.cssText = 'font-size:12px;font-weight:700;color:var(--ink3)';
+  inputLbl.textContent = '✍️ 粘贴或输入笔记内容';
+  var charCount = document.createElement('div');
+  charCount.id = 'snCharCount';
+  charCount.style.cssText = 'font-size:11px;color:var(--ink4)';
+  charCount.textContent = '0 字';
+  inputTop.appendChild(inputLbl); inputTop.appendChild(charCount);
+
+  var ta = document.createElement('textarea');
+  ta.id = 'snTextarea';
+  ta.placeholder = '在这里粘贴会议纪要、工作日志、生活感悟、学习笔记…\n\nAI自动提取要点 · 生成行动清单 · 给出专属建议\n\n也可以点下方上传 PDF / 图片文件';
+  ta.style.cssText = 'width:100%;min-height:180px;max-height:40vh;border:none;outline:none;font-size:14px;color:var(--ink);line-height:1.75;background:transparent;resize:vertical;font-family:inherit;box-sizing:border-box';
+  ta.addEventListener('input', function(){
+    var n = ta.value.length;
+    charCount.textContent = n > 0 ? n + ' 字' : '0 字';
+    charCount.style.color = n > 6000 ? 'var(--red)' : 'var(--ink4)';
+  });
+  inputCard.appendChild(inputTop); inputCard.appendChild(ta);
+
+  // 上传区
+  var uploadRow = document.createElement('div');
+  uploadRow.style.cssText = 'display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)';
+  var uploadLabel = document.createElement('label');
+  uploadLabel.style.cssText = 'display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;background:var(--bg);border:1.5px dashed var(--border);font-size:13px;color:var(--ink3);cursor:pointer;flex:1;transition:border-color .15s';
+  uploadLabel.innerHTML = '&#128206; 上传文件 <span style="font-size:11px;color:var(--ink4)">(PDF / 图片 / TXT)</span>';
+  var fileInput = document.createElement('input');
+  fileInput.type='file'; fileInput.accept='.pdf,.txt,image/*'; fileInput.style.display='none';
+  fileInput.onchange = function(){ _snHandleFile(this.files[0], ta, uploadLabel); };
+  uploadLabel.appendChild(fileInput);
+  var fileStatusBadge = document.createElement('div');
+  fileStatusBadge.id='snFileStatus';
+  fileStatusBadge.style.cssText='font-size:11px;color:var(--blue2);font-weight:600;display:none;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+  uploadRow.appendChild(uploadLabel); uploadRow.appendChild(fileStatusBadge);
+  inputCard.appendChild(uploadRow);
+  body.appendChild(inputCard);
+
+  // 日期 + 存入开关（横向一行）
+  var metaRow = document.createElement('div');
+  metaRow.style.cssText = 'display:flex;align-items:center;gap:10px;background:var(--card);border-radius:14px;padding:12px 14px;border:1px solid var(--border)';
+  var dateLbl = document.createElement('div');
+  dateLbl.style.cssText = 'font-size:12px;color:var(--ink3);flex-shrink:0';
+  dateLbl.textContent = '记录日期：';
+  var dateInp = document.createElement('input');
+  dateInp.type='date'; dateInp.id='snDate';
+  dateInp.value = new Date().toISOString().slice(0,10);
+  dateInp.style.cssText='flex:1;padding:7px 10px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;background:var(--bg);color:var(--ink);-webkit-appearance:none;outline:none';
+  var divider = document.createElement('div');
+  divider.style.cssText = 'width:1px;height:20px;background:var(--border);flex-shrink:0';
+  var saveToggle = document.createElement('label');
+  saveToggle.style.cssText='display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink2);flex-shrink:0;cursor:pointer;font-weight:500';
+  var saveCb = document.createElement('input');
+  saveCb.type='checkbox'; saveCb.id='snSaveToLife'; saveCb.checked=true;
+  saveCb.style.cssText='width:16px;height:16px;accent-color:var(--blue2)';
+  saveToggle.appendChild(saveCb);
+  saveToggle.appendChild(document.createTextNode('存入人生轨迹'));
+  metaRow.appendChild(dateLbl); metaRow.appendChild(dateInp);
+  metaRow.appendChild(divider); metaRow.appendChild(saveToggle);
+  body.appendChild(metaRow);
+
+  // 分析按钮（固定在底部）
+  var footer = document.createElement('div');
+  footer.style.cssText = 'flex-shrink:0;padding:12px 16px calc(env(safe-area-inset-bottom,0px)+12px);background:var(--card);border-top:1px solid var(--border)';
+  var analyzeBtn = document.createElement('button');
+  analyzeBtn.id='snAnalyzeBtn';
+  analyzeBtn.style.cssText='width:100%;padding:15px;border-radius:15px;background:var(--blue2);color:#fff;font-size:16px;font-weight:700;border:none;cursor:pointer;-webkit-appearance:none;display:flex;align-items:center;justify-content:center;gap:8px';
+  analyzeBtn.innerHTML='&#10024; AI 分析';
+  analyzeBtn.onclick = function(){ _snAnalyze(); };
+  footer.appendChild(analyzeBtn);
+
+  // 结果区（在body里）
+  var resultArea = document.createElement('div');
+  resultArea.id='snResult';
+  resultArea.style.cssText='display:none;padding-bottom:16px';
+  body.appendChild(resultArea);
+
+  ov.appendChild(hdr); ov.appendChild(body); ov.appendChild(footer);
+  document.body.appendChild(ov);
+  setTimeout(function(){ ta.focus(); }, 200);
+}
+
+async function _snShowHistory() {
+  var cl = sb(); if(!cl) { toast('连接失败'); return; }
+  var uid = await getUid();
+  try {
+    var res = await cl.from('moments')
+      .select('id,title,note,taken_at,mood,category')
+      .eq('user_id', uid)
+      .in('category', ['work','life','study'])
+      .order('taken_at', {ascending:false})
+      .limit(20);
+    var records = res.data || [];
+    if(!records.length) { toast('还没有AI分析记录'); return; }
+
+    var ov = document.createElement('div');
+    ov.id = 'snHistOv';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:920;background:rgba(18,24,52,.5);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)';
+    var sheet = document.createElement('div');
+    sheet.style.cssText = 'width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;max-height:75vh;display:flex;flex-direction:column;overflow:hidden';
+    var sh = '<div style="display:flex;justify-content:center;padding:9px 0 4px"><div style="width:38px;height:4px;border-radius:2px;background:var(--border)"></div></div>'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 18px 12px;flex-shrink:0">'
+      + '<div style="font-size:17px;font-weight:700;color:var(--ink)">历史分析记录</div>'
+      + '<div onclick="_snCloseHist()" style="width:32px;height:32px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;color:var(--ink3)">&#10005;</div>'
+      + '</div><div style="flex:1;overflow-y:auto;padding:0 16px 24px">';
+    records.forEach(function(r){
+      var d = new Date(r.taken_at||r.created_at);
+      var dateStr = d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate();
+      var catColors = {work:'var(--blue2)',life:'#27AE60',study:'#8E44AD'};
+      var col = catColors[r.category] || 'var(--ink3)';
+      sh += '<div data-id="'+r.id+'" style="padding:12px;background:var(--bg);border-radius:12px;margin-bottom:8px;cursor:pointer">'
+        + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'
+        + '<span style="font-size:16px">'+(r.mood||'📋')+'</span>'
+        + '<div style="font-size:13px;font-weight:600;color:var(--ink);flex:1">'+esc(r.title||'AI分析记录')+'</div>'
+        + '<div style="font-size:11px;color:'+col+';font-weight:600;padding:2px 8px;background:'+col+'18;border-radius:99px">'+{work:'工作',life:'生活',study:'学习'}[r.category||'work']+'</div>'
+        + '</div>'
+        + '<div style="font-size:11px;color:var(--ink4)">'+dateStr+'</div>'
+        + '</div>';
+    });
+    sh += '</div>';
+    sheet.innerHTML = sh;
+    sheet.querySelectorAll('[data-id]').forEach(function(el){ el.addEventListener('click', function(){ var id=this.getAttribute('data-id'); ov.remove(); openMomentDetail(id); }); });
+    ov.appendChild(sheet);
+    ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
+    document.body.appendChild(ov);
+  } catch(e) { toast('加载失败'); }
+}
+
+function _snCloseHist() { var o=document.getElementById('snHistOv'); if(o) o.remove(); }
+async function _snHandleFile(file, ta, uploadLabel) {
+  if(!file) return;
+  var status = document.getElementById('snFileStatus');
+  if(status){ status.style.display='block'; status.textContent='读取中...'; }
+  // 图片：base64提示（告知AI）
+  if(file.type.startsWith('image/')) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      window._snImageData = e.target.result;
+      if(status){ status.textContent='&#128444; '+file.name; }
+      uploadLabel.style.borderColor='var(--blue2)';
+      if(!ta.value.trim()) ta.value='（已上传图片，AI将识别其中的文字内容）';
+    };
+    reader.readAsDataURL(file);
+    return;
+  }
+  // PDF/TXT：读取为文本
+  if(file.type==='text/plain') {
+    var reader2 = new FileReader();
+    reader2.onload = function(e) {
+      ta.value = e.target.result.slice(0, 8000);
+      if(status){ status.textContent='&#128196; '+file.name; }
+      uploadLabel.style.borderColor='var(--blue2)';
+    };
+    reader2.readAsText(file, 'utf-8');
+    return;
+  }
+  // PDF：上传到Supabase，告知AI文件名
+  toast('PDF已接收，AI将基于文件名和你补充的描述进行分析');
+  if(status){ status.textContent='&#128196; '+file.name; }
+  uploadLabel.style.borderColor='var(--blue2)';
+  if(!ta.value.trim()) ta.value = '【文件：'+file.name+'】\n请在此补充文件的主要内容或会议讨论要点：\n\n';
+}
+
+async function _snAnalyze() {
+  var text = (document.getElementById('snTextarea')||{}).value || '';
+  var type = window._snCurrentType || 'work';
+  var date = (document.getElementById('snDate')||{}).value || new Date().toISOString().slice(0,10);
+  var saveToLife = (document.getElementById('snSaveToLife')||{}).checked;
+  var resultArea = document.getElementById('snResult'); if(!resultArea) return;
+
+  if(!text.trim() && !window._snImageData) { toast('请先输入或上传笔记内容'); return; }
+
+  var btn = document.getElementById('snAnalyzeBtn');
+  if(btn){ btn.textContent='分析中...'; btn.disabled=true; }
+  resultArea.style.display='none';
+
+  var typePrompts = {
+    work: '你是一位专业的工作效率助手。请分析以下会议纪要或工作日志，输出严格的JSON格式（不含```）：{"summary":"一段话总结核心内容","keyPoints":["要点1","要点2","要点3"],"actionItems":["待办1（负责人/截止日期）","待办2"],"risks":["潜在风险或注意事项"],"advice":"基于内容给出的专业建议（50-100字）","mood":"用一个emoji表达整体工作状态","title":"5字以内的标题"}',
+    life:  '你是一位温暖的生活感悟助手。请分析以下生活日记，输出严格的JSON格式（不含```）：{"summary":"一段话总结今日生活","keyPoints":["亮点1","亮点2","亮点3"],"actionItems":["值得保持的习惯","明天可以改善的地方"],"risks":[],"advice":"温暖的鼓励和生活建议（50-100字）","mood":"最能代表今天状态的emoji","title":"5字以内的今日主题"}',
+    study: '你是一位学习效率教练。请分析以下学习笔记，输出严格的JSON格式（不含```）：{"summary":"一段话总结学到的内容","keyPoints":["核心概念1","核心概念2","核心概念3"],"actionItems":["复习计划","实践建议"],"risks":["容易混淆或遗忘的点"],"advice":"学习方法建议（50-100字）","mood":"表达学习状态的emoji","title":"5字以内的学习主题"}'
+  };
+
+  var prompt = typePrompts[type] + '\n\n内容如下：\n\n' + text.slice(0, 4000);
+
+  var raw = await callClaude(prompt, 800);
+  if(btn){ btn.innerHTML='&#10024; AI 分析'; btn.disabled=false; }
+  if(!raw) return;
+
+  var data;
+  try {
+    var clean = raw.replace(/```json|```/g,'').trim();
+    data = JSON.parse(clean);
+  } catch(e) {
+    resultArea.style.display='block';
+    resultArea.innerHTML='<div style="padding:14px;background:var(--card);border-radius:14px;font-size:13px;color:var(--ink);line-height:1.7">'+esc(raw)+'</div>';
+    return;
+  }
+
+  // ── 渲染结果 ──
+  var typeColors = {work:'#1A3A6B', life:'#1A6B3A', study:'#6B3A1A'};
+  var typeBg     = {work:'#EBF3FF', life:'#EBF9EE', study:'#FFF4EB'};
+  var color = typeColors[type]||'#1A3A6B';
+  var bg    = typeBg[type]||'#EBF3FF';
+
+  var html = '<div style="background:var(--card);border-radius:18px;overflow:hidden;border:1px solid var(--border)">';
+
+  // 标题栏
+  html += '<div style="background:'+color+';color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px">'
+    + '<div style="font-size:24px">'+(data.mood||'📋')+'</div>'
+    + '<div><div style="font-size:15px;font-weight:700">'+(data.title||'智能分析结果')+'</div>'
+    + '<div style="font-size:11px;opacity:.8">'+date+' · AI分析</div></div></div>';
+
+  // 总结
+  html += '<div style="padding:14px 16px;border-bottom:1px solid var(--border)">'
+    + '<div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:6px">&#128203; 核心总结</div>'
+    + '<div style="font-size:13px;color:var(--ink);line-height:1.7">'+esc(data.summary||'')+'</div></div>';
+
+  // 要点
+  if(data.keyPoints&&data.keyPoints.length) {
+    html += '<div style="padding:14px 16px;border-bottom:1px solid var(--border)">'
+      + '<div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:8px">&#127775; 关键要点</div>'
+      + data.keyPoints.map(function(p){ return '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px"><div style="width:6px;height:6px;border-radius:50%;background:'+color+';flex-shrink:0;margin-top:5px"></div><div style="font-size:13px;color:var(--ink);line-height:1.6">'+esc(p)+'</div></div>'; }).join('')
+      + '</div>';
+  }
+
+  // 待办/行动项
+  if(data.actionItems&&data.actionItems.length) {
+    html += '<div style="padding:14px 16px;border-bottom:1px solid var(--border)">'
+      + '<div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:8px">&#9989; 行动清单</div>'
+      + data.actionItems.map(function(a,i){ return '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px"><div style="width:18px;height:18px;border-radius:5px;border:1.5px solid var(--border);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--ink4)">'+(i+1)+'</div><div style="font-size:13px;color:var(--ink);line-height:1.6">'+esc(a)+'</div></div>'; }).join('')
+      + '</div>';
+  }
+
+  // 风险/注意
+  if(data.risks&&data.risks.length) {
+    html += '<div style="padding:14px 16px;border-bottom:1px solid var(--border)">'
+      + '<div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:8px">&#9888;&#65039; 注意事项</div>'
+      + data.risks.map(function(r){ return '<div style="padding:7px 10px;background:#FFF8E1;border-radius:8px;font-size:12px;color:#9C6A00;margin-bottom:5px">'+esc(r)+'</div>'; }).join('')
+      + '</div>';
+  }
+
+  // AI建议
+  if(data.advice) {
+    html += '<div style="padding:14px 16px;border-bottom:1px solid var(--border)">'
+      + '<div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:6px">&#129504; AI 专属建议</div>'
+      + '<div style="background:'+bg+';border-radius:10px;padding:10px 12px;font-size:13px;color:'+color+';line-height:1.7;border-left:3px solid '+color+'">'+esc(data.advice)+'</div></div>';
+  }
+
+  // 操作按钮
+  html += '<div style="display:flex;gap:8px;padding:12px 14px">'
+    + '<button onclick="_snSaveResult(\''+esc(date)+'\',\''+esc(data.title||'笔记')+'\',\''+esc(data.summary||'')+'\','+saveToLife+')" style="flex:1;padding:11px;border-radius:12px;background:var(--blue2);color:#fff;font-size:13px;font-weight:700;border:none;cursor:pointer;-webkit-appearance:none">&#128190; 保存到轨迹</button>'
+    + '<button onclick="_snCopyResult(\''+esc(JSON.stringify(data)).replace(/'/g,"\\'")+'\',\''+type+'\')" style="flex:1;padding:11px;border-radius:12px;background:var(--bg);color:var(--ink);font-size:13px;font-weight:600;border:1.5px solid var(--border);cursor:pointer;-webkit-appearance:none">&#128203; 复制报告</button>'
+    + '</div></div>';
+
+  resultArea.innerHTML = html;
+  resultArea.style.display='block';
+  resultArea.scrollIntoView({behavior:'smooth', block:'start'});
+
+  // 自动保存到轨迹
+  if(saveToLife) {
+    var category = type==='work' ? 'work' : 'life';
+    setTimeout(function(){ _snSaveResult(date, data.title||'AI笔记', data.summary||'', false, category, data); }, 500);
+  }
+}
+
+async function _snSaveResult(date, title, summary, showToast, category, data) {
+  var cl = sb(); if(!cl) { if(showToast) toast('连接失败'); return; }
+  var uid = await getUid();
+  try {
+    var note = data ? ('关键要点：\n'+((data.keyPoints||[]).join('\n'))+'\n\n行动清单：\n'+((data.actionItems||[]).join('\n'))+'\n\nAI建议：\n'+(data.advice||'')) : summary;
+    await cl.from('moments').insert({
+      user_id: uid,
+      title: (data&&data.mood?data.mood+' ':'') + (title||'AI笔记分析'),
+      note: note.slice(0, 2000),
+      taken_at: new Date(date||Date.now()).toISOString(),
+      mood: data&&data.mood ? data.mood : '📋',
+      category: category||'work',
+      visibility: null
+    });
+    if(showToast!==false) toast('✅ 已保存到人生轨迹');
+    setTimeout(function(){ try{ loadMomentsFromDB(); }catch(e){} }, 800);
+  } catch(e) { if(showToast!==false) toast('保存失败'); }
+}
+
+function _snCopyResult(dataJson, type) {
+  try {
+    var data = JSON.parse(dataJson);
+    var lines = ['\u3010'+(data.mood||'')+(data.title||'分析报告')+'\u3011\n'];
+    lines.push('■ 总结\n'+(data.summary||'')+'\n');
+    if(data.keyPoints&&data.keyPoints.length) lines.push('■ 关键要点\n'+(data.keyPoints.map(function(p,i){return (i+1)+'. '+p;}).join('\n'))+'\n');
+    if(data.actionItems&&data.actionItems.length) lines.push('■ 行动清单\n'+(data.actionItems.map(function(a,i){return '☐ '+a;}).join('\n'))+'\n');
+    if(data.risks&&data.risks.length) lines.push('■ 注意事项\n'+(data.risks.join('\n'))+'\n');
+    if(data.advice) lines.push('■ AI建议\n'+data.advice+'\n');
+    lines.push('--- 由 CHRONO100 AI 生成 ---');
+    var text = lines.join('\n');
+    if(navigator.clipboard) { navigator.clipboard.writeText(text).then(function(){ toast('✅ 报告已复制'); }); }
+    else { toast('请手动复制'); }
+  } catch(e) { toast('复制失败'); }
+}
+
+// ══════════════════════════════════════════════════════════════
+// openLifeArchive — 人生轨迹档案生成器（全局独立模块）
+// 支持：关键词/日期范围/地点/同行人/类型 多维度筛选
+// 模板：通用档案 / 签证行程证明 / 工作履历 / 家庭历史
+// ══════════════════════════════════════════════════════════════
+function openLifeArchive() {
+  var ex = document.getElementById('lifeArchiveOv'); if(ex) ex.remove();
+  var ov = document.createElement('div');
+  ov.id = 'lifeArchiveOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:910;background:var(--bg);display:flex;flex-direction:column;overflow:hidden';
+
+  // ── Header ──
+  var hdr = document.createElement('div');
+  hdr.style.cssText = 'flex-shrink:0;display:flex;align-items:center;gap:12px;padding:calc(var(--st)+12px) 16px 12px;background:var(--card);border-bottom:1px solid var(--border)';
+  var back = document.createElement('div');
+  back.innerHTML = '&#8592;';
+  back.style.cssText = 'font-size:22px;cursor:pointer;color:var(--ink3);padding:4px';
+  back.onclick = function(){ ov.remove(); };
+  var hTitle = document.createElement('div');
+  hTitle.style.cssText = 'flex:1;font-size:17px;font-weight:700;color:var(--ink)';
+  hTitle.textContent = '人生轨迹档案';
+  hdr.appendChild(back); hdr.appendChild(hTitle);
+
+  // ── Scroll body ──
+  var body = document.createElement('div');
+  body.style.cssText = 'flex:1;overflow-y:auto;padding:16px';
+
+  // 模板选择
+  var tplSection = _archiveSection('&#128196; 档案模板', [
+    { id:'general',   label:'通用人生档案',   desc:'完整记录，适合个人留存' },
+    { id:'visa',      label:'签证行程证明',   desc:'按日期列出地点轨迹，含GPS' },
+    { id:'work',      label:'工作履历档案',   desc:'筛选工作记录，适合简历附件' },
+    { id:'family',    label:'家庭历史记录',   desc:'家庭相关记录，永久珍藏' },
+  ], 'tpl', 'general');
+  body.appendChild(tplSection);
+
+  // 时间范围
+  var dateSection = _archiveSection('&#128197; 时间范围', [
+    { id:'all',       label:'全部时间',       desc:'' },
+    { id:'year',      label:'近一年',         desc:'' },
+    { id:'halfyear',  label:'近半年',         desc:'' },
+    { id:'month3',    label:'近三个月',       desc:'' },
+    { id:'custom',    label:'自定义',         desc:'' },
+  ], 'daterange', 'all');
+  body.appendChild(dateSection);
+
+  // 自定义日期
+  var customDates = document.createElement('div');
+  customDates.id = 'archiveCustomDates';
+  customDates.style.cssText = 'display:none;gap:10px;margin-bottom:14px';
+  ['archiveDateFrom','archiveDateTo'].forEach(function(id,i){
+    var inp = document.createElement('input');
+    inp.type='date'; inp.id=id;
+    inp.style.cssText='flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:11px;font-size:13px;background:var(--card);color:var(--ink);-webkit-appearance:none';
+    inp.placeholder = i===0?'开始日期':'结束日期';
+    customDates.appendChild(inp);
+  });
+  body.appendChild(customDates);
+
+  // 关键词搜索
+  var kwWrap = document.createElement('div');
+  kwWrap.style.cssText = 'margin-bottom:14px';
+  var kwLabel = document.createElement('div');
+  kwLabel.style.cssText = 'font-size:12px;font-weight:700;color:var(--ink3);margin-bottom:8px;letter-spacing:.4px';
+  kwLabel.textContent = '🔍 关键词筛选（可选）';
+  var kwInp = document.createElement('input');
+  kwInp.type='text'; kwInp.id='archiveKeyword';
+  kwInp.placeholder='输入地点、事件、人名…多个用空格分隔';
+  kwInp.style.cssText='width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:13px;background:var(--card);color:var(--ink);box-sizing:border-box;-webkit-appearance:none;outline:none';
+  kwWrap.appendChild(kwLabel); kwWrap.appendChild(kwInp);
+  body.appendChild(kwWrap);
+
+  // 内容类型
+  var typeSection = _archiveSection('&#127775; 包含内容', [
+    { id:'all_types',  label:'全部类型',  desc:'' },
+    { id:'gps_only',   label:'仅含位置',  desc:'有GPS坐标的记录' },
+    { id:'photo_only', label:'仅含照片',  desc:'有图片的记录' },
+    { id:'people',     label:'含同行人',  desc:'有家人同行的记录' },
+  ], 'contenttype', 'all_types');
+  body.appendChild(typeSection);
+
+  // 预览统计
+  var previewCard = document.createElement('div');
+  previewCard.id = 'archivePreview';
+  previewCard.style.cssText = 'background:var(--blue-lt);border:1.5px solid var(--blue-soft);border-radius:14px;padding:14px 16px;margin-bottom:16px';
+  previewCard.innerHTML = '<div style="font-size:12px;color:var(--ink3)">设置筛选条件后点击「预览」查看匹配记录</div>';
+  body.appendChild(previewCard);
+
+  // 行动区（固定底部）
+  var archiveFooter = document.createElement('div');
+  archiveFooter.style.cssText = 'flex-shrink:0;padding:12px 16px calc(env(safe-area-inset-bottom,0px)+12px);background:var(--card);border-top:1px solid var(--border);display:flex;gap:8px';
+  var previewBtn2 = document.createElement('button');
+  previewBtn2.style.cssText = 'flex:1;padding:14px;border-radius:14px;border:1.5px solid var(--blue2);background:transparent;color:var(--blue2);font-size:14px;font-weight:600;cursor:pointer;-webkit-appearance:none';
+  previewBtn2.innerHTML = '&#128269; 预览';
+  previewBtn2.onclick = function(){ _archivePreview(); };
+  var genBtn2 = document.createElement('button');
+  genBtn2.style.cssText = 'flex:2;padding:14px;border-radius:14px;border:none;background:var(--blue2);color:#fff;font-size:14px;font-weight:700;cursor:pointer;-webkit-appearance:none';
+  genBtn2.innerHTML = '&#128196; 生成 PDF';
+  genBtn2.onclick = function(){ _doGeneratePDF(); };
+  archiveFooter.appendChild(previewBtn2); archiveFooter.appendChild(genBtn2);
+  // 顶部生成按钮改为预览
+  var topGen = document.getElementById('archiveGenBtn');
+  if(topGen){ topGen.style.display='none'; }
+
+  ov.appendChild(hdr); ov.appendChild(body); ov.appendChild(archiveFooter);
+  document.body.appendChild(ov);
+
+  // 监听自定义日期切换
+  ov.addEventListener('change', function(e){
+    if(e.target && e.target.name==='archivePicker_daterange') {
+      customDates.style.display = e.target.value==='custom' ? 'flex' : 'none';
+      setTimeout(function(){ _archivePreview(); }, 100);
+    }
+    // 任何radio变化都自动更新预览
+    if(e.target && e.target.type==='radio') {
+      setTimeout(function(){ _archivePreview(); }, 100);
+    }
+  });
+  // 关键词输入自动触发
+  ov.addEventListener('input', function(e){
+    if(e.target && e.target.id==='archiveKeyword') {
+      clearTimeout(window._archiveKwTimer);
+      window._archiveKwTimer = setTimeout(function(){ _archivePreview(); }, 500);
+    }
+  });
+  // 默认预览
+  setTimeout(function(){ _archivePreview(); }, 300);
+}
+
+function _archiveSection(titleHtml, options, name, defaultVal) {
+  var wrap = document.createElement('div');
+  wrap.style.cssText = 'margin-bottom:16px';
+  var lbl = document.createElement('div');
+  lbl.style.cssText = 'font-size:12px;font-weight:700;color:var(--ink3);margin-bottom:8px;letter-spacing:.4px';
+  lbl.innerHTML = titleHtml;
+  wrap.appendChild(lbl);
+  var grid = document.createElement('div');
+  grid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:8px';
+  options.forEach(function(opt) {
+    var card = document.createElement('label');
+    card.style.cssText = 'display:flex;flex-direction:column;padding:10px 12px;border-radius:12px;border:1.5px solid var(--border);background:var(--card);cursor:pointer;gap:2px;transition:border-color .15s';
+    var inp = document.createElement('input');
+    inp.type='radio'; inp.name='archivePicker_'+name; inp.value=opt.id;
+    inp.style.display='none';
+    if(opt.id===defaultVal) inp.checked=true;
+    var t1 = document.createElement('div');
+    t1.style.cssText = 'font-size:13px;font-weight:600;color:var(--ink)';
+    t1.textContent = opt.label;
+    card.appendChild(inp); card.appendChild(t1);
+    if(opt.desc) {
+      var t2 = document.createElement('div');
+      t2.style.cssText = 'font-size:10px;color:var(--ink3)';
+      t2.textContent = opt.desc;
+      card.appendChild(t2);
+    }
+    inp.addEventListener('change', function(){
+      grid.querySelectorAll('label').forEach(function(l){
+        l.style.borderColor = 'var(--border)';
+        l.style.background = 'var(--card)';
+      });
+      if(inp.checked){ card.style.borderColor='var(--blue2)'; card.style.background='var(--blue-lt)'; }
+    });
+    if(opt.id===defaultVal){ card.style.borderColor='var(--blue2)'; card.style.background='var(--blue-lt)'; }
+    grid.appendChild(card);
+  });
+  wrap.appendChild(grid);
+  return wrap;
+}
+
+function _archiveGetFilter() {
+  function getRadio(name) {
+    var el = document.querySelector('input[name="archivePicker_'+name+'"]:checked');
+    return el ? el.value : null;
+  }
+  var tpl = getRadio('tpl') || 'general';
+  var daterange = getRadio('daterange') || 'all';
+  var contenttype = getRadio('contenttype') || 'all_types';
+  var keyword = (document.getElementById('archiveKeyword')||{}).value || '';
+  var fromDate = null, toDate = null;
+  if(daterange==='custom') {
+    var f = (document.getElementById('archiveDateFrom')||{}).value;
+    var t = (document.getElementById('archiveDateTo')||{}).value;
+    if(f) fromDate = new Date(f);
+    if(t) { toDate = new Date(t); toDate.setHours(23,59,59,999); }
+  } else {
+    toDate = new Date();
+    if(daterange==='year')     { fromDate = new Date(); fromDate.setFullYear(fromDate.getFullYear()-1); }
+    else if(daterange==='halfyear')  { fromDate = new Date(); fromDate.setMonth(fromDate.getMonth()-6); }
+    else if(daterange==='month3')    { fromDate = new Date(); fromDate.setMonth(fromDate.getMonth()-3); }
+    else { fromDate = null; toDate = null; }
+  }
+  return { tpl, daterange, contenttype, keyword: keyword.trim(), fromDate, toDate };
+}
+
+function _archiveFilterMoments(filter) {
+  var all = (window._allYearsMomentsCache || window._allMomentsCache || window._momentsCache || []).slice();
+  if(!all.length) all = window._trajMomentsCache || [];
+
+  return all.filter(function(m) {
+    var d = new Date(m.taken_at || m.created_at);
+    if(filter.fromDate && d < filter.fromDate) return false;
+    if(filter.toDate   && d > filter.toDate)   return false;
+
+    if(filter.contenttype==='gps_only'   && !(m.lat && m.lng)) return false;
+    if(filter.contenttype==='photo_only' && !(m.photo_url || m.image_urls)) return false;
+    if(filter.contenttype==='people'     && !m.with_people) return false;
+
+    if(filter.tpl==='work') {
+      var cat = (m.category||m.mood||'').toLowerCase();
+      var ttl = (m.title||'').toLowerCase();
+      if(!['work','&#128188;','💼'].some(function(k){return cat.includes(k)||ttl.includes(k);})
+         && !ttl.match(/会议|工作|项目|报告|培训|出差|客户|合同|签约|office|meeting|work/i)) return false;
+    }
+    if(filter.tpl==='family') {
+      if(!m.with_people && !(m.title||'').match(/家人|爸|妈|儿子|女儿|孩子|爷爷|奶奶|family/i)) return false;
+    }
+
+    if(filter.keyword) {
+      var kws = filter.keyword.toLowerCase().split(/\s+/).filter(Boolean);
+      var haystack = [(m.title||''), (m.place_name||''), (m.with_people||''), (m.note||'')].join(' ').toLowerCase();
+      if(!kws.every(function(k){ return haystack.includes(k); })) return false;
+    }
+    return true;
+  });
+}
+
+async function _archivePreview() {
+  var preview = document.getElementById('archivePreview'); if(!preview) return;
+
+  // 若缓存为空（从我的页面直接进入），先从DB加载数据
+  var hasData = (window._allYearsMomentsCache||[]).length
+    || (window._allMomentsCache||[]).length
+    || (window._momentsCache||[]).length
+    || (window._trajMomentsCache||[]).length;
+  if (!hasData) {
+    preview.innerHTML = '<div style="font-size:12px;color:var(--ink3);text-align:center;padding:8px">&#128257; 加载数据中...</div>';
+    try {
+      var cl = sb(); var uid = await getUid();
+      if (cl && uid) {
+        var res = await cl.from('moments').select('*').eq('user_id', uid).order('taken_at', {ascending:false}).limit(1000);
+        if (res.data && res.data.length) {
+          window._allYearsMomentsCache = res.data;
+          window._allMomentsCache = res.data;
+          window._momentsCache = res.data;
+        }
+      }
+    } catch(e) {}
+  }
+
+  var filter = _archiveGetFilter();
+  var hits = _archiveFilterMoments(filter);
+  window._archiveLastHits = hits;
+
+  if(!hits.length) {
+    preview.innerHTML = '<div style="text-align:center;padding:16px">'
+      + '<div style="font-size:28px;margin-bottom:8px">&#128269;</div>'
+      + '<div style="font-size:13px;color:var(--ink3)">暂无匹配记录</div>'
+      + '<div style="font-size:11px;color:var(--ink4);margin-top:4px">试试扩大时间范围或清空关键词</div>'
+      + '</div>';
+    return;
+  }
+
+  var photoCount = hits.filter(function(m){ return m.photo_url||m.image_urls; }).length;
+  var gpsCount   = hits.filter(function(m){ return m.lat&&m.lng; }).length;
+  var peopleSet  = {};
+  hits.forEach(function(m){ if(m.with_people) m.with_people.split(/[,，、]/).forEach(function(p){ peopleSet[p.trim()]=1; }); });
+  var peopleCount = Object.keys(peopleSet).length;
+  var firstD = new Date(hits[hits.length-1].taken_at||hits[hits.length-1].created_at);
+  var lastD  = new Date(hits[0].taken_at||hits[0].created_at);
+  var spanStr = firstD.getFullYear()+'年'+(firstD.getMonth()+1)+'月'+firstD.getDate()+'日'
+    + ' — ' + lastD.getFullYear()+'年'+(lastD.getMonth()+1)+'月'+lastD.getDate()+'日';
+
+  // 统计卡片
+  var statsHtml =
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
+    + '<div style="font-size:13px;font-weight:700;color:var(--blue2)">&#10003; 匹配 '+hits.length+' 条记录</div>'
+    + '<div style="font-size:10px;color:var(--ink3)">'+spanStr+'</div></div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px">'
+    + '<div style="text-align:center;background:var(--card);border-radius:8px;padding:8px 4px">'
+    +   '<div style="font-size:18px;font-weight:700;color:var(--ink)">'+photoCount+'</div>'
+    +   '<div style="font-size:10px;color:var(--ink3)">含照片</div></div>'
+    + '<div style="text-align:center;background:var(--card);border-radius:8px;padding:8px 4px">'
+    +   '<div style="font-size:18px;font-weight:700;color:var(--ink)">'+gpsCount+'</div>'
+    +   '<div style="font-size:10px;color:var(--ink3)">GPS定位</div></div>'
+    + '<div style="text-align:center;background:var(--card);border-radius:8px;padding:8px 4px">'
+    +   '<div style="font-size:18px;font-weight:700;color:var(--ink)">'+peopleCount+'</div>'
+    +   '<div style="font-size:10px;color:var(--ink3)">同行人</div></div>'
+    + '</div>';
+
+  // 记录列表（最多显示30条，可点击）
+  var SHOW = 30;
+  var listRows = hits.slice(0, SHOW).map(function(m) {
+    var d = new Date(m.taken_at||m.created_at);
+    var dateStr = d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate();
+    var timeStr = d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+    var hasGps = m.lat && m.lng;
+    var hasPic = m.photo_url || m.image_urls;
+    var moodIco = m.mood || '&#128203;';
+    var badges = '';
+    if (hasGps) badges += '<span style="font-size:10px;color:var(--blue2)">&#128205;</span>';
+    if (hasPic) badges += '<span style="font-size:10px;color:#F59E0B">&#128247;</span>';
+    if (m.with_people) badges += '<span style="font-size:10px;color:var(--ink3)">&#128101; '+esc(m.with_people.slice(0,10))+'</span>';
+    var isClick = !!m.id;
+    return '<div data-moment-id="'+esc(m.id||'')+'" class="prev-row" style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:'+(isClick?'pointer':'default')+'">'
+      + '<div style="flex-shrink:0;text-align:center;min-width:44px">'
+      + '<div style="font-size:16px">'+moodIco+'</div>'
+      + '<div style="font-size:9px;color:var(--ink4);line-height:1.4;margin-top:2px">'+dateStr+'</div>'
+      + '<div style="font-size:9px;color:var(--ink4)">'+timeStr+'</div>'
+      + '</div>'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(m.title||'记录')+'</div>'
+      + (badges ? '<div style="display:flex;gap:5px;margin-top:3px;align-items:center;flex-wrap:wrap">'+badges+'</div>' : '')
+      + '</div>'
+      + (isClick ? '<span style="color:var(--ink4);font-size:18px;align-self:center">&#8250;</span>' : '')
+      + '</div>';
+  }).join('');
+
+  var moreNote = hits.length > SHOW
+    ? '<div style="text-align:center;font-size:11px;color:var(--ink3);padding:8px">…还有 '+(hits.length-SHOW)+' 条，将全部导入 PDF</div>'
+    : '';
+
+  preview.innerHTML = statsHtml
+    + '<div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:6px">记录明细（点击可查看详情）</div>'
+    + '<div id="archiveRecordList" style="background:var(--card);border-radius:10px;padding:0 10px">' + listRows + '</div>'
+    + moreNote;
+
+  // 事件委托：点击记录行打开详情（data-moment-id方式，无引号冲突）
+  var recList = document.getElementById('archiveRecordList');
+  if (recList) {
+    recList.addEventListener('click', function(e) {
+      var row = e.target.closest('[data-moment-id]');
+      if (!row) return;
+      var mid = row.getAttribute('data-moment-id');
+      if (mid) {
+        // 临时提升detailOv到更高层级确保可见
+        window._archiveOpeningDetail = true;
+        openMomentDetail(mid);
+      }
+    });
+  }
+}
+
+async function _doGeneratePDF() {
+  var filter = _archiveGetFilter();
+  var hits = _archiveFilterMoments(filter);
+  if(!hits.length) { toast('没有匹配的记录，请调整筛选条件'); return; }
+  window._archiveLastHits = hits;
+  toast('📄 正在生成档案...');
+  await exportLifePDF(hits, filter);
+}
+
+// ══════════════════════════════════════════════════════════════
+// 问题6: exportLifePDF — 生成人生轨迹档案 PDF
+// 技术：动态创建打印页面 → window.print() → 浏览器PDF导出
+// 兼容：iOS Safari / Android Chrome / Desktop 全平台
+// ══════════════════════════════════════════════════════════════
+async function exportLifePDF(moments_override, filter_ctx) {
+  toast('📄 正在生成人生档案...');
+
+  // 收集数据：支持外部传入（来自档案筛选器）
+  var moments = moments_override && moments_override.length ? moments_override
+    : (window._allYearsMomentsCache || window._allMomentsCache || window._momentsCache || []);
+  if (!moments.length) moments = window._trajMomentsCache || [];
+  if (!moments.length) { toast('❌ 暂无记录数据'); return; }
+  // 模板标题
+  var tplLabels = {general:'人生轨迹档案', visa:'签证行程证明', work:'工作履历档案', family:'家庭历史记录'};
+  var docTitle = (filter_ctx && tplLabels[filter_ctx.tpl]) ? tplLabels[filter_ctx.tpl] : '人生轨迹档案';
+
+  var uid = await getUid();
+  var name = userName || localStorage.getItem('c100_name') || '用户';
+  var emoji = userEmoji || '😊';
+  var phone = localStorage.getItem('c100_phone') || '';
+  var email = userEmail || localStorage.getItem('c100_email') || '';
+  var today = new Date();
+  var todayStr = today.getFullYear() + '年' + (today.getMonth()+1) + '月' + today.getDate() + '日';
+
+  // 统计
+  var photoCount = moments.filter(function(m){ return m.photo_url || m.image_urls; }).length;
+  var gpsCount   = moments.filter(function(m){ return m.lat && m.lng; }).length;
+  var firstDate  = new Date(moments[moments.length-1].taken_at || moments[moments.length-1].created_at);
+  var lastDate   = new Date(moments[0].taken_at || moments[0].created_at);
+  var totalDays  = Math.max(1, Math.round((lastDate-firstDate)/(1000*86400)));
+
+  // 按年分组
+  var byYear = {};
+  moments.forEach(function(m) {
+    var yr = new Date(m.taken_at||m.created_at).getFullYear();
+    if (!byYear[yr]) byYear[yr] = [];
+    byYear[yr].push(m);
+  });
+  var years = Object.keys(byYear).sort(function(a,b){ return b-a; });
+
+  // 地点统计
+  var places = {};
+  moments.forEach(function(m){ if(m.place_name&&m.place_name!=='含位置') places[m.place_name]=(places[m.place_name]||0)+1; });
+  var topPlaces = Object.keys(places).sort(function(a,b){ return places[b]-places[a]; }).slice(0,5);
+
+  // 生成HTML
+  var yearSections = years.map(function(yr) {
+    var yMoments = byYear[yr];
+    var rows = yMoments.slice(0,50).map(function(m) { // max 50 per year for PDF size
+      var d = new Date(m.taken_at||m.created_at);
+      var dateStr = (d.getMonth()+1)+'月'+d.getDate()+'日';
+      var timeStr = d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+      var loc = m.place_name && m.place_name !== '含位置' ? m.place_name : (m.lat ? '📍 GPS' : '');
+      var with_ = m.with_people ? '👥 '+m.with_people : '';
+      var hasPhoto = (m.photo_url || m.image_urls) ? '📷' : '';
+      return '<tr><td style="color:#666;white-space:nowrap;padding:5px 8px;font-size:11px">'+dateStr+' '+timeStr+'</td>'
+        + '<td style="padding:5px 8px;font-size:12px;font-weight:500">'+escPDF(m.title||'记录')+'</td>'
+        + '<td style="padding:5px 8px;font-size:11px;color:#555">'+escPDF(loc)+'</td>'
+        + '<td style="padding:5px 8px;font-size:11px;color:#555">'+escPDF(with_)+'</td>'
+        + '<td style="padding:5px 8px;font-size:11px;text-align:center">'+hasPhoto+'</td></tr>';
+    }).join('');
+    var more = yMoments.length > 50 ? '<tr><td colspan="5" style="text-align:center;color:#999;font-size:11px;padding:8px">…还有 '+(yMoments.length-50)+' 条记录</td></tr>' : '';
+    return '<div class="year-section" style="margin-bottom:28px;page-break-inside:avoid">'
+      + '<div style="background:#1A3A6B;color:#fff;padding:10px 14px;border-radius:8px;font-size:14px;font-weight:700;margin-bottom:8px">'+yr+' 年&nbsp;&nbsp;<span style="font-weight:400;font-size:12px;opacity:.8">共 '+yMoments.length+' 条记录</span></div>'
+      + '<table style="width:100%;border-collapse:collapse;background:#fff">'
+      + '<thead><tr style="background:#F0F5FF">'
+      + '<th style="padding:6px 8px;font-size:10px;text-align:left;font-weight:600;color:#1A3A6B;border-bottom:1.5px solid #C8D8F0">时间</th>'
+      + '<th style="padding:6px 8px;font-size:10px;text-align:left;font-weight:600;color:#1A3A6B;border-bottom:1.5px solid #C8D8F0">记录内容</th>'
+      + '<th style="padding:6px 8px;font-size:10px;text-align:left;font-weight:600;color:#1A3A6B;border-bottom:1.5px solid #C8D8F0">地点</th>'
+      + '<th style="padding:6px 8px;font-size:10px;text-align:left;font-weight:600;color:#1A3A6B;border-bottom:1.5px solid #C8D8F0">同行</th>'
+      + '<th style="padding:6px 8px;font-size:10px;text-align:center;font-weight:600;color:#1A3A6B;border-bottom:1.5px solid #C8D8F0">照片</th>'
+      + '</tr></thead>'
+      + '<tbody>' + rows + more + '</tbody></table></div>';
+  }).join('');
+
+  var topPlaceHTML = topPlaces.length
+    ? topPlaces.map(function(p){ return '<span style="display:inline-block;padding:3px 10px;background:#EBF3FF;border-radius:99px;font-size:11px;color:#1A3A6B;margin:3px">'+escPDF(p)+' ×'+places[p]+'</span>'; }).join('')
+    : '<span style="color:#999;font-size:11px">暂无地点记录</span>';
+
+  var htmlContent = '<!DOCTYPE html><html><head><meta charset="utf-8">'
+    + '<title>CHRONO100 '+docTitle+' · '+escPDF(name)+'</title>'
+    + '<style>'
+    + 'body{font-family:-apple-system,system-ui,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;padding:0;background:#fff;color:#1a1a1a}'
+    + '@media print{'
+    + '  body{margin:0} .no-print{display:none!important}'
+    + '  .year-section{page-break-inside:avoid}'
+    + '  thead{display:table-header-group}'
+    + '}'
+    + '.cover{background:linear-gradient(135deg,#0F2044,#1A3A6B,#2D5FA8);color:#fff;padding:40px 36px;min-height:200px}'
+    + '.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0}'
+    + '.stat-box{background:#F0F5FF;border-radius:10px;padding:12px;text-align:center}'
+    + '.stat-num{font-size:22px;font-weight:700;color:#1A3A6B}'
+    + '.stat-lbl{font-size:10px;color:#555;margin-top:2px}'
+    + 'table tr:nth-child(even){background:#FAFCFF}'
+    + 'table tr:hover{background:#EBF3FF}'
+    + '</style></head><body>'
+    // Cover
+    + '<div class="cover">'
+    + '<div style="font-size:11px;letter-spacing:2px;opacity:.7;margin-bottom:8px">CHRONO100 · '+docTitle+'</div>'
+    + '<div style="font-size:28px;font-weight:700;margin-bottom:4px">'+escPDF(name)+'</div>'
+    + '<div style="font-size:13px;opacity:.8;margin-bottom:20px">'
+    + (phone?'📱 '+escPDF(phone)+'&nbsp;&nbsp;':'')
+    + (email?'✉️ '+escPDF(email):'')
+    + '</div>'
+    + '<div style="font-size:11px;opacity:.6">生成日期：'+todayStr+'&nbsp;&nbsp;|&nbsp;&nbsp;记录跨度：'+firstDate.getFullYear()+'年 — '+lastDate.getFullYear()+'年</div>'
+    + '</div>'
+    // Stats
+    + '<div style="padding:20px 28px">'
+    + '<div class="stat-grid">'
+    + '<div class="stat-box"><div class="stat-num">'+moments.length+'</div><div class="stat-lbl">总记录数</div></div>'
+    + '<div class="stat-box"><div class="stat-num">'+totalDays+'</div><div class="stat-lbl">记录天数</div></div>'
+    + '<div class="stat-box"><div class="stat-num">'+photoCount+'</div><div class="stat-lbl">照片记录</div></div>'
+    + '<div class="stat-box"><div class="stat-num">'+gpsCount+'</div><div class="stat-lbl">GPS定位</div></div>'
+    + '</div>'
+    // Top places
+    + '<div style="margin-bottom:20px">'
+    + '<div style="font-size:12px;font-weight:700;color:#1A3A6B;margin-bottom:8px">&#128205; 常去地点</div>'
+    + topPlaceHTML + '</div>'
+    // Disclaimer
+    + '<div style="border:1px solid #C8D8F0;border-radius:8px;padding:12px 14px;margin-bottom:24px;background:#F8FBFF">'
+    + '<div style="font-size:11px;font-weight:700;color:#1A3A6B;margin-bottom:4px">&#128274; 数据真实性声明</div>'
+    + '<div style="font-size:10px;color:#555;line-height:1.7">本档案由 CHRONO100 系统基于用户真实记录生成。所有时间戳、GPS坐标、照片元数据均由设备自动采集，未经人工修改。记录 ID：'+uid.slice(0,16)+'… · 生成时间：'+new Date().toISOString()+'</div>'
+    + '</div>'
+    // Year sections
+    + yearSections
+    + '<div style="text-align:center;padding:20px;color:#999;font-size:10px;border-top:1px solid #E8EEF8;margin-top:8px">CHRONO100 · chrono100.com · 本档案为个人隐私文件，请妥善保管</div>'
+    + '</div>'
+    // Print button (no-print)
+    + '<div class="no-print" style="position:fixed;bottom:20px;right:20px;display:flex;gap:10px">'
+    + '<button onclick="window.print()" style="padding:12px 22px;background:#1A3A6B;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(26,58,107,.3)">&#128194; 保存/打印 PDF</button>'
+    + '<button onclick="window.close()" style="padding:12px 18px;background:#fff;color:#666;border:1px solid #ddd;border-radius:12px;font-size:14px;cursor:pointer">关闭</button>'
+    + '</div>'
+    + '</body></html>';
+
+  // 打开新窗口渲染并打印
+  var win = window.open('', '_blank', 'width=900,height=700');
+  if (!win) {
+    toast('⚠️ 请允许弹出窗口，或在浏览器设置中允许此网站的弹窗');
+    return;
+  }
+  win.document.write(htmlContent);
+  win.document.close();
+  setTimeout(function(){
+    try { win.focus(); } catch(e) {}
+  }, 600);
+}
+
+function escPDF(str) {
+  return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 // ════ 搜索功能 ════
 
 function openMomentSearch() {
@@ -9005,7 +10119,7 @@ window.addEventListener('DOMContentLoaded', function() {
     <div style="padding:0 18px 14px">
       <div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:8px">关系类型</div>
       <div style="display:flex;gap:8px">
-        <button id="relFamilyBtn" data-on="1" onclick="setRelationType(true)" style="flex:1;padding:12px;border-radius:12px;background:var(--blue2);color:#fff;font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:inherit">👨‍👩‍👧 家人</button>
+        <button id="relFamilyBtn" data-on="1" onclick="setRelationType(true)" style="flex:1;padding:12px;border-radius:12px;background:var(--blue2);color:#fff;font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:inherit">&#128106; 家人</button>
         <button id="relFriendBtn" data-on="0" onclick="setRelationType(false)" style="flex:1;padding:12px;border-radius:12px;background:var(--bg);color:var(--ink);font-size:14px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);font-family:inherit">🤝 好友</button>
       </div>
     </div>
