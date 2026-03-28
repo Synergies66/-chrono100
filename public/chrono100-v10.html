@@ -405,6 +405,9 @@ button,input,textarea{font-family:inherit;-webkit-appearance:none;border:none;ou
 .form-field{padding:0 18px;margin-bottom:12px}
 /* form-label, form-input, form-submit, sheet-title, sheet-sub defined earlier with CSS vars */
 
+#safetyBar { display: none !important; }
+#noContactBar { display: none !important; }
+
 /* ─── CAMERA NAV BUTTON ─── */
 .cam-nav-btn{width:34px;height:34px;border-radius:50%;background:var(--blue-lt);display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;flex-shrink:0;border:1.5px solid var(--blue-soft)}
 .cam-nav-btn:active{background:var(--blue-soft)}
@@ -762,7 +765,7 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
       </div>
 
       <!-- Safety bar (隐藏保留) -->
-      <div class="sfbar" id="safetyBar" style="display:none !important;margin:10px 16px 0">
+      <div class="sfbar" id="safetyBar" style="display:none !important;visibility:hidden;height:0;overflow:hidden;margin:0;padding:0">
         <div id="safetyAvatars" style="display:flex"></div>
         <div style="margin-left:11px;flex:1">
           <div style="font-size:13px;font-weight:600;color:var(--ink)" id="safetyBarTitle">家人都平安</div>
@@ -770,7 +773,7 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
         </div>
       </div>
       <!-- 无联系人时的邀请提示 -->
-      <div id="noContactBar" style="margin:10px 16px 0;background:var(--blue-lt);border:1.5px solid var(--blue-soft);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer" onclick="openAddContact()">
+      <div id="noContactBar" style="display:none !important;margin:10px 16px 0;background:var(--blue-lt);border:1.5px solid var(--blue-soft);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer" onclick="openAddContact()">
         <span style="font-size:20px">👨‍👩‍👧</span>
         <div style="flex:1">
           <div style="font-size:13px;font-weight:600;color:var(--blue)" data-i18n-key="inviteFamily">邀请家人加入</div>
@@ -899,7 +902,10 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
         <div class="scroll-badge" id="trajBadge">↕ 滑动查看</div>
       </div>
 
-<!-- 四合一总结模块 -->
+<!-- lifeSummaryModule shell (needed by JS) -->
+      <div id="lifeSummaryModule" style="display:none"></div>
+
+      <!-- 四合一总结模块 -->
       <div style="margin:10px 16px 0;background:var(--card);border-radius:16px;box-shadow:0 1px 6px rgba(0,0,0,.06);overflow:hidden">
         <!-- Tab headers -->
         <div style="display:flex;border-bottom:1px solid var(--border)">
@@ -1903,6 +1909,7 @@ var I18N = {
     hlCompanion:'most often with <em>{name}</em>', hlPlace:'visited <em>{name}</em> the most',
     summaryPhotos:'recorded <em>{n}</em> photos', summaryMsgs:'sent <em>{n}</em> messages to family',
     chatEncrypted:'🔒 Encrypted in transit',
+    notBound:'Not bound',
     sigExif:'Photo EXIF', sigLoc:'GPS on Open', sigSafe:'Check In', sigPush:'Daily Push', sigBatt:'Battery Watch',
     sigExifTip:'📷 Photo EXIF · Parse GPS timestamps', sigLocTip:'📱 Auto-locate when app opens', sigPushTip:'🔔 Daily 9am push, opens to update location', sigBattTip:'🔋 Auto-alert when battery below 20%', btnWechatSoon:'WeChat (Coming Soon)'
   },
@@ -4319,6 +4326,9 @@ function renderTimeline(moments) {
   var lmBtn = document.getElementById('trajLoadMoreBtn');
   if (lmBtn) lmBtn.style.display = _momentsAllLoaded ? 'none' : '';
   document.getElementById('lifeSummaryModule').style.display = 'block';
+  // Also show the 4-tab unified module
+  var tab4sum = document.getElementById('tab4-summary');
+  if (tab4sum && _tab4Current !== 'today') tab4sum.style.display = 'block';
   renderSummary(moments, 'month');
   window._trajMomentsCache = moments.slice().reverse();
   renderTrajList();
@@ -5432,10 +5442,8 @@ async function loadTodayActivity() {
     try {
       var cres = await client.from('circles').select('id',{count:'exact',head:true}).eq('owner_id', realUid).eq('status','active');
       var cnt = cres.count || 0;
-      if (safetyBar && noBar) {
-        if (cnt > 0) { safetyBar.style.display = 'flex'; noBar.style.display = 'none'; }
-        else { safetyBar.style.display = 'none'; noBar.style.display = 'flex'; }
-      }
+      if (safetyBar) safetyBar.style.display = 'none';
+      if (noBar) noBar.style.display = 'none';
       // Clear fake circle badge
       var circleBadge = document.querySelector('[data-page="circle"] .tab-badge');
       if (circleBadge) circleBadge.style.display = cnt === 0 ? '' : 'none';
@@ -8562,37 +8570,68 @@ function buildDailySummary() {
   var today = new Date();
   var todayStr = today.getFullYear() + '年' + (today.getMonth()+1) + '月' + today.getDate() + '日';
   if (dateEl) dateEl.textContent = todayStr;
+
   var items = window._todayItemsCache || [];
   if (!items.length) {
     el.innerHTML = '<span style="color:var(--ink4)">今天还没有记录，去添加第一条吧</span>';
     return;
   }
-  var html = items.map(function(it) {
+
+  // Build natural language sentences for each record
+  var sentences = [];
+  var compliments = ['棒极了！','真不错！','继续加油！','很充实！','生活真美好～','留下美好记忆了！',''];
+  var cidx = 0;
+
+  items.forEach(function(it) {
     var parts = [];
-    // Emoji/mood
-    var mood = '';
-    if (it.ico && it.ico !== '📝' && it.ico !== '🖼' && it.ico !== '💬') mood = it.ico + ' ';
-    // Main title
-    var title = it.lbl || '';
-    // Skip UUID or generic titles
-    if (title.match(/^[0-9a-f]{8}-/i)) title = it.thumb ? '照片记录' : '记录';
-    parts.push('<b>' + esc(mood + title) + '</b>');
-    // Companions
-    if (it.with_people) parts.push('&#128101; ' + esc(it.with_people));
-    // Location
-    if (it.sub && it.sub.includes('位置')) parts.push('&#128205; 含位置');
-    // Photo
-    if (it.thumb) parts.push('&#128247; 照片');
-    // Messages detail
-    if (it.ico === '💬') {
-      parts = ['<b>' + esc(it.lbl) + '</b>'];
-      if (it.sub) parts.push(esc(it.sub));
+    var title = (it.lbl || '').replace(/^[😊❤️😌😔😤🥰😴🎉✨⚡💬🖼📝]\s*/, '').trim();
+    if (title.match(/^[0-9a-f]{8}-/i)) title = it.thumb ? '拍了照片' : '记录了一件事';
+    if (!title) return;
+
+    // Time
+    var t = it.t || '';
+    var line = '';
+    if (t) line += '<span style="color:var(--ink4);font-size:10px">' + t + '</span> ';
+
+    // Build sentence: [时间] [地点] [人物] [事件]
+    var sentence = title;
+
+    // Add companion if available
+    if (it.with_people) {
+      sentence = '跟' + it.with_people + sentence;
     }
-    var timeTag = it.t ? '<span style="color:var(--ink4);font-size:10px;margin-right:4px">' + it.t + '</span>' : '';
-    return '<div style="padding:5px 0;border-bottom:1px solid var(--border);line-height:1.6">' +
-      timeTag + parts.join(' &nbsp;') + '</div>';
-  }).join('');
-  el.innerHTML = html;
+
+    // Add location indicator
+    if (it.sub && it.sub.includes('位置')) {
+      sentence += ' 📍';
+    }
+
+    // Add photo indicator
+    if (it.thumb) sentence += ' 📷';
+
+    // Message records
+    if (it.ico === '💬') {
+      sentence = it.lbl || '';
+      if (it.sub) sentence += '：' + it.sub.slice(0,15);
+    }
+
+    // Add compliment occasionally
+    var compliment = '';
+    if (cidx % 3 === 0 && compliments[cidx % compliments.length]) {
+      compliment = '<span style="color:var(--blue2);font-size:10px"> ' + compliments[cidx % compliments.length] + '</span>';
+    }
+    cidx++;
+
+    sentences.push(
+      '<div style="padding:5px 0;border-bottom:1px solid var(--border);line-height:1.7">' +
+      line + '<b>' + esc(sentence) + '</b>' + compliment +
+      '</div>'
+    );
+  });
+
+  el.innerHTML = sentences.length
+    ? sentences.join('')
+    : '<span style="color:var(--ink4)">今天还没有记录</span>';
 }
 
 // Hook into loadTodayActivity to rebuild summary after data loads
