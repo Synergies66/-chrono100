@@ -1652,6 +1652,10 @@ function sb() {
     _sbClient.auth.onAuthStateChange(function(event, session) {
       if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session && session.user) {
         var u = session.user;
+        // 拒绝匿名用户进入App — 必须是真实注册/登录的用户
+        var isAnon = u.is_anonymous === true
+          || (!u.email && !u.phone && !(u.app_metadata && u.app_metadata.provider && u.app_metadata.provider !== 'anonymous'));
+        if (isAnon) return; // 匿名用户停在登录页
         userName = (u.user_metadata && u.user_metadata.full_name)
           || (u.email ? u.email.split('@')[0] : '用户');
         var loginEl = document.getElementById('login');
@@ -1755,13 +1759,8 @@ async function ensureAnonAuth() {
       return sess.data.session.user.id;
     }
   } catch(e) {}
-  // Try anonymous sign-in to get a persistent token
-  try {
-    var res = await client.auth.signInAnonymously();
-    if (res && res.data && res.data.user) {
-      return res.data.user.id;
-    }
-  } catch(e) { /* signInAnonymously may not be enabled — silent fail */ }
+  // 不再主动创建匿名session（防止匿名用户绕过登录进入App）
+  // 如果没有真实session，返回null，让用户去登录
   return null;
 }
 
@@ -2563,7 +2562,25 @@ function doGoogleLogin() {
 }
 
 
-function enterApp() {
+async function enterApp() {
+  // 双重验证：确保是真实登录用户，不是匿名用户
+  try {
+    var cl = sb();
+    if (cl) {
+      var sess = await cl.auth.getSession();
+      var u = sess && sess.data && sess.data.session && sess.data.session.user;
+      if (u) {
+        var isAnon = u.is_anonymous === true
+          || (!u.email && !u.phone
+              && !(u.app_metadata && u.app_metadata.provider
+                   && u.app_metadata.provider !== 'anonymous'));
+        if (isAnon) {
+          toast('❌ 请登录或注册账号');
+          return;
+        }
+      }
+    }
+  } catch(e) {}
   document.getElementById('login').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
   // Restore any locally saved profile data
@@ -2941,6 +2958,7 @@ var PAGES = ['life', 'circle', 'chat', 'me'];
 
 function gotoPage(name) {
   if (name === curPage) return;
+  track('page_view', name);
   var from = document.getElementById('page-' + curPage);
   var to = document.getElementById('page-' + name);
   if (!to) return;
@@ -4820,6 +4838,7 @@ function shareStory() {
   } else copyStory();
 }
 async function saveEvent() {
+  track('add_record', null);
   var title = (document.getElementById('eventTitle').value || '').trim();
   if (!title) { toast('请填写内容'); return; }
   var client = sb();
@@ -9082,6 +9101,115 @@ async function _snShowHistory() {
   } catch(e) { toast('加载失败'); }
 }
 
+
+// ══════════════════════════════════════════════════════════════
+// CHRONO100 监控系统
+// ① 访问日志  ② 行为埋点  ③ 强制登录墙
+// ══════════════════════════════════════════════════════════════
+
+// ── ① 访问日志 ──
+async function logAccess(eventType, extra) {
+  try {
+    var cl = sb(); if (!cl) return;
+    var uid = null;
+    try {
+      var sess = await cl.auth.getSession();
+      uid = sess && sess.data && sess.data.session && sess.data.session.user
+            ? sess.data.session.user.id : null;
+    } catch(e) {}
+
+    // 设备信息
+    var ua = navigator.userAgent;
+    var device = /iPhone|iPad/.test(ua) ? 'iOS'
+               : /Android/.test(ua) ? 'Android'
+               : /Macintosh/.test(ua) ? 'Mac'
+               : /Windows/.test(ua) ? 'Windows' : 'Other';
+    var browser = /CriOS|Chrome/.test(ua) ? 'Chrome'
+                : /Safari/.test(ua) ? 'Safari'
+                : /Firefox/.test(ua) ? 'Firefox' : 'Other';
+    var isPWA = window.matchMedia('(display-mode: standalone)').matches
+             || window.navigator.standalone === true;
+
+    var log = {
+      event_type:  eventType || 'page_open',
+      uid:         uid || null,
+      is_logged_in: !!uid,
+      device:      device,
+      browser:     browser,
+      is_pwa:      isPWA,
+      screen_w:    screen.width,
+      screen_h:    screen.height,
+      lang:        navigator.language || '',
+      referrer:    document.referrer ? document.referrer.slice(0, 200) : '',
+      extra:       extra ? JSON.stringify(extra).slice(0, 500) : null,
+      created_at:  new Date().toISOString()
+    };
+
+    await cl.from('access_logs').insert(log);
+  } catch(e) { /* 静默失败，不影响用户体验 */ }
+}
+
+// ── ② 行为埋点 ──
+function track(action, detail) {
+  // 异步发送，不阻塞UI
+  setTimeout(async function() {
+    try {
+      var cl = sb(); if (!cl) return;
+      var uid = null;
+      try {
+        var sess = await cl.auth.getSession();
+        uid = sess && sess.data && sess.data.session && sess.data.session.user
+              ? sess.data.session.user.id : null;
+      } catch(e) {}
+      if (!uid) return; // 未登录用户不记录行为
+      await cl.from('user_events').insert({
+        uid:        uid,
+        action:     action,
+        detail:     detail ? String(detail).slice(0, 200) : null,
+        created_at: new Date().toISOString()
+      });
+    } catch(e) {}
+  }, 0);
+}
+
+// ── ③ 强制登录墙 ──
+// App启动时立即检查，未登录锁死在登录页
+async function enforceLoginWall() {
+  var loginEl = document.getElementById('login');
+  var appEl   = document.getElementById('app');
+  if (!loginEl || !appEl) return;
+
+  // 默认显示登录页，隐藏App
+  loginEl.style.display = 'flex';
+  appEl.style.display   = 'none';
+
+  try {
+    var cl = sb(); if (!cl) return;
+    var sess = await cl.auth.getSession();
+    var u = sess && sess.data && sess.data.session && sess.data.session.user;
+
+    if (u) {
+      // 严格验证：必须有email或phone，且不是匿名用户
+      var isReal = !u.is_anonymous
+        && (!!u.email || !!u.phone
+            || (u.app_metadata && u.app_metadata.provider
+                && u.app_metadata.provider !== 'anonymous'));
+
+      if (isReal) {
+        // 真实用户：记录访问日志，进入App
+        logAccess('app_open', { provider: u.app_metadata && u.app_metadata.provider });
+        userName = (u.user_metadata && u.user_metadata.full_name)
+                 || (u.email ? u.email.split('@')[0] : '用户');
+        enterApp();
+        return;
+      }
+    }
+  } catch(e) {}
+
+  // 未登录：记录访问但留在登录页
+  logAccess('login_page_view', null);
+}
+
 function _snCloseHist() { var o=document.getElementById('snHistOv'); if(o) o.remove(); }
 async function _snHandleFile(file, ta, uploadLabel) {
   if(!file) return;
@@ -9808,6 +9936,7 @@ function openMomentSearch() {
 }
 
 async function doSearch(q) {
+  track('search', q);
   var results = document.getElementById('searchResults');
   if (!results) return;
   results.innerHTML = '<div style="text-align:center;padding:30px;color:var(--ink3)">搜索中...</div>';
@@ -9961,10 +10090,13 @@ window.addEventListener('DOMContentLoaded', function() {
   // 先从本地读取保存的资料
   loadProfileFromStorage();
 
+  // 强制登录墙：启动时立即执行，未登录不显示App
+  enforceLoginWall();
+
   var loginEl = document.getElementById('login');
   var appEl = document.getElementById('app');
 
-  // 如果有保存的昵称，直接进入App
+  // 如果有保存的昵称，直接进入App（已废弃，由enforceLoginWall接管）
   var savedName = localStorage.getItem('c100_name');
   if (false && savedName && savedName !== '用户') {
     userName = savedName;
