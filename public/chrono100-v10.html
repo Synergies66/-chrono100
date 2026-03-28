@@ -741,6 +741,7 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
       <div class="nav-logo" id="navTitle" onclick="gotoPage('life')">CHRONO100</div>
       <div style="display:flex;align-items:center;gap:6px">
         <!-- Real system camera button: opens native camera, photo auto-saves to gallery, app receives the file -->
+        <div class="cam-nav-btn" onclick="openMomentSearch()" title="搜索" style="font-size:16px">&#128269;</div>
         <label class="cam-nav-btn" title="拍照" style="cursor:pointer">
           📷
           <input type="file" accept="image/*" capture="environment" id="navCamInput" style="display:none" onchange="navCamReceive(this.files[0])">
@@ -760,8 +761,8 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
         <div style="font-size:12px;color:var(--ink3);margin-top:2px" id="hDate"></div>
       </div>
 
-      <!-- Safety bar (动态) -->
-      <div class="sfbar" id="safetyBar" onclick="gotoPage('circle')" style="display:none !important;margin:10px 16px 0">
+      <!-- Safety bar (隐藏保留) -->
+      <div class="sfbar" id="safetyBar" style="display:none !important;margin:10px 16px 0">
         <div id="safetyAvatars" style="display:flex"></div>
         <div style="margin-left:11px;flex:1">
           <div style="font-size:13px;font-weight:600;color:var(--ink)" id="safetyBarTitle">家人都平安</div>
@@ -898,18 +899,32 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
         <div class="scroll-badge" id="trajBadge">↕ 滑动查看</div>
       </div>
 
-
-<!-- Summary module -->
-      <div class="summary-module" id="lifeSummaryModule" style="display:none">
-        <div class="summary-tabs">
-          <button class="summary-tab on" id="stab-month" onclick="switchSummaryTab('month')" data-i18n-key="tabMonth">📅 本月总结</button>
-          <button class="summary-tab" id="stab-year" onclick="switchSummaryTab('year')" data-i18n-key="tabYear">📆 年度回顾</button>
-          <button class="summary-tab" id="stab-all" onclick="switchSummaryTab('all')" data-i18n-key="tabAll">🗺 全部记录</button>
+<!-- 四合一总结模块 -->
+      <div style="margin:10px 16px 0;background:var(--card);border-radius:16px;box-shadow:0 1px 6px rgba(0,0,0,.06);overflow:hidden">
+        <!-- Tab headers -->
+        <div style="display:flex;border-bottom:1px solid var(--border)">
+          <button id="stab4-today" onclick="switchTab4('today')" style="flex:1;padding:10px 2px;font-size:11px;font-weight:700;color:var(--blue2);border:none;background:transparent;cursor:pointer;border-bottom:2px solid var(--blue2);font-family:inherit">&#11088; 今日</button>
+          <button id="stab4-month" onclick="switchTab4('month')" style="flex:1;padding:10px 2px;font-size:11px;font-weight:600;color:var(--ink3);border:none;background:transparent;cursor:pointer;border-bottom:2px solid transparent;font-family:inherit">&#128197; 本月</button>
+          <button id="stab4-year" onclick="switchTab4('year')" style="flex:1;padding:10px 2px;font-size:11px;font-weight:600;color:var(--ink3);border:none;background:transparent;cursor:pointer;border-bottom:2px solid transparent;font-family:inherit">&#128198; 年度</button>
+          <button id="stab4-all" onclick="switchTab4('all')" style="flex:1;padding:10px 2px;font-size:11px;font-weight:600;color:var(--ink3);border:none;background:transparent;cursor:pointer;border-bottom:2px solid transparent;font-family:inherit">&#128506; 全部</button>
         </div>
-        <div class="summary-body" id="summaryBodyContent">
-          <div style="text-align:center;padding:14px;color:var(--ink3);font-size:12px">加载中…</div>
+        <!-- 今日总结 panel -->
+        <div id="tab4-today" style="padding:12px 14px 14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div style="font-size:11px;font-weight:600;color:var(--ink3)" id="dailySummaryDate"></div>
+          </div>
+          <div id="dailySummaryContent" style="font-size:12px;color:var(--ink2);line-height:1.9">加载中...</div>
+        </div>
+        <!-- 本月/年度/全部 panel -->
+        <div id="tab4-summary" style="display:none">
+          <div id="summaryBodyContent" style="padding:0 14px 14px">
+            <div style="text-align:center;padding:14px;color:var(--ink3);font-size:12px">加载中…</div>
+          </div>
         </div>
       </div>
+
+
+
 
 <!-- Signal strip -->
       <div class="signals-strip">
@@ -7191,7 +7206,8 @@ function renderTrajList(){
     var companionHtml=companions?'<div class="tl-companions">'+companions.split(/[,，、]/).map(function(p){return '<div class="tl-companion-chip">👤 '+esc(p.trim())+'</div>';}).join('')+'</div>':'';
     var delBtn='<div onclick="event.stopPropagation();deleteTrajItem(\''+( m.id||'')+'\''+',this)" style="float:right;font-size:11px;color:var(--ink4);cursor:pointer;padding:2px 6px;border-radius:6px;border:1px solid var(--border);margin-left:8px">删除</div>';
     // Encode moment id for onclick — use data-id attribute to avoid escaping issues
-    return '<div class="tl-row"><div class="tl-left"><div class="tl-bubble'+(hasGps&&!m.is_city_level?' gold':'')+'"><span class="mo">'+d.toLocaleString('en',{month:'short'}).toUpperCase()+'</span><span class="dy">'+d.getDate()+'</span></div><div class="tl-line"></div></div><div class="tl-right"><div class="tl-card" data-mid="'+esc(m.id||'')+'" onclick="openMomentDetail(this.dataset.mid)" style="overflow:hidden;padding-bottom:'+(imageUrls.length?'0':'12px')+'">'+delBtn+'<div class="tl-time">⏰ '+d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})+'</div><div class="tl-title">'+esc(m.title||'记录')+'</div>'+locHtml+companionHtml+photoHtml+'</div></div></div>';
+    var safeId = (m.id||'').replace(/['"]/g,'');
+    return '<div class="tl-row"><div class="tl-left"><div class="tl-bubble'+(hasGps&&!m.is_city_level?' gold':'')+'"><span class="mo">'+d.toLocaleString('en',{month:'short'}).toUpperCase()+'</span><span class="dy">'+d.getDate()+'</span></div><div class="tl-line"></div></div><div class="tl-right"><div class="tl-card" onclick="openMomentDetail(\''+safeId+'\')" style="overflow:hidden;padding-bottom:'+(imageUrls.length?'0':'12px')+'">'+delBtn+'<div class="tl-time">⏰ '+d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})+'</div><div class="tl-title">'+esc(m.title||'记录')+'</div>'+locHtml+companionHtml+photoHtml+'</div></div></div>';
   }).join('');
   // Append load-more trigger at very bottom of scroll content
   if(!_momentsAllLoaded){
@@ -7203,11 +7219,26 @@ function renderTrajList(){
 }
 
 // Open full detail overlay for a single moment
-function openMomentDetail(mid) {
-  var moments = window._trajMomentsCache || [];
-  var m = moments.filter(function(x){ return x.id === mid; })[0];
-  if (!m) return;
-  _showDetailOverlay('📋 记录详情', [m], new Date(m.taken_at).toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'long'}));
+async function openMomentDetail(mid) {
+  if (!mid) return;
+  // Search all caches
+  var all = (window._trajMomentsCache||[]).concat(window._allMomentsCache||[]).concat(window._momentsCache||[]);
+  var m = all.filter(function(x){ return x.id === mid; })[0];
+  if (m) {
+    _showDetailOverlay('&#128203; 记录详情', [m], new Date(m.taken_at).toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'long'}));
+    return;
+  }
+  // Fetch from DB if not in cache
+  toast('加载中...');
+  try {
+    var cl = sb(); if(!cl) { toast('连接失败'); return; }
+    var res = await cl.from('moments').select('*').eq('id', mid).single();
+    if (res.data) {
+      _showDetailOverlay('&#128203; 记录详情', [res.data], new Date(res.data.taken_at).toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'long'}));
+    } else {
+      toast('记录不存在');
+    }
+  } catch(e) { toast('加载失败'); }
 }
 async function deleteTrajItem(id, el) {
   if (!id) return;
@@ -8520,6 +8551,241 @@ async function doVerifyBindPhone() {
     if(el) el.textContent = window._bindPhone;
   } catch(e) { toast('绑定失败，请重试'); if(btn){btn.textContent='确认绑定';btn.disabled=false;} }
 }
+
+
+// ════ 今日总结 ════
+
+function buildDailySummary() {
+  var el = document.getElementById('dailySummaryContent');
+  var dateEl = document.getElementById('dailySummaryDate');
+  if (!el) return;
+  var today = new Date();
+  var todayStr = today.getFullYear() + '年' + (today.getMonth()+1) + '月' + today.getDate() + '日';
+  if (dateEl) dateEl.textContent = todayStr;
+  var items = window._todayItemsCache || [];
+  if (!items.length) {
+    el.innerHTML = '<span style="color:var(--ink4)">今天还没有记录，去添加第一条吧</span>';
+    return;
+  }
+  var html = items.map(function(it) {
+    var parts = [];
+    // Emoji/mood
+    var mood = '';
+    if (it.ico && it.ico !== '📝' && it.ico !== '🖼' && it.ico !== '💬') mood = it.ico + ' ';
+    // Main title
+    var title = it.lbl || '';
+    // Skip UUID or generic titles
+    if (title.match(/^[0-9a-f]{8}-/i)) title = it.thumb ? '照片记录' : '记录';
+    parts.push('<b>' + esc(mood + title) + '</b>');
+    // Companions
+    if (it.with_people) parts.push('&#128101; ' + esc(it.with_people));
+    // Location
+    if (it.sub && it.sub.includes('位置')) parts.push('&#128205; 含位置');
+    // Photo
+    if (it.thumb) parts.push('&#128247; 照片');
+    // Messages detail
+    if (it.ico === '💬') {
+      parts = ['<b>' + esc(it.lbl) + '</b>'];
+      if (it.sub) parts.push(esc(it.sub));
+    }
+    var timeTag = it.t ? '<span style="color:var(--ink4);font-size:10px;margin-right:4px">' + it.t + '</span>' : '';
+    return '<div style="padding:5px 0;border-bottom:1px solid var(--border);line-height:1.6">' +
+      timeTag + parts.join(' &nbsp;') + '</div>';
+  }).join('');
+  el.innerHTML = html;
+}
+
+// Hook into loadTodayActivity to rebuild summary after data loads
+var _origRenderTodayList = renderTodayList;
+renderTodayList = function() {
+  _origRenderTodayList.apply(this, arguments);
+  try { buildDailySummary(); } catch(e) {}
+};
+
+
+// ════ 搜索功能 ════
+
+function openMomentSearch() {
+  var ex = document.getElementById('searchOv'); if(ex) ex.remove();
+  var ov = document.createElement('div');
+  ov.id = 'searchOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:900;background:var(--bg);display:flex;flex-direction:column;overflow:hidden';
+
+  var header = document.createElement('div');
+  header.style.cssText = 'display:flex;align-items:center;gap:10px;padding:14px 16px;background:var(--card);border-bottom:1px solid var(--border)';
+  var backBtn = document.createElement('div');
+  backBtn.innerHTML = '&#8592;';
+  backBtn.style.cssText = 'font-size:22px;cursor:pointer;color:var(--ink3);flex-shrink:0';
+  backBtn.onclick = function(){ ov.remove(); };
+  var inputWrap = document.createElement('div');
+  inputWrap.style.cssText = 'flex:1;position:relative';
+  var inp = document.createElement('input');
+  inp.type = 'text';
+  inp.id = 'searchInput';
+  inp.placeholder = '搜索记录内容、地点、人物...';
+  inp.style.cssText = 'width:100%;padding:10px 36px 10px 14px;border:1.5px solid var(--border);border-radius:20px;font-size:14px;background:var(--bg);color:var(--ink);box-sizing:border-box;-webkit-appearance:none;outline:none';
+  var clearBtn = document.createElement('div');
+  clearBtn.innerHTML = '&#10005;';
+  clearBtn.style.cssText = 'position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--ink3);cursor:pointer;display:none';
+  clearBtn.onclick = function(){ inp.value=''; clearBtn.style.display='none'; renderSearchResults([]); inp.focus(); };
+  inputWrap.appendChild(inp); inputWrap.appendChild(clearBtn);
+  header.appendChild(backBtn); header.appendChild(inputWrap);
+
+  var hint = document.createElement('div');
+  hint.style.cssText = 'padding:10px 16px;font-size:11px;color:var(--ink4);background:var(--card);border-bottom:1px solid var(--border)';
+  hint.textContent = '搜索所有记录内容、地点、与谁在一起';
+
+  var results = document.createElement('div');
+  results.id = 'searchResults';
+  results.style.cssText = 'flex:1;overflow-y:auto;padding:12px 16px';
+  results.innerHTML = '<div style="text-align:center;padding:40px;color:var(--ink3)">输入关键词开始搜索</div>';
+
+  ov.appendChild(header); ov.appendChild(hint); ov.appendChild(results);
+  document.body.appendChild(ov);
+  inp.focus();
+
+  var searchTimer;
+  inp.addEventListener('input', function() {
+    var q = inp.value.trim();
+    clearBtn.style.display = q ? 'block' : 'none';
+    clearTimeout(searchTimer);
+    if (!q) { results.innerHTML = '<div style="text-align:center;padding:40px;color:var(--ink3)">输入关键词开始搜索</div>'; return; }
+    searchTimer = setTimeout(function(){ doSearch(q); }, 300);
+  });
+}
+
+async function doSearch(q) {
+  var results = document.getElementById('searchResults');
+  if (!results) return;
+  results.innerHTML = '<div style="text-align:center;padding:30px;color:var(--ink3)">搜索中...</div>';
+
+  var cl = sb();
+  var uid = await getUid();
+  if (!cl || !uid) { results.innerHTML = '<div style="text-align:center;padding:30px;color:var(--ink3)">未连接数据库</div>'; return; }
+
+  try {
+    // Search in moments: title, with_people
+    var res = await cl.from('moments')
+      .select('id,title,taken_at,lat,lng,with_people,photo_url,mood')
+      .eq('user_id', uid)
+      .or('title.ilike.%' + q + '%,with_people.ilike.%' + q + '%')
+      .order('taken_at', {ascending: false})
+      .limit(50);
+
+    var items = res.data || [];
+
+    // Also search locally cached
+    var local = (window._allMomentsCache || []).filter(function(m) {
+      var s = ((m.title||'') + (m.with_people||'') + (m.mood||'')).toLowerCase();
+      return s.includes(q.toLowerCase());
+    });
+    // Merge, deduplicate by id
+    var ids = new Set(items.map(function(m){ return m.id; }));
+    local.forEach(function(m){ if(!ids.has(m.id)) { items.push(m); ids.add(m.id); } });
+    items.sort(function(a,b){ return new Date(b.taken_at) - new Date(a.taken_at); });
+
+    if (!items.length) {
+      results.innerHTML = '<div style="text-align:center;padding:40px;color:var(--ink3)">没有找到相关记录</div>';
+      return;
+    }
+
+    var highlight = function(text, kw) {
+      if (!text) return '';
+      return esc(text).replace(new RegExp(esc(kw), 'gi'), function(m){ return '<mark style="background:#FFF3CD;border-radius:3px;padding:0 2px">'+m+'</mark>'; });
+    };
+
+    results.innerHTML = '<div style="font-size:11px;color:var(--ink3);margin-bottom:10px">找到 ' + items.length + ' 条记录</div>' +
+      items.map(function(m) {
+        var d = new Date(m.taken_at);
+        var dateStr = d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日 '+d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+        var hasGps = m.lat && m.lng;
+        var mid = esc(m.id);
+        return '<div onclick="openMomentById(&quot;'+mid+'&quot;)" style="background:var(--card);border-radius:14px;padding:13px 14px;margin-bottom:10px;cursor:pointer">' +
+          '<div style="font-size:10px;color:var(--ink3);margin-bottom:4px">' + dateStr + (hasGps ? ' &#128205;' : '') + '</div>' +
+          '<div style="font-size:14px;color:var(--ink);font-weight:500">' + highlight(m.title || '照片记录', q) + '</div>' +
+          (m.with_people ? '<div style="font-size:11px;color:var(--ink3);margin-top:3px">&#128101; ' + highlight(m.with_people, q) + '</div>' : '') +
+          (m.photo_url ? '<div style="font-size:10px;color:var(--ink3);margin-top:3px">&#128247; 含照片</div>' : '') +
+          '</div>';
+      }).join('');
+  } catch(e) {
+    results.innerHTML = '<div style="text-align:center;padding:30px;color:var(--ink3)">搜索失败</div>';
+  }
+}
+
+function openMomentById(id) {
+  var all = (window._allMomentsCache || []).concat(window._trajMomentsCache || []);
+  var m = all.filter(function(x){ return x.id === id; })[0];
+  if (m) {
+    _showDetailOverlay('&#128203; 记录详情', [m],
+      new Date(m.taken_at).toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'long'}));
+  } else {
+    // fetch from DB
+    sb().from('moments').select('*').eq('id', id).single().then(function(res) {
+      if (res.data) _showDetailOverlay('&#128203; 记录详情', [res.data],
+        new Date(res.data.taken_at).toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'long'}));
+    });
+  }
+}
+
+
+// ════ 四合一总结 Tab ════
+
+var _tab4Current = 'today';
+
+function switchTab4(tab) {
+  _tab4Current = tab;
+  // Update tab button styles
+  ['today','month','year','all'].forEach(function(t) {
+    var btn = document.getElementById('stab4-'+t);
+    if (!btn) return;
+    if (t === tab) {
+      btn.style.color = 'var(--blue2)';
+      btn.style.fontWeight = '700';
+      btn.style.borderBottom = '2px solid var(--blue2)';
+    } else {
+      btn.style.color = 'var(--ink3)';
+      btn.style.fontWeight = '600';
+      btn.style.borderBottom = '2px solid transparent';
+    }
+  });
+  // Show/hide panels
+  var todayPanel = document.getElementById('tab4-today');
+  var summaryPanel = document.getElementById('tab4-summary');
+  if (tab === 'today') {
+    if (todayPanel) todayPanel.style.display = 'block';
+    if (summaryPanel) summaryPanel.style.display = 'none';
+    buildDailySummary();
+  } else {
+    if (todayPanel) todayPanel.style.display = 'none';
+    if (summaryPanel) summaryPanel.style.display = 'block';
+    // Map tab4 name to old switchSummaryTab
+    var tabMap = {month:'month', year:'year', all:'all'};
+    var moments = tab === 'all' ? (_allYearsMomentsCache.length ? _allYearsMomentsCache : _allMomentsCache) : _allMomentsCache;
+    if (tab === 'all' && !_allYearsMomentsCache.length) {
+      loadAllYearsMoments();
+    } else {
+      renderSummary(moments, tabMap[tab] || 'month');
+    }
+  }
+}
+
+// Override switchSummaryTab to sync with tab4
+var _origSwitchSummaryTab = switchSummaryTab;
+switchSummaryTab = function(tab) {
+  _origSwitchSummaryTab.apply(this, arguments);
+  // Also sync tab4 UI
+  switchTab4(tab);
+};
+
+// Auto-load summary when moments loaded
+var _origRenderTimeline = renderTimeline;
+renderTimeline = function(moments) {
+  _origRenderTimeline.apply(this, arguments);
+  // Pre-render current tab's summary if not on today
+  if (_tab4Current !== 'today') {
+    try { renderSummary(moments, _tab4Current); } catch(e) {}
+  }
+};
 
 checkInviteParam();
 checkOAuthCallback();
