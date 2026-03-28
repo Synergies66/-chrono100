@@ -7600,12 +7600,69 @@ function dismissReunionCard() {
 }
 
 function shareReunionMoment(name) {
-  var text = '✨ Reunion Moment！\n我和 ' + name + ' 今天碰面了！📍\n记录于 CHRONO100 人生轨迹';
-  if (navigator.share) {
-    navigator.share({ title: 'Reunion Moment', text: text });
-  } else {
-    navigator.clipboard && navigator.clipboard.writeText(text).then(function(){ toast('📋 已复制分享文字'); });
-  }
+  // 显示分享选项弹窗，让用户主动选择
+  var ex = document.getElementById('reunionShareOv'); if(ex) ex.remove();
+  var ov = document.createElement('div');
+  ov.id = 'reunionShareOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9800;background:rgba(18,24,52,.55);display:flex;align-items:flex-end;justify-content:center';
+  var sheet = document.createElement('div');
+  sheet.style.cssText = 'width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:20px 18px 36px';
+  sheet.innerHTML =
+    '<div style="width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 16px"></div>' +
+    '<div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px">✨ 分享相遇记录</div>' +
+    '<div style="font-size:12px;color:var(--ink3);margin-bottom:20px">选择分享方式，相遇记录默认是私密的</div>' +
+    '<div style="display:flex;flex-direction:column;gap:10px">';
+  // Button: share to 朋友圈
+  var b1 = document.createElement('button');
+  b1.style.cssText = 'padding:14px;border-radius:14px;border:none;background:var(--blue2);color:#fff;font-size:14px;font-weight:600;cursor:pointer;-webkit-appearance:none;text-align:left;display:flex;align-items:center;gap:10px';
+  b1.innerHTML = '<span style="font-size:20px">👥</span><div><div>发布到家人朋友圈</div><div style="font-size:11px;opacity:.8;margin-top:2px">家人圈成员可以看到</div></div>';
+  b1.onclick = function() {
+    ov.remove();
+    postReunionToFeed(name);
+  };
+  // Button: share outside
+  var b2 = document.createElement('button');
+  b2.style.cssText = 'padding:14px;border-radius:14px;border:1.5px solid var(--border);background:transparent;color:var(--ink);font-size:14px;cursor:pointer;-webkit-appearance:none;text-align:left;display:flex;align-items:center;gap:10px';
+  b2.innerHTML = '<span style="font-size:20px">📤</span><div><div>分享到其他地方</div><div style="font-size:11px;color:var(--ink3);margin-top:2px">复制文字或系统分享</div></div>';
+  b2.onclick = function() {
+    ov.remove();
+    var text = '✨ Reunion Moment！我和 ' + name + ' 今天碰面了！📍记录于 CHRONO100';
+    if (navigator.share) {
+      navigator.share({ title: 'Reunion Moment', text: text });
+    } else {
+      navigator.clipboard && navigator.clipboard.writeText(text).then(function(){ toast('已复制分享文字'); });
+    }
+  };
+  // Button: cancel
+  var b3 = document.createElement('button');
+  b3.style.cssText = 'padding:13px;border-radius:14px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:14px;cursor:pointer;-webkit-appearance:none';
+  b3.textContent = '不分享，保持私密';
+  b3.onclick = function() { ov.remove(); };
+  sheet.querySelector('div:last-child').appendChild(b1);
+  sheet.querySelector('div:last-child').appendChild(b2);
+  sheet.querySelector('div:last-child').appendChild(b3);
+  ov.appendChild(sheet);
+  ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
+  document.body.appendChild(ov);
+}
+
+async function postReunionToFeed(name) {
+  var cl = sb(); if(!cl) { toast('连接失败'); return; }
+  var uid = await getUid();
+  try {
+    var metAt = new Date().toISOString();
+    var res = await cl.from('moments').insert({
+      user_id: uid,
+      title: '✨ Reunion · ' + name,
+      taken_at: metAt,
+      mood: '✨',
+      with_people: name,
+      visibility: 'all'  // 用户主动选择发布到朋友圈
+    });
+    if(res.error) { toast('发布失败'); return; }
+    toast('已发布到家人朋友圈');
+    setTimeout(function(){ try{ loadMomentsFromDB(); }catch(e){} }, 1000);
+  } catch(e) { toast('发布失败'); }
 }
 
 function showReunion() {
@@ -8359,41 +8416,69 @@ function openBindPhoneSheet() {
   sheet.style.cssText = 'width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:20px 18px 36px';
   var title = hasPhone ? '修改手机号' : '绑定手机号';
   var curVal = hasPhone ? currentPhone.textContent : '';
-  sheet.innerHTML =
+  // Step 1: phone input
+  var step1 = document.createElement('div');
+  step1.innerHTML =
     '<div style="width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 18px"></div>' +
     '<div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px">' + title + '</div>' +
     '<div style="font-size:12px;color:var(--ink3);margin-bottom:18px">绑定后可用手机号登录和找回密码</div>' +
-    (curVal ? '<div style="font-size:12px;color:var(--ink3);margin-bottom:10px">当前手机：' + curVal + '</div>' : '') +
-    '<div style="margin-bottom:12px">' +
-    '<div style="font-size:11px;font-weight:600;color:var(--ink2);margin-bottom:5px">手机号</div>' +
+    (curVal ? '<div style="font-size:12px;color:var(--blue2);margin-bottom:10px">当前：' + curVal + '</div>' : '') +
+    '<div style="margin-bottom:16px">' +
+    '<div style="font-size:11px;font-weight:600;color:var(--ink2);margin-bottom:5px">新手机号</div>' +
     '<div style="display:flex;gap:6px">' +
     '<select id="bindPhoneCC" style="width:90px;border:1.5px solid var(--border);border-radius:12px;padding:12px 6px;font-size:13px;background:var(--bg);color:var(--ink)">' +
     '<option value="+64">NZ +64</option><option value="+61">AU +61</option><option value="+86">CN +86</option><option value="+1">US +1</option><option value="+44">UK +44</option>' +
     '</select>' +
     '<input id="bindPhoneNum" type="tel" placeholder="手机号码" style="flex:1;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;background:var(--bg);color:var(--ink)">' +
     '</div></div>' +
-    '<div style="margin-bottom:20px" id="bindPhoneOtpRow" style="display:none">' +
-    '<div style="font-size:11px;font-weight:600;color:var(--ink2);margin-bottom:5px">验证码</div>' +
-    '<div style="display:flex;gap:8px">' +
-    '<input id="bindPhoneOtp" type="text" placeholder="6位验证码" maxlength="6" style="flex:1;padding:12px;border:1.5px solid var(--border);border-radius:12px;font-size:16px;letter-spacing:4px;background:var(--bg);color:var(--ink);text-align:center">' +
-    '</div></div>' +
     '<div style="display:flex;gap:10px">' +
-    '<button id="bindPhoneCancel" style="flex:1;padding:13px;border-radius:14px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:14px;cursor:pointer;-webkit-appearance:none">取消</button>' +
-    '<button id="bindPhoneSend" style="flex:1.5;padding:13px;border-radius:14px;border:none;background:var(--blue2);color:#fff;font-size:14px;font-weight:600;cursor:pointer;-webkit-appearance:none">发送验证码</button>' +
+    '<button id="bindPhoneCancelBtn" style="flex:1;padding:13px;border-radius:14px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:14px;cursor:pointer;-webkit-appearance:none">取消</button>' +
+    '<button id="bindPhoneSendBtn" style="flex:1.5;padding:13px;border-radius:14px;border:none;background:var(--blue2);color:#fff;font-size:14px;font-weight:600;cursor:pointer;-webkit-appearance:none">发送验证码</button>' +
     '</div>';
+  // Step 2: OTP input (hidden initially)
+  var step2 = document.createElement('div');
+  step2.id = 'bindPhoneStep2';
+  step2.style.display = 'none';
+  step2.innerHTML =
+    '<div style="width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 18px"></div>' +
+    '<div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px">输入验证码</div>' +
+    '<div style="font-size:12px;color:var(--ink3);margin-bottom:18px" id="bindPhoneHint">验证码已发送</div>' +
+    '<div style="margin-bottom:20px">' +
+    '<input id="bindPhoneOtp" type="text" placeholder="6位验证码" maxlength="6" style="width:100%;padding:16px;border:1.5px solid var(--border);border-radius:12px;font-size:22px;letter-spacing:8px;background:var(--bg);color:var(--ink);text-align:center;box-sizing:border-box">' +
+    '</div>' +
+    '<div style="display:flex;gap:10px">' +
+    '<button id="bindPhoneBackBtn" style="flex:1;padding:13px;border-radius:14px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:14px;cursor:pointer;-webkit-appearance:none">返回</button>' +
+    '<button id="bindPhoneConfirmBtn" style="flex:1.5;padding:13px;border-radius:14px;border:none;background:var(--blue2);color:#fff;font-size:14px;font-weight:600;cursor:pointer;-webkit-appearance:none">确认绑定</button>' +
+    '</div>';
+  sheet.appendChild(step1);
+  sheet.appendChild(step2);
   ov.appendChild(sheet);
   ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
   document.body.appendChild(ov);
-  sheet.querySelector('#bindPhoneCancel').onclick = function(){ ov.remove(); };
-  sheet.querySelector('#bindPhoneSend').onclick = function() {
-    var btn = sheet.querySelector('#bindPhoneSend');
-    var otpRow = sheet.querySelector('#bindPhoneOtpRow');
-    if (btn.textContent === '确认绑定') {
-      doVerifyBindPhone();
-    } else {
-      doSendBindOtp(btn, otpRow);
-    }
+
+  step1.querySelector('#bindPhoneCancelBtn').onclick = function(){ ov.remove(); };
+  step1.querySelector('#bindPhoneSendBtn').onclick = async function() {
+    var cc = document.getElementById('bindPhoneCC').value;
+    var num = (document.getElementById('bindPhoneNum').value||'').trim().replace(/ /g,'');
+    if(!num){ toast('请输入手机号'); return; }
+    var cl = sb(); if(!cl){ toast('连接失败'); return; }
+    this.textContent = '发送中...'; this.disabled = true;
+    try {
+      // Use updateUser to bind phone to existing account
+      var res = await cl.auth.updateUser({ phone: cc+num });
+      if(res.error){ toast('发送失败: '+res.error.message); this.textContent='发送验证码'; this.disabled=false; return; }
+      window._bindPhone = cc+num;
+      var hint = document.getElementById('bindPhoneHint');
+      if(hint) hint.textContent = '验证码已发送到 ' + cc + num;
+      step1.style.display = 'none';
+      step2.style.display = 'block';
+      toast('验证码已发送');
+    } catch(e){ toast('发送失败'); this.textContent='发送验证码'; this.disabled=false; }
   };
+  step2.querySelector('#bindPhoneBackBtn').onclick = function(){
+    step2.style.display='none'; step1.style.display='block';
+  };
+  step2.querySelector('#bindPhoneConfirmBtn').onclick = doVerifyBindPhone;
 }
 
 async function doSendBindOtp(btn, otpRow) {
@@ -8416,20 +8501,24 @@ async function doVerifyBindPhone() {
   var otp = (document.getElementById('bindPhoneOtp').value||'').trim();
   if(!otp||otp.length<6) { toast('请输入6位验证码'); return; }
   var cl = sb(); if(!cl) return;
-  toast('验证中...');
+  var btn = document.getElementById('bindPhoneConfirmBtn');
+  if(btn){ btn.textContent='验证中...'; btn.disabled=true; }
   try {
-    var res = await cl.auth.verifyOtp({ phone: window._bindPhone, token: otp, type: 'sms' });
-    if(res.error) { toast('验证码错误或已过期'); return; }
-    // Update phone in profile
+    var res = await cl.auth.verifyOtp({ phone: window._bindPhone, token: otp, type: 'phone_change' });
+    if(res.error) {
+      // fallback to sms type
+      res = await cl.auth.verifyOtp({ phone: window._bindPhone, token: otp, type: 'sms' });
+    }
+    if(res.error) { toast('验证码错误或已过期'); if(btn){btn.textContent='确认绑定';btn.disabled=false;} return; }
     var uid = await getUid();
     if(cl && uid) {
-      await cl.from('profiles').upsert({ id: uid, phone: window._bindPhone });
+      await cl.from('profiles').upsert({ id: uid, phone: window._bindPhone }, { onConflict: 'id' });
     }
-    toast('手机号绑定成功');
+    toast('手机号绑定成功 ✓');
     var ov = document.getElementById('bindPhoneOv'); if(ov) ov.remove();
     var el = document.getElementById('mePhone');
     if(el) el.textContent = window._bindPhone;
-  } catch(e) { toast('绑定失败'); }
+  } catch(e) { toast('绑定失败，请重试'); if(btn){btn.textContent='确认绑定';btn.disabled=false;} }
 }
 
 checkInviteParam();
