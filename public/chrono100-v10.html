@@ -276,10 +276,10 @@ button,input,textarea{font-family:inherit;-webkit-appearance:none;border:none;ou
 /* E2E notice */
 .cr-e2e{flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:4px;padding:5px;background:rgba(39,174,114,.05);border-top:1px solid rgba(39,174,114,.1);font-size:9px;color:var(--green);font-weight:500}
 /* Input bar */
-.cr-bar{flex-shrink:0;padding:8px 12px calc(8px + var(--sb));background:rgba(255,255,255,.97);border-top:1px solid var(--border);display:flex;gap:7px;align-items:flex-end}
+.cr-bar{flex-shrink:0;padding:8px 12px 10px;background:rgba(255,255,255,.97);border-top:1px solid var(--border);display:flex;gap:7px;align-items:flex-end}
 .cr-plus{width:34px;height:34px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;color:var(--ink3)}
 .cr-input-wrap{flex:1;background:var(--bg);border-radius:20px;display:flex;align-items:center;padding:8px 12px;gap:6px}
-.cr-input{flex:1;font-size:16px;color:var(--ink);resize:none;max-height:76px;background:transparent;font-family:inherit}
+.cr-input{flex:1;font-size:13px;color:var(--ink);resize:none;max-height:76px;background:transparent;font-family:inherit}
 .cr-input::placeholder{color:var(--ink4)}
 .cr-send{width:34px;height:34px;border-radius:50%;background:var(--blue2);color:#fff;font-size:14px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:transform .15s}
 .cr-send:active{transform:scale(.88)}
@@ -885,18 +885,7 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
           </div>
         </div>
 
-        <!-- Import row — inline compact -->
-        <div style="display:flex;gap:7px;margin-top:8px">
-          <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:10px;border-radius:12px;background:var(--blue2);color:#fff;font-size:12px;font-weight:600;cursor:pointer">
-            <span>📷</span><span data-i18n-key="importPhotos">导入照片</span>
-            <input type="file" accept="image/*" multiple style="display:none" onchange="importPhotos(this.files)">
-          </label>
-          <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:10px;border-radius:12px;background:var(--ink);color:#fff;font-size:12px;font-weight:600;cursor:pointer">
-            <span>📁</span><span data-i18n-key="importFolder">整个文件夹</span>
-            <input type="file" accept="image/*" multiple webkitdirectory style="display:none" onchange="importPhotos(this.files)">
-          </label>
-        </div>
-        <!-- 我的相册 -->
+        <!-- 我的相册 + 导入照片合并 -->
         <div style="background:var(--card);border-radius:16px;margin-top:8px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
           <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 14px">
             <div style="display:flex;align-items:center;gap:10px">
@@ -906,7 +895,8 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
             </div>
             <div style="display:flex;gap:8px;align-items:center">
               <label style="display:flex;align-items:center;gap:4px;padding:7px 14px;border-radius:20px;background:var(--blue2);color:#fff;font-size:12px;font-weight:600;cursor:pointer">
-                <span data-i18n-key="addPhoto">+ 添加照片</span><input type="file" accept="image/*" multiple style="display:none" onchange="importPhotosToAlbum(this.files)">
+                <span>📷</span><span data-i18n-key="importPhotos">导入照片</span>
+                <input type="file" accept="image/*" multiple style="display:none" onchange="importPhotos(this.files)">
               </label>
               <div onclick="openAlbum()" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);font-size:12px;color:var(--ink3);cursor:pointer;white-space:nowrap" data-i18n-key="viewAll">查看全部</div>
             </div>
@@ -949,13 +939,13 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
       <div style="margin:10px 16px 0;background:var(--card);border-radius:16px;box-shadow:0 1px 6px rgba(0,0,0,.06);overflow:hidden">
         <!-- Tab headers -->
         <div style="display:flex;border-bottom:1px solid var(--border)">
-          <button id="stab4-today" onclick="switchTab4('today')" style="flex:1;padding:10px 2px;font-size:11px;font-weight:700;color:var(--blue2);border:none;background:transparent;cursor:pointer;border-bottom:2px solid var(--blue2);font-family:inherit"><span data-i18n-key="tabToday">⭐ 今日</span></button>
-          <button id="stab4-month" onclick="switchTab4('month')" style="flex:1;padding:10px 2px;font-size:11px;font-weight:600;color:var(--ink3);border:none;background:transparent;cursor:pointer;border-bottom:2px solid transparent;font-family:inherit"><span data-i18n-key="tabMonth">📅 本月</span></button>
+          <button id="stab4-today" onclick="switchTab4('today')" style="display:none"><span data-i18n-key="tabToday">⭐ 今日</span></button>
+          <button id="stab4-month" onclick="switchTab4('month')" style="flex:1;padding:10px 2px;font-size:11px;font-weight:700;color:var(--blue2);border:none;background:transparent;cursor:pointer;border-bottom:2px solid var(--blue2);font-family:inherit"><span data-i18n-key="tabMonth">📅 本月总结</span></button>
           <button id="stab4-year" onclick="switchTab4('year')" style="flex:1;padding:10px 2px;font-size:11px;font-weight:600;color:var(--ink3);border:none;background:transparent;cursor:pointer;border-bottom:2px solid transparent;font-family:inherit"><span data-i18n-key="tabYear">📆 年度</span></button>
           <button id="stab4-all" onclick="switchTab4('all')" style="flex:1;padding:10px 2px;font-size:11px;font-weight:600;color:var(--ink3);border:none;background:transparent;cursor:pointer;border-bottom:2px solid transparent;font-family:inherit"><span data-i18n-key="tabAll">🗺 全部</span></button>
         </div>
         <!-- 今日总结 panel -->
-        <div id="tab4-today" style="padding:12px 14px 14px">
+        <div id="tab4-today" style="display:none">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
             <div style="font-size:12px;font-weight:700;color:var(--ink)" id="dailySummaryDate"></div>
   
@@ -965,7 +955,7 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
           <div id="dailySummaryInsight" style="margin-top:10px;padding:8px 12px;background:var(--bg);border-radius:10px;font-size:11px;color:var(--ink3);display:none"></div>
         </div>
         <!-- 本月/年度/全部 panel -->
-        <div id="tab4-summary" style="display:none">
+        <div id="tab4-summary">
           <div id="summaryBodyContent" style="padding:0 14px 14px">
             <div style="text-align:center;padding:14px;color:var(--ink3);font-size:12px">加载中…</div>
           </div>
@@ -1000,9 +990,9 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
           <div class="safety-title" data-i18n-key="safetyTitle">🛡 家人守护</div>
           <div class="safety-sub" data-i18n-key="safetyOnline">今天 · 家人都在线</div>
           <div class="safety-stats">
-            <div class="stat-pill" onclick="gotoPage('chat')" style="cursor:pointer"><div class="stat-num" id="circleOnline">—</div><div class="stat-lbl">家人</div></div>
-            <div class="stat-pill" onclick="gotoPage('chat')" style="cursor:pointer"><div class="stat-num" id="circleMsg">—</div><div class="stat-lbl" data-i18n-key="statMessages">本月消息</div></div>
-            <div class="stat-pill" onclick="gotoPage('life')" style="cursor:pointer"><div class="stat-num" id="circlePhotos">—</div><div class="stat-lbl" data-i18n-key="statPhotos">本月记录</div></div>
+            <div class="stat-pill"><div class="stat-num" id="circleOnline">—</div><div class="stat-lbl">家人</div></div>
+            <div class="stat-pill" onclick="showTodayLocations()" style="cursor:pointer"><div style="font-size:20px">📍</div><div class="stat-lbl">今日定位</div></div>
+            <div class="stat-pill" onclick="showHistoryLocations()" style="cursor:pointer"><div style="font-size:20px">🗓</div><div class="stat-lbl">历史定位</div></div>
           </div>
         </div>
       </div>
@@ -1011,7 +1001,7 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
 
       <!-- Safety map (Leaflet — real family locations) -->
       <div id="safetyLeafletMap"></div>
-      <div class="safety-map-badge" id="safetyMapBadge" style="position:relative;margin:6px auto;width:fit-content;transform:none;background:rgba(39,174,114,.12);color:var(--green);border-radius:99px;padding:4px 14px;font-size:10px;font-weight:600;display:flex;align-items:center;gap:4px">
+      <div class="safety-map-badge" id="safetyMapBadge" style="position:relative;margin:6px 0 6px 14px;width:fit-content;transform:none;background:rgba(39,174,114,.12);color:var(--green);border-radius:99px;padding:4px 14px;font-size:10px;font-weight:600;display:flex;align-items:center;gap:4px">
         <span style="width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;animation:pulse 2s infinite;display:inline-block"></span>
         <span id="safetyMapLabel">正在加载位置…</span>
       </div>
@@ -1099,7 +1089,7 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
         <div id="meAccountBadge" style="display:none;margin-top:4px;padding:4px 14px;background:var(--blue-lt);border-radius:20px;font-size:11px;color:var(--blue2);font-weight:600" data-i18n-key="loggedIn">✅ 已登录账号</div>
         <button class="me-edit-btn" onclick="openEditProfile()" data-i18n-key="editProfile">编辑个人资料</button>
         <!-- Real stats row -->
-        <div class="me-stats" id="meStatsRow">
+        <div class="me-stats" id="meStatsRow" style="display:none">
           <div class="me-stat"><div class="me-stat-num" id="statMoments">—</div><div class="me-stat-lbl">记录</div></div>
           <div class="me-stat"><div class="me-stat-num" id="statMessages">—</div><div class="me-stat-lbl">消息</div></div>
           <div class="me-stat"><div class="me-stat-num" id="statCircle">—</div><div class="me-stat-lbl">家人</div></div>
@@ -1299,8 +1289,8 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
       <div class="cr-name" id="crName">Mom</div>
       <div class="cr-status" id="crStatus" style="color:var(--green)">● 在线</div>
     </div>
-    <div class="cr-call-btn" style="background:var(--blue-lt);border-radius:50%;display:none" onclick="startVoiceCall()">📞</div>
-    <div class="cr-call-btn" style="background:#E3F5EE;border-radius:50%;margin-left:6px;display:none" onclick="startVideoCall()">📹</div>
+    <div class="cr-call-btn" style="background:var(--blue-lt);border-radius:50%" onclick="startVoiceCall()">📞</div>
+    <div class="cr-call-btn" style="background:#E3F5EE;border-radius:50%;margin-left:6px" onclick="startVideoCall()">📹</div>
   </div>
   <div class="cr-messages" id="crMessages"></div>
   
@@ -1911,6 +1901,7 @@ var I18N = {
     recordsCount:' 个记录',
     startImportHint:'导入照片开始记录',
     yearRecords:'年记录（共 ',
+    yearRecordsEnd:' 条）',
     noRecordPeriod:'暂无记录',
     noMoments:'还没有动态',
     noMsgsChat:'还没有消息，发送第一条吧 👋',
@@ -2112,7 +2103,7 @@ var I18N = {
     delete2:'删除',
     noPwd:'旧版加密消息',
     lifeJourney2:'人生轨迹',
-    justNow:'justNow',
+    justNow:'刚刚',
     notSharing:'notSharing',
     visAll:'visAll',
     visFam:'visFam',
@@ -2164,6 +2155,7 @@ var I18N = {
     recordsCount:' records',
     startImportHint:'Import photos to start',
     yearRecords:' Records (',
+    yearRecordsEnd:' records)',
     noRecordPeriod:'No records',
     noMoments:'No moments yet',
     noMsgsChat:'No messages yet. Say hello 👋',
@@ -2409,6 +2401,7 @@ var I18N = {
     recordsCount:' 個記錄',
     startImportHint:'匯入照片開始記錄',
     yearRecords:'年記錄（共 ',
+    yearRecordsEnd:' 條）',
     noRecordPeriod:'暫無記錄',
     noMoments:'還沒有動態',
     noMsgsChat:'還沒有訊息，發送第一條吧 👋',
@@ -2663,6 +2656,7 @@ var I18N = {
     recordsCount:' 件',
     startImportHint:'写真をインポートして開始',
     yearRecords:'年の記録（全 ',
+    yearRecordsEnd:' 件）',
     noRecordPeriod:'記録なし',
     noMoments:'モーメントがありません',
     noMsgsChat:'メッセージがありません。最初のメッセージを送りましょう 👋',
@@ -2917,6 +2911,7 @@ var I18N = {
     recordsCount:' 개',
     startImportHint:'사진을 가져와서 시작하세요',
     yearRecords:'년 기록 (총 ',
+    yearRecordsEnd:' 개)',
     noRecordPeriod:'기록 없음',
     noMoments:'모멘트가 없어요',
     noMsgsChat:'메시지가 없어요. 첫 메시지를 보내세요 👋',
@@ -3171,6 +3166,7 @@ var I18N = {
     recordsCount:' registros',
     startImportHint:'Importa fotos para comenzar',
     yearRecords:' Registros (',
+    yearRecordsEnd:' registros)',
     noRecordPeriod:'Sin registros',
     noMoments:'Sin momentos aún',
     noMsgsChat:'Sin mensajes aún. Di hola 👋',
@@ -4474,14 +4470,6 @@ function subscribeRoom(roomId) {
         }
       }
       if (m.sender_id === myUid) return;
-
-      // 来电检测
-      var isCallMsg = plainContent && (plainContent.includes('邀请你语音通话') || plainContent.includes('邀请你视频通话'));
-      if (isCallMsg && !document.getElementById('callScreen').style.display.includes('flex')) {
-        var isVideo = plainContent.includes('视频通话');
-        showIncomingCall(m.sender_name || '家人', isVideo, roomId);
-        return;
-      }
       var box = document.getElementById('crMessages');
       if (!box) return;
       if (!chatRoomOpen) return;
@@ -5199,7 +5187,7 @@ function buildMomentsFeed() {
         + imgHtml
         + '<div class="moment-foot"><div class="moment-action" onclick="likeMoment(\'' + m.id + '\',this)">♡ ' + m.likes + '</div>'
         + '<div class="moment-action" onclick="commentMoment(\'' + m.id + '\')">💬 ' + m.cmts + '</div>'
-        + '<div class="moment-action" style="margin-left:auto" onclick="shareMoment(\'' + m.id + '\',\'' + esc(m.txt||m.title||'') + '\')" >↗ '+t('shareLabel')+'</div></div></div>';
+        + '<div class="moment-action" style="margin-left:auto" onclick="shareMoment(\'' + m.id + '\',\'' + esc(m.txt||m.title||'') + '\')">↗ '+t('shareLabel')+'</div></div></div>';
     }).join('');
 }
 
@@ -5339,7 +5327,6 @@ async function commentMoment(id) {
     if(!text){toast('请输入评论内容');return;}
     ov.remove();
     var cl=sb(); if(!cl){toast('连接失败');return;}
-    var uid=await getUid(); if(!uid)return;
     try{
       await cl.from('moments').update({cmts:1}).eq('id',id);
       toast('💬 评论已发送');
@@ -6652,10 +6639,7 @@ async function loadRealCircle_impl() {
     var el = document.getElementById('circleOnline');
     if (el) el.textContent = circles.length;
     var monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0,0,0,0);
-    var mc = await client.from('messages').select('id',{count:'exact',head:true}).gte('created_at',monthStart.toISOString());
-    var pe = document.getElementById('circleMsg'); if (pe) pe.textContent = (mc.count||0);
-    var pc = await client.from('moments').select('id',{count:'exact',head:true}).eq('user_id',uid).gte('taken_at',monthStart.toISOString());
-    var ph = document.getElementById('circlePhotos'); if (ph) ph.textContent = (pc.count||0);
+
 
     if (!circles.length) { showEmptyCircle(); initSafetyMap(null, [], {}); return; }
 
@@ -6709,7 +6693,7 @@ async function loadRealCircle_impl() {
           + '</div>'
           + '<div style="flex:1;cursor:pointer" onclick="openContactOptions(\''+c.member_id+'\',\''+esc(name)+'\')">'
           + '<div style="display:flex;align-items:center;gap:6px"><div class="member-name">'+esc(name)+'</div>'+relTag+'</div>'
-          + '<div class="member-status">'+(isOnline ? '📍 '+esc(timeAgo) : t('notSharing'))+'</div>'
+          + '<div class="member-status" style="cursor:pointer;color:var(--blue2)" id="mstat_'+c.member_id.slice(0,8)+'">'+(isOnline ? '📍 '+esc(timeAgo)+' →' : '📍 查看最后位置 →')+'</div>'
           + batHtml+'</div>'
           // Per-contact share toggle
           + '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0">'
@@ -6726,6 +6710,15 @@ async function loadRealCircle_impl() {
         + '</div>';
 
       list.innerHTML = html;
+      // Attach location detail click handlers
+      circles.forEach(function(c) {
+        var el = document.getElementById('mstat_' + c.member_id.slice(0,8));
+        if (el) {
+          var prof = profiles[c.member_id] || {};
+          var nm = c.nickname || prof.display_name || '联系人';
+          (function(mid, name){ el.onclick = function(){ showLocationDetail(mid, name); }; })(c.member_id, nm);
+        }
+      });
     }
 
     initSafetyMap(myLoc, circles, locs, profiles);
@@ -7076,6 +7069,125 @@ function buildSummary(msgs, photos) {
   card.style.display = 'block';
 }
 
+
+async function showLocationDetail(memberId, name) {
+  var cl = sb(); if(!cl) { toast('连接失败'); return; }
+  var ex = document.getElementById('locDetailOv'); if(ex) ex.remove();
+  var ov = document.createElement('div');
+  ov.id = 'locDetailOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9800;background:rgba(18,24,52,.4);display:flex;align-items:flex-end;justify-content:center';
+  try {
+    var res = await cl.from('user_locations').select('*').eq('user_id', memberId).maybeSingle();
+    var loc = res && res.data;
+    var sheet = document.createElement('div');
+    sheet.style.cssText = 'width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:20px 18px 40px';
+    var timeStr = loc ? fmtAgo(loc.updated_at) : '暂无记录';
+    var latStr = loc && loc.lat ? Number(loc.lat).toFixed(5) : '—';
+    var lngStr = loc && loc.lng ? Number(loc.lng).toFixed(5) : '—';
+    var batStr = (loc && loc.battery != null) ? loc.battery + '%' : '—';
+    var isOnline = loc && (Date.now() - new Date(loc.updated_at).getTime()) < 30*60*1000;
+    var mapsUrl = loc ? 'https://maps.google.com/?q=' + loc.lat + ',' + loc.lng : null;
+    var btnEl = document.createElement('a');
+    if (mapsUrl) {
+      btnEl.href = mapsUrl; btnEl.target = '_blank';
+      btnEl.style.cssText = 'display:block;text-align:center;padding:13px;border-radius:14px;background:var(--blue2);color:#fff;font-size:14px;font-weight:700;text-decoration:none;margin-bottom:8px';
+      btnEl.textContent = '📍 在 Google Maps 中查看';
+    }
+    var closeBtn = document.createElement('button');
+    closeBtn.style.cssText = 'width:100%;padding:13px;border-radius:14px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:14px;cursor:pointer';
+    closeBtn.textContent = '关闭';
+    closeBtn.onclick = function(){ ov.remove(); };
+    sheet.innerHTML = '<div style="width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 16px"></div>'
+      + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">'
+      + '<div style="font-size:32px">😊</div>'
+      + '<div><div style="font-size:17px;font-weight:700;color:var(--ink)">' + (name||'家人') + '</div>'
+      + '<div style="font-size:12px;color:' + (isOnline ? 'var(--green)' : 'var(--ink3)') + '">● ' + (isOnline ? '最近在线' : '离线') + '</div></div></div>'
+      + '<div style="background:var(--bg);border-radius:14px;padding:14px;margin-bottom:12px">'
+      + '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-size:13px;color:var(--ink3)">📍 最后位置更新</span><span style="font-size:13px;font-weight:600;color:var(--ink)">' + timeStr + '</span></div>'
+      + '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-size:13px;color:var(--ink3)">🌐 坐标</span><span style="font-size:12px;color:var(--ink2)">' + latStr + ', ' + lngStr + '</span></div>'
+      + '<div style="display:flex;justify-content:space-between;padding:8px 0"><span style="font-size:13px;color:var(--ink3)">🔋 电量</span><span style="font-size:13px;font-weight:600;color:var(--' + (loc&&loc.battery<25?'red':'green') + ')">' + batStr + '</span></div>'
+      + '</div>';
+    if (mapsUrl) sheet.appendChild(btnEl);
+    sheet.appendChild(closeBtn);
+    ov.appendChild(sheet);
+    ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
+    document.body.appendChild(ov);
+  } catch(e) { toast('加载失败'); }
+}
+
+
+async function showTodayLocations() {
+  var cl = sb(); if(!cl) { toast('连接失败'); return; }
+  var uid = await getUid(); if(!uid) return;
+  var ex = document.getElementById('locListOv'); if(ex) ex.remove();
+  var ov = document.createElement('div');
+  ov.id = 'locListOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9800;background:rgba(18,24,52,.4);display:flex;align-items:flex-end;justify-content:center';
+  var sheet = document.createElement('div');
+  sheet.style.cssText = 'width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:20px 18px 40px;max-height:80vh;overflow-y:auto';
+  try {
+    var today = new Date(); today.setHours(0,0,0,0);
+    var res = await cl.from('user_locations').select('*').eq('user_id',uid).gte('updated_at',today.toISOString()).order('updated_at',{ascending:false}).limit(50);
+    var rows = res.data || [];
+    var inner = rows.length ? rows.map(function(r){
+      var d = new Date(r.updated_at);
+      var ts = d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+      var mapUrl = 'https://maps.google.com/?q='+r.lat+','+r.lng;
+      return '<div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">'
+        +'<div><div style="font-size:13px;font-weight:600;color:var(--ink)">📍 '+ts+'</div>'
+        +'<div style="font-size:11px;color:var(--ink3)">'+Number(r.lat).toFixed(4)+', '+Number(r.lng).toFixed(4)+(r.battery!=null?' · 🔋'+r.battery+'%':'')+'</div></div>'
+        +'<a href="'+mapUrl+'" target="_blank" style="font-size:11px;color:var(--blue2);font-weight:600;text-decoration:none;padding:4px 10px;border:1px solid var(--blue2);border-radius:99px">地图</a></div>';
+    }).join('') : '<div style="text-align:center;padding:20px;color:var(--ink3);font-size:13px">今日暂无定位记录</div>';
+    sheet.innerHTML = '<div style="width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 14px"></div>'
+      +'<div style="font-size:16px;font-weight:700;color:var(--ink);margin-bottom:4px">📍 今日定位记录</div>'
+      +'<div style="font-size:11px;color:var(--ink3);margin-bottom:14px">共 '+rows.length+' 条</div>'
+      + inner;
+    var btn = document.createElement('button');
+    btn.style.cssText = 'width:100%;padding:12px;border-radius:12px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:14px;cursor:pointer;margin-top:14px';
+    btn.textContent = '关闭'; btn.onclick = function(){ ov.remove(); };
+    sheet.appendChild(btn);
+  } catch(e) { sheet.innerHTML = '<div style="padding:20px;color:var(--red)">加载失败: '+e+'</div>'; }
+  ov.appendChild(sheet);
+  ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
+  document.body.appendChild(ov);
+}
+
+async function showHistoryLocations() {
+  var cl = sb(); if(!cl) { toast('连接失败'); return; }
+  var uid = await getUid(); if(!uid) return;
+  var ex = document.getElementById('locListOv'); if(ex) ex.remove();
+  var ov = document.createElement('div');
+  ov.id = 'locListOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9800;background:rgba(18,24,52,.4);display:flex;align-items:flex-end;justify-content:center';
+  var sheet = document.createElement('div');
+  sheet.style.cssText = 'width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:20px 18px 40px;max-height:80vh;overflow-y:auto';
+  try {
+    var twoMonthsAgo = new Date(); twoMonthsAgo.setMonth(twoMonthsAgo.getMonth()-2);
+    var res = await cl.from('user_locations').select('*').eq('user_id',uid).gte('updated_at',twoMonthsAgo.toISOString()).order('updated_at',{ascending:false}).limit(200);
+    var rows = res.data || [];
+    var inner = rows.length ? rows.map(function(r){
+      var d = new Date(r.updated_at);
+      var dateStr = d.toLocaleDateString('zh-CN',{month:'numeric',day:'numeric'}) + ' ' + d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+      var mapUrl = 'https://maps.google.com/?q='+r.lat+','+r.lng;
+      return '<div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">'
+        +'<div><div style="font-size:13px;font-weight:600;color:var(--ink)">📍 '+dateStr+'</div>'
+        +'<div style="font-size:11px;color:var(--ink3)">'+Number(r.lat).toFixed(4)+', '+Number(r.lng).toFixed(4)+(r.battery!=null?' · 🔋'+r.battery+'%':'')+'</div></div>'
+        +'<a href="'+mapUrl+'" target="_blank" style="font-size:11px;color:var(--blue2);font-weight:600;text-decoration:none;padding:4px 10px;border:1px solid var(--blue2);border-radius:99px">地图</a></div>';
+    }).join('') : '<div style="text-align:center;padding:20px;color:var(--ink3);font-size:13px">暂无历史定位记录</div>';
+    sheet.innerHTML = '<div style="width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 14px"></div>'
+      +'<div style="font-size:16px;font-weight:700;color:var(--ink);margin-bottom:4px">🗓 历史定位记录</div>'
+      +'<div style="font-size:11px;color:var(--ink3);margin-bottom:14px">近2个月，共 '+rows.length+' 条</div>'
+      + inner;
+    var btn = document.createElement('button');
+    btn.style.cssText = 'width:100%;padding:12px;border-radius:12px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:14px;cursor:pointer;margin-top:14px';
+    btn.textContent = '关闭'; btn.onclick = function(){ ov.remove(); };
+    sheet.appendChild(btn);
+  } catch(e) { sheet.innerHTML = '<div style="padding:20px;color:var(--red)">加载失败: '+e+'</div>'; }
+  ov.appendChild(sheet);
+  ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
+  document.body.appendChild(ov);
+}
+
 function openContactOptions(memberId, name) {
   var ov = document.createElement('div');
   ov.style.cssText = 'position:fixed;inset:0;z-index:9000;background:rgba(18,24,52,.5);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)';
@@ -7372,103 +7484,10 @@ function getRoomName(n) {
 function startVoiceCall() { startCall('voice'); }
 function startVideoCall() { startCall('video'); }
 
-function showIncomingCall(callerName, isVideo, roomId) {
-  var ex = document.getElementById('incomingCallOv'); if(ex) ex.remove();
-  var ov = document.createElement('div');
-  ov.id = 'incomingCallOv';
-  ov.style.cssText = 'position:fixed;inset:0;z-index:9900;background:rgba(10,20,40,.92);display:flex;flex-direction:column;align-items:center;justify-content:center';
-  ov.innerHTML = '<div style="font-size:60px;margin-bottom:16px">😊</div>'
-    + '<div style="font-size:24px;font-weight:700;color:#fff;margin-bottom:8px">' + callerName + '</div>'
-    + '<div style="font-size:15px;color:rgba(255,255,255,.6);margin-bottom:48px">' + (isVideo ? '📹 视频通话邀请' : '📞 语音通话邀请') + '</div>'
-    + '<div style="display:flex;gap:48px">'
-    + '<div style="text-align:center;cursor:pointer" id="icDecline">'
-    + '<div style="width:64px;height:64px;border-radius:50%;background:#e53935;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 8px">📵</div>'
-    + '<div style="color:rgba(255,255,255,.7);font-size:13px">拒绝</div></div>'
-    + '<div style="text-align:center;cursor:pointer" id="icAccept">'
-    + '<div style="width:64px;height:64px;border-radius:50%;background:#27ae72;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 8px">📞</div>'
-    + '<div style="color:rgba(255,255,255,.7);font-size:13px">接听</div></div>'
-    + '</div>';
-  document.body.appendChild(ov);
-
-  // 振动提示
-  if (navigator.vibrate) navigator.vibrate([400,200,400,200,400]);
-
-  document.getElementById('icDecline').onclick = function() { ov.remove(); };
-  document.getElementById('icAccept').onclick = function() {
-    ov.remove();
-    // 找到对应的聊天并加入通话
-    var type = isVideo ? 'video' : 'voice';
-    // 直接用roomId加入Agora频道
-    _joinCallAsCallee(callerName, type, roomId);
-  };
-
-  // 30秒后自动消失
-  setTimeout(function(){ var o=document.getElementById('incomingCallOv'); if(o) o.remove(); }, 30000);
-}
-
-async function _joinCallAsCallee(callerName, type, roomId) {
-  _agoraCallType = type;
-  document.getElementById('callScreenAv').textContent = '😊';
-  document.getElementById('callScreenName').textContent = callerName;
-  document.getElementById('callScreenStatus').textContent = type === 'voice' ? '🎤 语音通话中' : '📹 视频通话中';
-  document.getElementById('callAvBig').textContent = '😊';
-  document.getElementById('callNameBig').textContent = callerName;
-  document.getElementById('callConnecting').style.display = 'none';
-  document.getElementById('callScreen').style.display = 'flex';
-  callStartTime = Date.now();
-
-  if (!window.AgoraRTC) {
-    await new Promise(function(resolve, reject) {
-      var s = document.createElement('script');
-      s.src = 'https://download.agora.io/sdk/release/AgoraRTC_N-4.21.0.js';
-      s.onload = resolve; s.onerror = reject;
-      document.head.appendChild(s);
-    });
-  }
-
-  try {
-    var myUid = await getUid();
-    var channel = roomId.replace(/[^a-zA-Z0-9_-]/g,'').slice(0,64);
-    _agoraClient = AgoraRTC.createClient({ mode:'rtc', codec:'vp8' });
-    _agoraMuted = false; _agoraCamOff = (type==='voice');
-
-    _agoraClient.on('user-published', async function(user, mediaType) {
-      await _agoraClient.subscribe(user, mediaType);
-      if (mediaType==='video') { var rc=document.getElementById('agoraRemoteContainer'); user.videoTrack.play(rc); }
-      if (mediaType==='audio') { user.audioTrack.play(); }
-    });
-    _agoraClient.on('user-left', function() { setTimeout(endCall, 2000); });
-
-    await _agoraClient.join(AGORA_APP_ID, channel, null, myUid.slice(0,8).replace(/-/g,'').slice(0,6)+Math.floor(Math.random()*9000+1000));
-    _agoraLocal.audio = await AgoraRTC.createMicrophoneAudioTrack();
-    var toPublish = [_agoraLocal.audio];
-    if (type==='video') {
-      try {
-        _agoraLocal.video = await AgoraRTC.createCameraVideoTrack({encoderConfig:'360p_7'});
-        _agoraLocal.video.play(document.getElementById('agoraLocalContainer'));
-        toPublish.push(_agoraLocal.video);
-      } catch(e) {}
-    }
-    await _agoraClient.publish(toPublish);
-  } catch(err) {
-    toast('❌ 接听失败：' + (err.message||err));
-    endCall();
-  }
-}
-
 async function startCall(type) {
   _agoraCallType = type;
   var c = CHATS[activeChatIdx] || { n:'家人', e:'😊', memberId: null };
   var myUid = await getUid();
-
-  // 先请求麦克风权限（必须在用户手势内）
-  try {
-    var testStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-    testStream.getTracks().forEach(function(t){ t.stop(); });
-  } catch(permErr) {
-    toast('❌ 请先在 Safari 设置中允许麦克风权限');
-    return;
-  }
 
   // 生成频道名（双方用同一房间ID）
   var channel = buildDirectRoomId(myUid, c.memberId) || getRoomName(c.n);
@@ -7489,18 +7508,13 @@ async function startCall(type) {
   try {
     var _cc = sb();
     var cm = type === 'voice' ? '📞' : '📹';
-    var callTypeStr = type === 'voice' ? '语音通话' : '视频通话';
     if (_cc && c.memberId) {
       await _cc.from('messages').insert({
         room_id: currentRoomId || channel,
         sender_id: myUid, sender_name: userName || '家人',
-        content: cm + ' ' + (userName || '家人') + ' 邀请你' + callTypeStr + '，请打开 CHRONO100 接听',
+        content: cm + ' ' + (userName || '家人') + ' 发起了' + (type === 'voice' ? '语音' : '视频') + '通话，点击接听',
         created_at: new Date().toISOString()
       });
-      // 发推送通知给对方
-      try {
-        sendPushToUser(c.memberId, cm + ' ' + (userName||'家人') + ' 邀请你' + callTypeStr, '点击接听').catch(function(){});
-      } catch(e) {}
     }
   } catch(e) {}
 
@@ -10771,6 +10785,17 @@ function buildDailySummary() {
     if (photoTotal) insights.push(photoTotal + ' 张照片');
     if (insights.length) {
       insightEl.innerHTML = '&#128218; ' + insights.join(' · ') + ' · <span style="color:var(--blue2);cursor:pointer" onclick="exportLifePDF()">生成人生档案</span>';
+      // Also add to month summary panel
+      var sumBtn = document.getElementById('lifePDFBtn');
+      if (!sumBtn) {
+        var btn = document.createElement('div');
+        btn.id = 'lifePDFBtn';
+        btn.style.cssText = 'margin:10px 14px;padding:12px 14px;background:var(--blue-lt);border-radius:12px;cursor:pointer;display:flex;align-items:center;gap:8px';
+        btn.innerHTML = '<span style="font-size:18px">📄</span><div><div style="font-size:13px;font-weight:600;color:var(--blue2)">生成人生档案</div><div style="font-size:11px;color:var(--ink3)">生成PDF证明文件</div></div>';
+        btn.onclick = exportLifePDF;
+        var sc = document.getElementById('summaryBodyContent');
+        if (sc) sc.appendChild(btn);
+      }
       insightEl.style.display = 'block';
     }
   }
@@ -11942,7 +11967,9 @@ switchSummaryTab = function(tab) {
   _origSwitchSummaryTab.apply(this, arguments);
   // Also sync tab4 UI
   switchTab4(tab);
-};
+}
+// Default to month tab
+try { switchTab4('month'); } catch(e) {};
 
 // Auto-load summary when moments loaded
 var _origRenderTimeline = renderTimeline;
@@ -11985,26 +12012,6 @@ window.addEventListener('DOMContentLoaded', function() {
   if (loginEl) loginEl.style.display = 'flex';
   if (appEl) appEl.style.display = 'none';
 });
-
-// iOS keyboard handler
-(function(){
-  if(!window.visualViewport)return;
-  function onVP(){
-    var bar=document.getElementById('crBar');
-    var msgs=document.getElementById('crMessages');
-    var room=document.getElementById('chatRoom');
-    if(!bar||!room||!room.classList.contains('open'))return;
-    var kb=window.innerHeight-window.visualViewport.height;
-    if(kb>50){bar.style.transform='translateY(-'+kb+'px)';if(msgs)msgs.style.marginBottom=kb+'px';}
-    else{bar.style.transform='';if(msgs)msgs.style.marginBottom='';}
-  }
-  window.visualViewport.addEventListener('resize',onVP);
-  window.visualViewport.addEventListener('scroll',onVP);
-  document.addEventListener('focusout',function(){
-    var bar=document.getElementById('crBar');var msgs=document.getElementById('crMessages');
-    if(bar)bar.style.transform='';if(msgs)msgs.style.marginBottom='';
-  });
-})();
 </script>
 
 <!-- Agora RTC SDK loaded dynamically on call start -->
