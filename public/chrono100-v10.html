@@ -1299,8 +1299,8 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
       <div class="cr-name" id="crName">Mom</div>
       <div class="cr-status" id="crStatus" style="color:var(--green)">● 在线</div>
     </div>
-    <div class="cr-call-btn" style="background:var(--blue-lt);border-radius:50%" onclick="startVoiceCall()">📞</div>
-    <div class="cr-call-btn" style="background:#E3F5EE;border-radius:50%;margin-left:6px" onclick="startVideoCall()">📹</div>
+    <div class="cr-call-btn" style="background:var(--blue-lt);border-radius:50%;display:none" onclick="startVoiceCall()">📞</div>
+    <div class="cr-call-btn" style="background:#E3F5EE;border-radius:50%;margin-left:6px;display:none" onclick="startVideoCall()">📹</div>
   </div>
   <div class="cr-messages" id="crMessages"></div>
   
@@ -4474,6 +4474,14 @@ function subscribeRoom(roomId) {
         }
       }
       if (m.sender_id === myUid) return;
+
+      // 来电检测
+      var isCallMsg = plainContent && (plainContent.includes('邀请你语音通话') || plainContent.includes('邀请你视频通话'));
+      if (isCallMsg && !document.getElementById('callScreen').style.display.includes('flex')) {
+        var isVideo = plainContent.includes('视频通话');
+        showIncomingCall(m.sender_name || '家人', isVideo, roomId);
+        return;
+      }
       var box = document.getElementById('crMessages');
       if (!box) return;
       if (!chatRoomOpen) return;
@@ -7364,10 +7372,103 @@ function getRoomName(n) {
 function startVoiceCall() { startCall('voice'); }
 function startVideoCall() { startCall('video'); }
 
+function showIncomingCall(callerName, isVideo, roomId) {
+  var ex = document.getElementById('incomingCallOv'); if(ex) ex.remove();
+  var ov = document.createElement('div');
+  ov.id = 'incomingCallOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9900;background:rgba(10,20,40,.92);display:flex;flex-direction:column;align-items:center;justify-content:center';
+  ov.innerHTML = '<div style="font-size:60px;margin-bottom:16px">😊</div>'
+    + '<div style="font-size:24px;font-weight:700;color:#fff;margin-bottom:8px">' + callerName + '</div>'
+    + '<div style="font-size:15px;color:rgba(255,255,255,.6);margin-bottom:48px">' + (isVideo ? '📹 视频通话邀请' : '📞 语音通话邀请') + '</div>'
+    + '<div style="display:flex;gap:48px">'
+    + '<div style="text-align:center;cursor:pointer" id="icDecline">'
+    + '<div style="width:64px;height:64px;border-radius:50%;background:#e53935;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 8px">📵</div>'
+    + '<div style="color:rgba(255,255,255,.7);font-size:13px">拒绝</div></div>'
+    + '<div style="text-align:center;cursor:pointer" id="icAccept">'
+    + '<div style="width:64px;height:64px;border-radius:50%;background:#27ae72;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 8px">📞</div>'
+    + '<div style="color:rgba(255,255,255,.7);font-size:13px">接听</div></div>'
+    + '</div>';
+  document.body.appendChild(ov);
+
+  // 振动提示
+  if (navigator.vibrate) navigator.vibrate([400,200,400,200,400]);
+
+  document.getElementById('icDecline').onclick = function() { ov.remove(); };
+  document.getElementById('icAccept').onclick = function() {
+    ov.remove();
+    // 找到对应的聊天并加入通话
+    var type = isVideo ? 'video' : 'voice';
+    // 直接用roomId加入Agora频道
+    _joinCallAsCallee(callerName, type, roomId);
+  };
+
+  // 30秒后自动消失
+  setTimeout(function(){ var o=document.getElementById('incomingCallOv'); if(o) o.remove(); }, 30000);
+}
+
+async function _joinCallAsCallee(callerName, type, roomId) {
+  _agoraCallType = type;
+  document.getElementById('callScreenAv').textContent = '😊';
+  document.getElementById('callScreenName').textContent = callerName;
+  document.getElementById('callScreenStatus').textContent = type === 'voice' ? '🎤 语音通话中' : '📹 视频通话中';
+  document.getElementById('callAvBig').textContent = '😊';
+  document.getElementById('callNameBig').textContent = callerName;
+  document.getElementById('callConnecting').style.display = 'none';
+  document.getElementById('callScreen').style.display = 'flex';
+  callStartTime = Date.now();
+
+  if (!window.AgoraRTC) {
+    await new Promise(function(resolve, reject) {
+      var s = document.createElement('script');
+      s.src = 'https://download.agora.io/sdk/release/AgoraRTC_N-4.21.0.js';
+      s.onload = resolve; s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+
+  try {
+    var myUid = await getUid();
+    var channel = roomId.replace(/[^a-zA-Z0-9_-]/g,'').slice(0,64);
+    _agoraClient = AgoraRTC.createClient({ mode:'rtc', codec:'vp8' });
+    _agoraMuted = false; _agoraCamOff = (type==='voice');
+
+    _agoraClient.on('user-published', async function(user, mediaType) {
+      await _agoraClient.subscribe(user, mediaType);
+      if (mediaType==='video') { var rc=document.getElementById('agoraRemoteContainer'); user.videoTrack.play(rc); }
+      if (mediaType==='audio') { user.audioTrack.play(); }
+    });
+    _agoraClient.on('user-left', function() { setTimeout(endCall, 2000); });
+
+    await _agoraClient.join(AGORA_APP_ID, channel, null, myUid.slice(0,8).replace(/-/g,'').slice(0,6)+Math.floor(Math.random()*9000+1000));
+    _agoraLocal.audio = await AgoraRTC.createMicrophoneAudioTrack();
+    var toPublish = [_agoraLocal.audio];
+    if (type==='video') {
+      try {
+        _agoraLocal.video = await AgoraRTC.createCameraVideoTrack({encoderConfig:'360p_7'});
+        _agoraLocal.video.play(document.getElementById('agoraLocalContainer'));
+        toPublish.push(_agoraLocal.video);
+      } catch(e) {}
+    }
+    await _agoraClient.publish(toPublish);
+  } catch(err) {
+    toast('❌ 接听失败：' + (err.message||err));
+    endCall();
+  }
+}
+
 async function startCall(type) {
   _agoraCallType = type;
   var c = CHATS[activeChatIdx] || { n:'家人', e:'😊', memberId: null };
   var myUid = await getUid();
+
+  // 先请求麦克风权限（必须在用户手势内）
+  try {
+    var testStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    testStream.getTracks().forEach(function(t){ t.stop(); });
+  } catch(permErr) {
+    toast('❌ 请先在 Safari 设置中允许麦克风权限');
+    return;
+  }
 
   // 生成频道名（双方用同一房间ID）
   var channel = buildDirectRoomId(myUid, c.memberId) || getRoomName(c.n);
@@ -7388,13 +7489,18 @@ async function startCall(type) {
   try {
     var _cc = sb();
     var cm = type === 'voice' ? '📞' : '📹';
+    var callTypeStr = type === 'voice' ? '语音通话' : '视频通话';
     if (_cc && c.memberId) {
       await _cc.from('messages').insert({
         room_id: currentRoomId || channel,
         sender_id: myUid, sender_name: userName || '家人',
-        content: cm + ' ' + (userName || '家人') + ' 发起了' + (type === 'voice' ? '语音' : '视频') + '通话，点击接听',
+        content: cm + ' ' + (userName || '家人') + ' 邀请你' + callTypeStr + '，请打开 CHRONO100 接听',
         created_at: new Date().toISOString()
       });
+      // 发推送通知给对方
+      try {
+        sendPushToUser(c.memberId, cm + ' ' + (userName||'家人') + ' 邀请你' + callTypeStr, '点击接听').catch(function(){});
+      } catch(e) {}
     }
   } catch(e) {}
 
