@@ -1704,6 +1704,9 @@ function sb() {
   return _sbClient;
 }
 
+// 立即初始化 Supabase，确保 onAuthStateChange 在 INITIAL_SESSION 前注册
+(function() { try { sb(); } catch(e) {} })();
+
 // Initialize Supabase immediately so it can handle the OAuth callback URL
 window.addEventListener('DOMContentLoaded', function() {
   // Apply saved language
@@ -3811,6 +3814,7 @@ async function enterApp() {
   updateUI();
   buildChatList();
   buildGrandpaBattery();
+  showFirstRunIfNeeded();
   setTimeout(function() {
     try { loadTodayActivity(); } catch(e) {}
     try { loadMomentsFromDB(); } catch(e) {}
@@ -11754,36 +11758,9 @@ window.addEventListener('DOMContentLoaded', function() {
   var loginEl = document.getElementById('login');
   var appEl = document.getElementById('app');
 
-  // 如果有保存的昵称，直接进入App（已废弃，由enforceLoginWall接管）
-  var savedName = localStorage.getItem('c100_name');
-  if (false && savedName && savedName !== '用户') {
-    userName = savedName;
-    if (loginEl) loginEl.style.display = 'none';
-    if (appEl) appEl.style.display = 'flex';
-    updateUI();
-    buildChatList();
-    showFirstRunIfNeeded();
-    setTimeout(function() {
-      try { loadTodayActivity(); } catch(ex) {}
-      try { loadMomentsFromDB(); } catch(ex) {}
-      try { registerInviteCode(); } catch(ex) {}
-      try { cacheUidForInvite(); } catch(ex) {}
-      try { restoreProfileFromDB(); } catch(ex) {}
-    }, 500);
-  } else {
-    // 没有昵称 — 显示登录页，但也检查是否有Google session
-    if (loginEl) loginEl.style.display = 'none'; // 仍然直接进入
-    if (appEl) appEl.style.display = 'flex';
-    updateUI();
-    buildChatList();
-    showFirstRunIfNeeded();
-    setTimeout(function() {
-      try { loadTodayActivity(); } catch(ex) {}
-      try { loadMomentsFromDB(); } catch(ex) {}
-      try { registerInviteCode(); } catch(ex) {}
-      try { cacheUidForInvite(); } catch(ex) {}
-    }, 500);
-  }
+  // 默认显示登录页，由 enforceLoginWall 决定是否进入App
+  if (loginEl) loginEl.style.display = 'flex';
+  if (appEl) appEl.style.display = 'none';
 });
 </script>
 
