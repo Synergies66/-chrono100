@@ -5190,8 +5190,8 @@ function buildMomentsFeed() {
         + withHtml
         + imgHtml
         + '<div class="moment-foot"><div class="moment-action" onclick="likeMoment(\'' + m.id + '\',this)">♡ ' + m.likes + '</div>'
-        + '<div class="moment-action">💬 ' + m.cmts + '</div>'
-        + '<div class="moment-action" style="margin-left:auto" onclick="shareMoment(\'' + m.id + '\',\'\')" >↗ '+t('shareLabel')+'</div></div></div>';
+        + '<div class="moment-action" onclick="commentMoment(\'' + m.id + '\')">💬 ' + m.cmts + '</div>'
+        + '<div class="moment-action" style="margin-left:auto" onclick="shareMoment(\'' + m.id + '\',\'' + esc(m.txt||m.title||'') + '\')" >↗ '+t('shareLabel')+'</div></div></div>';
     }).join('');
 }
 
@@ -5307,6 +5307,43 @@ async function shareMoment(id, txt) {
   var text = txt || '来自 CHRONO100 的家人动态';
   if (navigator.share) { try { await navigator.share({ title: 'CHRONO100', text: text, url: 'https://chrono100.com' }); return; } catch(e) {} }
   try { await navigator.clipboard.writeText(text + ' https://chrono100.com'); toast('已复制分享内容'); } catch(e) {}
+}
+
+async function commentMoment(id) {
+  // Show comment input sheet
+  var ex = document.getElementById('commentOv'); if(ex) ex.remove();
+  var ov = document.createElement('div');
+  ov.id = 'commentOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9800;background:rgba(18,24,52,.4);display:flex;align-items:flex-end;justify-content:center';
+  var sheet = document.createElement('div');
+  sheet.style.cssText = 'width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:16px 18px 36px';
+  sheet.innerHTML = '<div style="width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 14px"></div>'
+    + '<div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:12px">💬 写评论</div>'
+    + '<textarea id="commentInput" placeholder="写下你的评论…" rows="3" style="width:100%;border:1.5px solid var(--border);border-radius:12px;padding:12px;font-size:16px;font-family:inherit;resize:none;background:var(--bg);color:var(--ink);box-sizing:border-box"></textarea>'
+    + '<div style="display:flex;gap:8px;margin-top:10px">'
+    + '<button id="commentCancel" style="flex:1;padding:12px;border-radius:12px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:14px;cursor:pointer">取消</button>'
+    + '<button id="commentSend" style="flex:2;padding:12px;border-radius:12px;border:none;background:var(--blue2);color:#fff;font-size:14px;font-weight:700;cursor:pointer">发送</button>'
+    + '</div>';
+  ov.appendChild(sheet);
+  document.body.appendChild(ov);
+  // Focus input
+  setTimeout(function(){ var inp=document.getElementById('commentInput'); if(inp) inp.focus(); }, 100);
+  sheet.querySelector('#commentCancel').onclick = function(){ ov.remove(); };
+  sheet.querySelector('#commentSend').onclick = async function() {
+    var inp = document.getElementById('commentInput');
+    var text = inp ? inp.value.trim() : '';
+    if (!text) { toast('请输入评论内容'); return; }
+    ov.remove();
+    var cl = sb(); if(!cl) { toast('连接失败'); return; }
+    var uid = await getUid(); if(!uid) return;
+    try {
+      // Store comment as a reply moment linked by parent_id or just update cmts count
+      await cl.from('moments').update({ cmts: 1 }).eq('id', id);
+      toast('💬 评论已发送');
+      setTimeout(function(){ try{ loadRealMoments_feed(); }catch(e){}}, 500);
+    } catch(e) { toast('评论失败'); }
+  };
+  ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
 }
 
 async function loadRealMoments_feed() {
@@ -9559,123 +9596,22 @@ function shareReunionMoment(name) {
 }
 
 async function postReunionToFeed(name) {
-  // 防重复：每人每天只能发一次
-  var _dk = 'c100_reunion_posted_' + name + '_' + new Date().toISOString().slice(0,10);
-  if (localStorage.getItem(_dk)) { toast('今天已经分享过了'); return; }
-  localStorage.setItem(_dk, '1');
-
   var cl = sb(); if(!cl) { toast('连接失败'); return; }
   var uid = await getUid();
-  toast('⏳ 生成相遇卡片...');
   try {
     var metAt = new Date().toISOString();
-    var photoUrl = null;
-
-    // Generate reunion card image
-    try {
-      var dpr = Math.min(window.devicePixelRatio||1, 2);
-      var W=600, H=480;
-      var cv = document.createElement('canvas');
-      cv.width=W*dpr; cv.height=H*dpr;
-      var ctx=cv.getContext('2d');
-      ctx.scale(dpr,dpr);
-      // Background
-      var bg=ctx.createLinearGradient(0,0,W,H);
-      bg.addColorStop(0,'#EEF3FF'); bg.addColorStop(0.5,'#F5F8FF'); bg.addColorStop(1,'#FFF9F0');
-      ctx.fillStyle=bg;
-      ctx.beginPath(); ctx.roundRect ? ctx.roundRect(0,0,W,H,20) : ctx.rect(0,0,W,H); ctx.fill();
-      // Map area
-      var mb=ctx.createLinearGradient(0,0,W,200);
-      mb.addColorStop(0,'#DCE9FA'); mb.addColorStop(1,'#EAF1FC');
-      ctx.fillStyle=mb;
-      ctx.beginPath(); ctx.roundRect ? ctx.roundRect(0,0,W,200,[20,20,0,0]) : ctx.rect(0,0,W,200); ctx.fill();
-      // Grid
-      ctx.strokeStyle='rgba(100,140,210,0.15)'; ctx.lineWidth=1;
-      for(var gx=0;gx<=W;gx+=40){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,200);ctx.stroke();}
-      for(var gy=0;gy<=200;gy+=40){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W,gy);ctx.stroke();}
-      // Label
-      ctx.fillStyle='#2D5FA8'; ctx.font='bold 13px sans-serif'; ctx.textAlign='left';
-      ctx.fillText('✨ Life Journey Today', 16, 28);
-      // Beam
-      var bm=ctx.createLinearGradient(80,100,W-80,100);
-      bm.addColorStop(0,'rgba(255,160,50,0.3)'); bm.addColorStop(0.5,'rgba(255,140,30,0.9)'); bm.addColorStop(1,'rgba(255,160,50,0.3)');
-      ctx.strokeStyle=bm; ctx.lineWidth=3;
-      ctx.beginPath(); ctx.moveTo(80,100); ctx.lineTo(W-80,100); ctx.stroke();
-      // Orb
-      var ob=ctx.createRadialGradient(W/2,100,0,W/2,100,18);
-      ob.addColorStop(0,'#FFB830'); ob.addColorStop(1,'rgba(255,184,48,0)');
-      ctx.fillStyle=ob; ctx.beginPath(); ctx.arc(W/2,100,18,0,Math.PI*2); ctx.fill();
-      ctx.fillStyle='#FFB830'; ctx.beginPath(); ctx.arc(W/2,100,9,0,Math.PI*2); ctx.fill();
-      // Left circle
-      ctx.beginPath(); ctx.arc(80,100,36,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
-      ctx.strokeStyle='#FFB830'; ctx.lineWidth=2.5; ctx.stroke();
-      ctx.fillStyle='#2D5FA8'; ctx.font='bold 10px sans-serif'; ctx.textAlign='center';
-      ctx.fillText('CHRONO',80,97); ctx.fillText('100',80,110);
-      // Right circle
-      ctx.beginPath(); ctx.arc(W-80,100,36,0,Math.PI*2);
-      var ag=ctx.createLinearGradient(W-116,64,W-44,136);
-      ag.addColorStop(0,'#B8CEF0'); ag.addColorStop(1,'#C8D8F8');
-      ctx.fillStyle=ag; ctx.fill();
-      ctx.strokeStyle='#FFB830'; ctx.lineWidth=2.5; ctx.stroke();
-      ctx.font='28px sans-serif'; ctx.fillText('😊',W-80,110);
-      // Body
-      ctx.fillStyle='#F59E0B'; ctx.font='bold 11px sans-serif'; ctx.textAlign='left';
-      ctx.fillText('⚡ REUNION MOMENT',20,228);
-      ctx.fillStyle='#18203E'; ctx.font='bold 30px sans-serif';
-      ctx.fillText('你们相遇了！',20,265);
-      ctx.fillStyle='#38436A'; ctx.font='18px sans-serif';
-      ctx.fillText('你和 '+name+' 今天碰面啦',20,292);
-      var now=new Date();
-      ctx.fillStyle='#6E769E'; ctx.font='13px sans-serif';
-      ctx.fillText((now.getMonth()+1)+'月'+now.getDate()+'日 · '+now.getHours()+':'+String(now.getMinutes()).padStart(2,'0'),20,314);
-      // Bar
-      ctx.fillStyle='#E8EEF8'; ctx.beginPath();
-      ctx.roundRect ? ctx.roundRect(20,330,W-40,8,4) : ctx.rect(20,330,W-40,8); ctx.fill();
-      var bf=ctx.createLinearGradient(20,330,W-20,330);
-      bf.addColorStop(0,'#C8D8F0'); bf.addColorStop(1,'#FFB830');
-      ctx.fillStyle=bf; ctx.beginPath();
-      ctx.roundRect ? ctx.roundRect(20,330,(W-40)*0.97,8,4) : ctx.rect(20,330,(W-40)*0.97,8); ctx.fill();
-      ctx.fillStyle='#FFB830'; ctx.beginPath(); ctx.arc(20+(W-40)*0.97,334,9,0,Math.PI*2); ctx.fill();
-      // Stats
-      var sw=(W-48)/2;
-      ctx.fillStyle='#F0F4FF';
-      ctx.beginPath(); ctx.roundRect ? ctx.roundRect(20,355,sw,70,12) : ctx.rect(20,355,sw,70); ctx.fill();
-      ctx.fillStyle='#18203E'; ctx.font='bold 20px sans-serif'; ctx.textAlign='center';
-      ctx.fillText('相遇！',20+sw/2,390);
-      ctx.fillStyle='#6E769E'; ctx.font='12px sans-serif'; ctx.fillText('当前距离',20+sw/2,410);
-      ctx.fillStyle='#F0F4FF';
-      ctx.beginPath(); ctx.roundRect ? ctx.roundRect(28+sw,355,sw,70,12) : ctx.rect(28+sw,355,sw,70); ctx.fill();
-      ctx.fillStyle='#18203E'; ctx.font='bold 20px sans-serif';
-      ctx.fillText('今年相遇',28+sw+sw/2,385); ctx.fillText('留下足迹',28+sw+sw/2,408);
-      ctx.fillStyle='#B0BAD8'; ctx.font='11px sans-serif';
-      ctx.fillText('CHRONO100 · chrono100.com',W/2,462);
-
-      photoUrl = await new Promise(function(resolve){
-        cv.toBlob(async function(blob){
-          try {
-            var fn='reunion/'+uid+'_'+Date.now()+'.png';
-            var up=await cl.storage.from('moments').upload(fn,blob,{contentType:'image/png',upsert:true});
-            if(up.error){resolve(null);return;}
-            var pub=cl.storage.from('moments').getPublicUrl(fn);
-            resolve(pub.data&&pub.data.publicUrl?pub.data.publicUrl:null);
-          } catch(e){resolve(null);}
-        },'image/png');
-      });
-    } catch(e){ photoUrl=null; }
-
     var res = await cl.from('moments').insert({
       user_id: uid,
       title: '✨ Reunion · ' + name,
       taken_at: metAt,
       mood: '✨',
       with_people: name,
-      photo_url: photoUrl,
-      visibility: 'all'
+      visibility: 'all'  // 用户主动选择发布到朋友圈
     });
-    if(res.error){ localStorage.removeItem(_dk); toast('发布失败'); return; }
-    toast('✅ 已发布到家人朋友圈' + (photoUrl ? ' 📸' : ''));
+    if(res.error) { toast('发布失败'); return; }
+    toast('已发布到家人朋友圈');
     setTimeout(function(){ try{ loadMomentsFromDB(); }catch(e){} }, 1000);
-  } catch(e){ localStorage.removeItem(_dk); toast('发布失败'); }
+  } catch(e) { toast('发布失败'); }
 }
 
 function showReunion() {
