@@ -416,6 +416,9 @@ input,textarea,select{font-size:16px !important}
 @keyframes scanLine{0%{top:0}50%{top:calc(100% - 2px)}100%{top:0}}
 
 /* ─── CHAT TABS ─── */
+/* 聊天页：顶部固定，内容区独立滚动 */
+#page-chat{overflow:hidden !important;display:flex !important;flex-direction:column !important}
+.chat-page-fixed{flex-shrink:0}
 .chat-tab{flex:1;padding:11px 0;font-size:14px;font-weight:500;color:var(--ink3);cursor:pointer;border:none;background:transparent;font-family:inherit;border-bottom:2.5px solid transparent;transition:all .15s}
 .chat-tab.on{color:var(--blue);font-weight:700;border-bottom-color:var(--blue)}
 
@@ -1036,28 +1039,28 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
 
     <!-- ██ CHAT PAGE ██ -->
     <div class="page right" id="page-chat">
-      <!-- Search -->
-      <div style="padding:9px 14px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
+      <!-- Search — 固定顶部 -->
+      <div class="chat-page-fixed" style="padding:9px 14px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
         <div style="flex:1;display:flex;align-items:center;gap:7px;background:var(--bg);border-radius:11px;padding:8px 12px">
           <span style="font-size:13px;color:var(--ink3)">🔍</span>
           <span style="font-size:12px;color:var(--ink3)">搜索消息…</span>
         </div>
         <div style="width:34px;height:34px;border-radius:50%;background:var(--blue2);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;flex-shrink:0" onclick="chatPlusBtn()" title="添加">＋</div>
       </div>
-      <!-- Tabs: 私信 / 朋友圈 -->
-      <div style="display:flex;background:var(--card);border-bottom:1px solid var(--border)">
+      <!-- Tabs: 私信 / 朋友圈 — 固定顶部 -->
+      <div class="chat-page-fixed" style="display:flex;background:var(--card);border-bottom:1px solid var(--border)">
         <button class="chat-tab on" id="ctab-dm" onclick="switchChatTab('dm')" data-i18n-key="tabDM">私信</button>
         <button class="chat-tab" id="ctab-moments" onclick="switchChatTab('moments')" data-i18n-key="tabMoments">朋友圈</button>
       </div>
-      <!-- DM list -->
-      <div id="chat-panel-dm" style="overflow-y:auto;flex:1">
+      <!-- DM list — 独立滚动 -->
+      <div id="chat-panel-dm" style="overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0">
         
         <div class="section-title" style="padding-top:10px" data-i18n-key="privateSpace">私密空间</div>
         <div class="chat-list" id="chatList"></div>
         <div class="pb"></div>
       </div>
-      <!-- Moments feed -->
-      <div id="chat-panel-moments" style="display:none;overflow-y:auto;flex:1">
+      <!-- Moments feed — 独立滚动 -->
+      <div id="chat-panel-moments" style="display:none;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0">
         <div id="momentsFeed"></div>
         <div class="pb"></div>
       </div>
