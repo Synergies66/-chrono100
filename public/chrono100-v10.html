@@ -86,7 +86,7 @@ button,input,textarea{font-family:inherit;-webkit-appearance:none;border:none;ou
 .pb{height:calc(62px + var(--sb) + 8px)}
 
 /* Bottom tabs */
-.bottom-tabs{flex-shrink:0;height:calc(60px + var(--sb));padding-bottom:var(--sb);background:var(--card);border-top:1px solid var(--border);display:flex;z-index:100}
+.bottom-tabs{flex-shrink:0;height:calc(68px + var(--sb));padding-bottom:calc(var(--sb) + 4px);background:var(--card);border-top:1px solid var(--border);display:flex;z-index:100}
 .tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding-top:6px;cursor:pointer;border:none;background:transparent;position:relative}
 .tab-btn:active{opacity:.5}
 .tab-icon{font-size:22px;transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
@@ -12431,7 +12431,7 @@ create policy "all_access" on reunions
         <label style="font-size:11px;font-weight:600;color:var(--ink2);display:block;margin-bottom:6px">Anthropic API Key</label>
         <div style="position:relative">
           <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-..." maxlength="200"
-            style="width:100%;padding:12px 44px 12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:13px;font-family:monospace;background:var(--bg);color:var(--ink);box-sizing:border-box"
+            style="width:100%;padding:12px 44px 12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:16px;font-family:monospace;background:var(--bg);color:var(--ink);box-sizing:border-box"
             oninput="onApiKeyInput(this)">
           <div onclick="toggleApiKeyVisible()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:16px;cursor:pointer;color:var(--ink3)" id="apiKeyEye">👁</div>
         </div>
