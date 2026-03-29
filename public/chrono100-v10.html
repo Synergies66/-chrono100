@@ -2014,6 +2014,11 @@ var I18N = {
     folderLabel:'文件夹',
     startDate:'开始日期',
     endDate:'结束日期',
+    voiceMsg:'语音消息',
+    photoMsg:'图片',
+    fileMsg:'文件',
+    voiceCallMsg:'语音通话',
+    videoCallMsg:'视频通话',
     sending2:'发送中…',
     verifying2:'验证中…',
     signingIn:'登录中…',
@@ -2262,6 +2267,11 @@ var I18N = {
     folderLabel:'Folders',
     startDate:'Start Date',
     endDate:'End Date',
+    voiceMsg:'Voice message',
+    photoMsg:'Photo',
+    fileMsg:'File',
+    voiceCallMsg:'Voice call',
+    videoCallMsg:'Video call',
     sending2:'Sending…',
     verifying2:'Verifying…',
     signingIn:'Signing in…',
@@ -2491,6 +2501,11 @@ var I18N = {
     folderLabel:'文件夾',
     startDate:'開始日期',
     endDate:'結束日期',
+    voiceMsg:'語音消息',
+    photoMsg:'圖片',
+    fileMsg:'文件',
+    voiceCallMsg:'語音通話',
+    videoCallMsg:'視訊通話',
     sending2:'發送中…',
     verifying2:'驗證中…',
     signingIn:'登入中…',
@@ -2761,6 +2776,11 @@ var I18N = {
     folderLabel:'フォルダ',
     startDate:'開始日',
     endDate:'終了日',
+    voiceMsg:'音声メッセージ',
+    photoMsg:'写真',
+    fileMsg:'ファイル',
+    voiceCallMsg:'音声通話',
+    videoCallMsg:'ビデオ通話',
     sending2:'送信中…',
     verifying2:'確認中…',
     signingIn:'ログイン中…',
@@ -3010,6 +3030,11 @@ var I18N = {
     folderLabel:'폴더',
     startDate:'시작일',
     endDate:'종료일',
+    voiceMsg:'음성 메시지',
+    photoMsg:'사진',
+    fileMsg:'파일',
+    voiceCallMsg:'음성 통화',
+    videoCallMsg:'영상 통화',
     sending2:'전송 중…',
     verifying2:'확인 중…',
     signingIn:'로그인 중…',
@@ -3259,6 +3284,11 @@ var I18N = {
     folderLabel:'Carpetas',
     startDate:'Fecha inicio',
     endDate:'Fecha fin',
+    voiceMsg:'Mensaje de voz',
+    photoMsg:'Foto',
+    fileMsg:'Archivo',
+    voiceCallMsg:'Llamada de voz',
+    videoCallMsg:'Videollamada',
     sending2:'Enviando…',
     verifying2:'Verificando…',
     signingIn:'Iniciando…',
@@ -4534,8 +4564,8 @@ async function sendMessage() {
     // 推送通知给对方
     var c2 = CHATS[activeChatIdx];
     if (c2 && c2.memberId) {
-      var preview = txt.length > 30 ? txt.slice(0,30)+'…' : txt;
-      sendPushToUser(c2.memberId, (userName||'家人') + ' 发来消息', preview).catch(function(){});
+      var preview = txt.length > 40 ? txt.slice(0,40)+'…' : txt;
+      sendPushToUser(c2.memberId, userName||'家人', preview).catch(function(){});
     }
   }
 }
@@ -4860,6 +4890,11 @@ async function _voiceUpload() {
       });
     }
     toast('✅ 语音已发送');
+    // 推送通知给对方
+    var c3 = CHATS[activeChatIdx];
+    if (c3 && c3.memberId) {
+      sendPushToUser(c3.memberId, userName||'家人', '🎤 发来一条语音').catch(function(){});
+    }
   } catch(err) {
     toast('❌ 发送失败');
     console.error('voice upload error:', err);
