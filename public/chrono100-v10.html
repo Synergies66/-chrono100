@@ -39,7 +39,6 @@
 }
 html,body{height:100%;overflow:hidden;background:var(--bg);-webkit-font-smoothing:antialiased;font-family:'DM Sans',sans-serif;color:var(--ink);font-size:15px}
 button,input,textarea{font-family:inherit;-webkit-appearance:none;border:none;outline:none;background:transparent}
-input,textarea,select{font-size:16px !important}
 /* iOS Safari zoom prevention: font-size must be ≥16px on all inputs */
 input,textarea,select{font-size:16px !important}
 ::-webkit-scrollbar{display:none}
@@ -1408,59 +1407,59 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
 
     <!-- 发生了什么 -->
     <div class="form-field">
-      <label class="form-label">发生了什么？</label>
-      <input class="form-input" type="text" placeholder="例如：今天去公园散步了" id="eventTitle">
+      <label class="form-label" data-i18n-key="whatHappened">发生了什么？</label>
+      <input class="form-input" type="text" data-i18n-placeholder="evTitlePh" placeholder="例如：今天去公园散步了" id="eventTitle">
     </div>
 
     <!-- 心情 -->
     <div class="form-field">
-      <label class="form-label">心情</label>
+      <label class="form-label" data-i18n-key="moodLabel">心情</label>
       <div style="display:flex;gap:8px;flex-wrap:wrap" id="moodPicker">
-        <div class="role-chip" data-mood="😊" onclick="pickMood(this)">😊 开心</div>
-        <div class="role-chip" data-mood="❤️" onclick="pickMood(this)">❤️ 感动</div>
-        <div class="role-chip" data-mood="😌" onclick="pickMood(this)">😌 平静</div>
-        <div class="role-chip" data-mood="😔" onclick="pickMood(this)">😔 失落</div>
-        <div class="role-chip" data-mood="😤" onclick="pickMood(this)">😤 烦躁</div>
-        <div class="role-chip" data-mood="🥰" onclick="pickMood(this)">🥰 幸福</div>
-        <div class="role-chip" data-mood="😴" onclick="pickMood(this)">😴 疲惫</div>
-        <div class="role-chip" data-mood="🎉" onclick="pickMood(this)">🎉 庆祝</div>
+        <div class="role-chip" data-mood="😊" onclick="pickMood(this)" data-i18n-key="moodHappy">😊 开心</div>
+        <div class="role-chip" data-mood="❤️" onclick="pickMood(this)" data-i18n-key="moodMoved">❤️ 感动</div>
+        <div class="role-chip" data-mood="😌" onclick="pickMood(this)" data-i18n-key="moodCalm">😌 平静</div>
+        <div class="role-chip" data-mood="😔" onclick="pickMood(this)" data-i18n-key="moodSad">😔 失落</div>
+        <div class="role-chip" data-mood="😤" onclick="pickMood(this)" data-i18n-key="moodAngry">😤 烦躁</div>
+        <div class="role-chip" data-mood="🥰" onclick="pickMood(this)" data-i18n-key="moodBlessed">🥰 幸福</div>
+        <div class="role-chip" data-mood="😴" onclick="pickMood(this)" data-i18n-key="moodTired">😴 疲惫</div>
+        <div class="role-chip" data-mood="🎉" onclick="pickMood(this)" data-i18n-key="moodCelebrate">🎉 庆祝</div>
       </div>
     </div>
 
     <!-- 照片 — 拍照自动存相册，同时填入记录 -->
     <div style="padding:0 18px;margin-bottom:12px">
-      <label class="form-label">照片（可选）</label>
+      <label class="form-label" data-i18n-key="photoLabel">照片（可选）</label>
       <div style="display:flex;gap:8px;margin-bottom:8px">
         <!-- 系统相机：iOS/Android 自动存相册，同时传给 App -->
         <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:11px;border-radius:12px;background:var(--blue2);color:#fff;font-size:13px;font-weight:600;cursor:pointer">
-          📷 拍照存相册
+          <span data-i18n-key="takePhoto">📷 拍照存相册</span>
           <input type="file" accept="image/*" capture="environment" id="evCameraInput" style="display:none" onchange="if(this.files&&this.files[0]){previewEvPhotos(this.files);showSaveToAlbumHint(this.files[0]);}">
         </label>
         <!-- 从相册选已有照片 -->
         <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:11px;border-radius:12px;background:var(--bg);color:var(--ink);font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border)">
-          🖼 从相册选
+          <span data-i18n-key="fromGallery">🖼 从相册选</span>
           <input type="file" accept="image/*" multiple id="evGalleryInput" style="display:none" onchange="previewEvPhotos(this.files)">
         </label>
       </div>
       <!-- 说明文字 -->
-      <div style="font-size:10px;color:var(--ink3);padding:0 2px">📌 拍照后系统自动保存到手机相册，无需手动存两次</div>
+      <div style="font-size:10px;color:var(--ink3);padding:0 2px" data-i18n-key="photoHint">📌 拍照后系统自动保存到手机相册，无需手动存两次</div>
       <!-- 预览缩略图 -->
       <div class="ev-photo-strip" id="evPhotoStrip" style="display:none;margin-top:8px"></div>
     </div>
 
     <!-- 跟谁在一起 -->
     <div class="form-field">
-      <label class="form-label">跟谁在一起？（可选）</label>
-      <input class="form-input" type="text" placeholder="例如：妈妈、小明、全家人" id="eventWith" maxlength="50">
+      <label class="form-label" data-i18n-key="withWhom">跟谁在一起？（可选）</label>
+      <input class="form-input" type="text" data-i18n-placeholder="evWithPh" placeholder="例如：妈妈、小明、全家人" id="eventWith" maxlength="50">
     </div>
 
     <!-- 时间 -->
     <div class="form-field">
-      <label class="form-label">时间</label>
+      <label class="form-label" data-i18n-key="timeLabel">时间</label>
       <div style="display:flex;gap:7px;margin-bottom:8px" id="eventDateChips">
-        <div class="role-chip on" id="chip-today" onclick="pickEventDate('today',this)">今天</div>
-        <div class="role-chip" id="chip-yesterday" onclick="pickEventDate('yesterday',this)">昨天</div>
-        <div class="role-chip" id="chip-custom" onclick="pickEventDate('custom',this)">📅 选择日期（含历史）</div>
+        <div class="role-chip on" id="chip-today" onclick="pickEventDate('today',this)" data-i18n-key="chipToday">今天</div>
+        <div class="role-chip" id="chip-yesterday" onclick="pickEventDate('yesterday',this)" data-i18n-key="chipYesterday">昨天</div>
+        <div class="role-chip" id="chip-custom" onclick="pickEventDate('custom',this)" data-i18n-key="chipCustomDate">📅 选择日期（含历史）</div>
       </div>
       <div style="display:flex;gap:7px;align-items:center">
         <input class="form-input" type="date" id="eventDateCustom" style="flex:1;display:none">
@@ -1470,26 +1469,26 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
 
     <!-- 地点 -->
     <div class="form-field">
-      <label class="form-label">地点（可选，自动匹配地图坐标）</label>
-      <input class="form-input" type="text" placeholder="例如：奥克兰 Auckland" id="eventPlace">
+      <label class="form-label" data-i18n-key="placeLabel">地点（可选，自动匹配地图坐标）</label>
+      <input class="form-input" type="text" data-i18n-placeholder="evPlacePh" placeholder="例如：奥克兰 Auckland" id="eventPlace">
     </div>
 
     <!-- 发布到朋友圈 -->
     <div style="margin:0 18px 16px;padding:13px 14px;background:linear-gradient(135deg,#EBF0FF,#E2ECFF);border-radius:13px">
       <div style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:8px" onclick="toggleShareMoment()">
         <div style="flex:1">
-          <div style="font-size:13px;font-weight:600;color:var(--ink)">✨ 同时发布到朋友圈</div>
-          <div style="font-size:10px;color:var(--ink3);margin-top:2px">选择可见范围</div>
+          <div style="font-size:13px;font-weight:600;color:var(--ink)" data-i18n-key="publishToMoments">✨ 同时发布到朋友圈</div>
+          <div style="font-size:10px;color:var(--ink3);margin-top:2px" data-i18n-key="chooseVisibility">选择可见范围</div>
         </div>
         <div class="toggle off" id="tog-shareMoment"><div class="toggle-knob"></div></div>
       </div>
       <!-- Visibility picker (shown when share is on) -->
       <div id="visibilityPicker" style="display:none;border-top:1px solid var(--blue-soft);padding-top:10px">
-        <div style="font-size:11px;font-weight:600;color:var(--ink3);margin-bottom:7px">👁 谁可以看</div>
+        <div style="font-size:11px;font-weight:600;color:var(--ink3);margin-bottom:7px" data-i18n-key="whoCanSee">👁 谁可以看</div>
         <div style="display:flex;flex-wrap:wrap;gap:6px" id="visibilityBtns">
-          <button onclick="setVisibility('all')" id="vis-all" class="vis-btn active">🌐 所有联系人</button>
-          <button onclick="setVisibility('family')" id="vis-family" class="vis-btn">&#128106; 仅家人</button>
-          <button onclick="setVisibility('friends')" id="vis-friends" class="vis-btn">🤝 仅好友</button>
+          <button onclick="setVisibility('all')" id="vis-all" class="vis-btn active" data-i18n-key="visAllContacts">🌐 所有联系人</button>
+          <button onclick="setVisibility('family')" id="vis-family" class="vis-btn" data-i18n-key="visFamilyOnly">👪 仅家人</button>
+          <button onclick="setVisibility('friends')" id="vis-friends" class="vis-btn" data-i18n-key="visFriendsOnly">🤝 仅好友</button>
         </div>
       </div>
     </div>
@@ -2098,6 +2097,57 @@ var I18N = {
     notSharing:'notSharing',
     visAll:'visAll',
     visFam:'visFam',
+    addFamilyMember:'添加家庭成员',
+    btnLogin:'登录',
+    btnRegister:'注册',
+    checkInDesc:'点击上传位置 → 家人立刻看到你在哪里',
+    langSettingLabel:'语言',
+    lifeFootprint:'人生足迹',
+    navChat:'私密聊天',
+    navMe:'我的',
+    navSafe:'家人守护',
+    privacyLink:'隐私政策',
+    privateSpace:'私密空间',
+    sDailySummary:'每日晚间总结',
+    sDarkMode:'深色模式',
+    sFontSize:'字体大小',
+    sHelp:'帮助与支持',
+    sPhone:'手机号',
+    sPrivacyPolicy:'隐私政策',
+    sProfile:'个人资料',
+    sSafeAlert:'家人安全提醒',
+    sTerms:'服务条款',
+    safetyOnline:'今天 · 家人都在线',
+    safetyZones:'🛡 安全区域',
+    sigBatt:'电量监控',
+    sigLoc:'打开定位',
+    sigPush:'每日推送',
+    sigSafe:'报平安',
+    tabAll:'🗺 全部',
+    tabEmail:'✉️ 邮箱',
+    tabMoments:'朋友圈',
+    tabYear:'📆 年度',
+    termsLink:'服务条款',
+    termsText:'登录即表示同意',
+    whatHappened:'发生了什么？',
+    evTitlePh:'例如：今天去公园散步了',
+    moodLabel:'心情',
+    moodHappy:'😊 开心',moodMoved:'❤️ 感动',moodCalm:'😌 平静',moodSad:'😔 失落',
+    moodAngry:'😤 烦躁',moodBlessed:'🥰 幸福',moodTired:'😴 疲惫',moodCelebrate:'🎉 庆祝',
+    photoLabel:'照片（可选）',
+    takePhoto:'📷 拍照存相册',
+    fromGallery:'🖼 从相册选',
+    photoHint:'📌 拍照后系统自动保存到手机相册，无需手动存两次',
+    withWhom:'跟谁在一起？（可选）',
+    evWithPh:'例如：妈妈、小明、全家人',
+    timeLabel:'时间',
+    chipToday:'今天',chipYesterday:'昨天',chipCustomDate:'📅 选择日期（含历史）',
+    placeLabel:'地点（可选，自动匹配地图坐标）',
+    evPlacePh:'例如：奥克兰 Auckland',
+    publishToMoments:'✨ 同时发布到朋友圈',
+    chooseVisibility:'选择可见范围',
+    whoCanSee:'👁 谁可以看',
+    visAllContacts:'🌐 所有联系人',visFamilyOnly:'👪 仅家人',visFriendsOnly:'🤝 仅好友',
   },
   en: {
     tagline:'Time · Family · Memory<br>Capture precious moments with your loved ones',
@@ -2353,6 +2403,57 @@ var I18N = {
     lifeJourney2:'Life Journey',
     dontSave:"Don't save to App",
     todayActivity:"Today's Activity",
+    addFamilyMember:'Add Family Member',
+    btnLogin:'Sign In',
+    btnRegister:'Register',
+    checkInDesc:'Tap to share location → Family sees you instantly',
+    langSettingLabel:'Language',
+    lifeFootprint:'Life Footprint',
+    navChat:'Chat',
+    navMe:'Me',
+    navSafe:'Guardian',
+    privacyLink:'Privacy Policy',
+    privateSpace:'Private Space',
+    sDailySummary:'Daily Evening Summary',
+    sDarkMode:'Dark Mode',
+    sFontSize:'Font Size',
+    sHelp:'Help & Support',
+    sPhone:'Phone Number',
+    sPrivacyPolicy:'Privacy Policy',
+    sProfile:'Profile',
+    sSafeAlert:'Family Safety Alerts',
+    sTerms:'Terms of Service',
+    safetyOnline:'Today · Family Online',
+    safetyZones:'🛡 Safe Zones',
+    sigBatt:'Battery Monitor',
+    sigLoc:'Enable Location',
+    sigPush:'Daily Push',
+    sigSafe:'Check In',
+    tabAll:'🗺 All',
+    tabEmail:'✉️ Email',
+    tabMoments:'Moments',
+    tabYear:'📆 Year',
+    termsLink:'Terms of Service',
+    termsText:'By signing in you agree to our',
+    whatHappened:'What happened?',
+    evTitlePh:'e.g. Went for a walk in the park today',
+    moodLabel:'Mood',
+    moodHappy:'😊 Happy',moodMoved:'❤️ Touched',moodCalm:'😌 Calm',moodSad:'😔 Down',
+    moodAngry:'😤 Frustrated',moodBlessed:'🥰 Blessed',moodTired:'😴 Tired',moodCelebrate:'🎉 Celebrate',
+    photoLabel:'Photo (optional)',
+    takePhoto:'📷 Take photo',
+    fromGallery:'🖼 From gallery',
+    photoHint:'📌 Photo auto-saves to your album, no need to save twice',
+    withWhom:'Who were you with? (optional)',
+    evWithPh:'e.g. Mom, John, whole family',
+    timeLabel:'Time',
+    chipToday:'Today',chipYesterday:'Yesterday',chipCustomDate:'📅 Pick a date',
+    placeLabel:'Location (optional, auto-geocoded)',
+    evPlacePh:'e.g. Auckland',
+    publishToMoments:'✨ Also post to Moments',
+    chooseVisibility:'Choose who can see',
+    whoCanSee:'👁 Who can see',
+    visAllContacts:'🌐 All contacts',visFamilyOnly:'👪 Family only',visFriendsOnly:'🤝 Friends only',
   },
   'zh-tw': {
     tagline:'時間 · 關係 · 記憶<br>記錄你與家人之間最珍貴的時光',
@@ -2608,6 +2709,57 @@ var I18N = {
     shareLabel:'分享',
     noFamily:'还没有家人',
     notSharing:'notSharing',
+    addFamilyMember:'新增家庭成員',
+    btnLogin:'登入',
+    btnRegister:'註冊',
+    checkInDesc:'點擊上傳位置 → 家人立刻看到你在哪裡',
+    langSettingLabel:'語言',
+    lifeFootprint:'人生足跡',
+    navChat:'私密聊天',
+    navMe:'我的',
+    navSafe:'家人守護',
+    privacyLink:'隱私政策',
+    privateSpace:'私密空間',
+    sDailySummary:'每日晚間總結',
+    sDarkMode:'深色模式',
+    sFontSize:'字體大小',
+    sHelp:'幫助與支援',
+    sPhone:'手機號',
+    sPrivacyPolicy:'隱私政策',
+    sProfile:'個人資料',
+    sSafeAlert:'家人安全提醒',
+    sTerms:'服務條款',
+    safetyOnline:'今天 · 家人都在線',
+    safetyZones:'🛡 安全區域',
+    sigBatt:'電量監控',
+    sigLoc:'開啟定位',
+    sigPush:'每日推播',
+    sigSafe:'報平安',
+    tabAll:'🗺 全部',
+    tabEmail:'✉️ 信箱',
+    tabMoments:'朋友圈',
+    tabYear:'📆 年度',
+    termsLink:'服務條款',
+    termsText:'登入即表示同意',
+    whatHappened:'發生了什麼？',
+    evTitlePh:'例如：今天去公園散步了',
+    moodLabel:'心情',
+    moodHappy:'😊 開心',moodMoved:'❤️ 感動',moodCalm:'😌 平靜',moodSad:'😔 失落',
+    moodAngry:'😤 煩躁',moodBlessed:'🥰 幸福',moodTired:'😴 疲憊',moodCelebrate:'🎉 慶祝',
+    photoLabel:'照片（可選）',
+    takePhoto:'📷 拍照存相冊',
+    fromGallery:'🖼 從相冊選',
+    photoHint:'📌 拍照後自動存入相冊，無需手動存兩次',
+    withWhom:'跟誰在一起？（可選）',
+    evWithPh:'例如：媽媽、小明、全家人',
+    timeLabel:'時間',
+    chipToday:'今天',chipYesterday:'昨天',chipCustomDate:'📅 選擇日期（含歷史）',
+    placeLabel:'地點（可選，自動匹配地圖座標）',
+    evPlacePh:'例如：奧克蘭 Auckland',
+    publishToMoments:'✨ 同時發布到朋友圈',
+    chooseVisibility:'選擇可見範圍',
+    whoCanSee:'👁 誰可以看',
+    visAllContacts:'🌐 所有聯絡人',visFamilyOnly:'👪 僅家人',visFriendsOnly:'🤝 僅好友',
   },
   ja: {
     tagline:'時間 · 絆 · 記憶<br>家族との大切な瞬間を記録しよう',
@@ -2863,6 +3015,57 @@ var I18N = {
     delete2:'削除',
     noPwd:'[旧版暗号化メッセージ]',
     lifeJourney2:'人生の軌跡',
+    addFamilyMember:'家族を追加',
+    btnLogin:'ログイン',
+    btnRegister:'登録',
+    checkInDesc:'タップして位置を送信 → 家族がすぐ確認できます',
+    langSettingLabel:'言語',
+    lifeFootprint:'人生の足跡',
+    navChat:'チャット',
+    navMe:'マイページ',
+    navSafe:'家族を守る',
+    privacyLink:'プライバシーポリシー',
+    privateSpace:'プライベート空間',
+    sDailySummary:'毎日の夜のまとめ',
+    sDarkMode:'ダークモード',
+    sFontSize:'フォントサイズ',
+    sHelp:'ヘルプ',
+    sPhone:'電話番号',
+    sPrivacyPolicy:'プライバシーポリシー',
+    sProfile:'プロフィール',
+    sSafeAlert:'家族安全アラート',
+    sTerms:'利用規約',
+    safetyOnline:'今日 · 家族オンライン',
+    safetyZones:'🛡 安全ゾーン',
+    sigBatt:'バッテリー監視',
+    sigLoc:'位置情報オン',
+    sigPush:'毎日通知',
+    sigSafe:'安全報告',
+    tabAll:'🗺 すべて',
+    tabEmail:'✉️ メール',
+    tabMoments:'モーメント',
+    tabYear:'📆 年間',
+    termsLink:'利用規約',
+    termsText:'ログインすると同意したことになります',
+    whatHappened:'何があった？',
+    evTitlePh:'例：今日公園を散歩した',
+    moodLabel:'気分',
+    moodHappy:'😊 嬉しい',moodMoved:'❤️ 感動',moodCalm:'😌 穏やか',moodSad:'😔 悲しい',
+    moodAngry:'😤 イライラ',moodBlessed:'🥰 幸せ',moodTired:'😴 疲れた',moodCelebrate:'🎉 お祝い',
+    photoLabel:'写真（任意）',
+    takePhoto:'📷 写真を撮る',
+    fromGallery:'🖼 アルバムから',
+    photoHint:'📌 撮影後自動保存、二度保存不要',
+    withWhom:'誰と一緒？（任意）',
+    evWithPh:'例：お母さん、太郎、家族全員',
+    timeLabel:'時間',
+    chipToday:'今日',chipYesterday:'昨日',chipCustomDate:'📅 日付を選ぶ',
+    placeLabel:'場所（任意、地図自動マッピング）',
+    evPlacePh:'例：東京',
+    publishToMoments:'✨ モーメントにも投稿',
+    chooseVisibility:'公開範囲を選ぶ',
+    whoCanSee:'👁 誰が見られる',
+    visAllContacts:'🌐 全員',visFamilyOnly:'👪 家族のみ',visFriendsOnly:'🤝 友達のみ',
   },
   ko: {
     tagline:'시간 · 관계 · 기억<br>가족과의 소중한 순간을 기록하세요',
@@ -3118,6 +3321,57 @@ var I18N = {
     delete2:'삭제',
     noPwd:'[구버전 암호화 메시지]',
     lifeJourney2:'인생 여정',
+    addFamilyMember:'가족 추가',
+    btnLogin:'로그인',
+    btnRegister:'회원가입',
+    checkInDesc:'탭하여 위치 전송 → 가족이 바로 확인',
+    langSettingLabel:'언어',
+    lifeFootprint:'인생 발자국',
+    navChat:'채팅',
+    navMe:'나의',
+    navSafe:'가족 보호',
+    privacyLink:'개인정보 처리방침',
+    privateSpace:'프라이빗 공간',
+    sDailySummary:'매일 저녁 요약',
+    sDarkMode:'다크 모드',
+    sFontSize:'글꼴 크기',
+    sHelp:'도움말',
+    sPhone:'전화번호',
+    sPrivacyPolicy:'개인정보 처리방침',
+    sProfile:'프로필',
+    sSafeAlert:'가족 안전 알림',
+    sTerms:'이용약관',
+    safetyOnline:'오늘 · 가족 온라인',
+    safetyZones:'🛡 안전 구역',
+    sigBatt:'배터리 모니터',
+    sigLoc:'위치 활성화',
+    sigPush:'매일 알림',
+    sigSafe:'안전 체크인',
+    tabAll:'🗺 전체',
+    tabEmail:'✉️ 이메일',
+    tabMoments:'모먼트',
+    tabYear:'📆 연간',
+    termsLink:'이용약관',
+    termsText:'로그인하면 동의하는 것입니다',
+    whatHappened:'무슨 일이 있었나요?',
+    evTitlePh:'예: 오늘 공원에서 산책했어요',
+    moodLabel:'기분',
+    moodHappy:'😊 행복',moodMoved:'❤️ 감동',moodCalm:'😌 평온',moodSad:'😔 슬픔',
+    moodAngry:'😤 짜증',moodBlessed:'🥰 행복',moodTired:'😴 피곤',moodCelebrate:'🎉 축하',
+    photoLabel:'사진 (선택)',
+    takePhoto:'📷 사진 찍기',
+    fromGallery:'🖼 갤러리에서',
+    photoHint:'📌 촬영 후 자동 저장, 두 번 저장 불필요',
+    withWhom:'누구와 함께? (선택)',
+    evWithPh:'예: 엄마, 영희, 온 가족',
+    timeLabel:'시간',
+    chipToday:'오늘',chipYesterday:'어제',chipCustomDate:'📅 날짜 선택',
+    placeLabel:'장소 (선택, 자동 지도 매핑)',
+    evPlacePh:'예: 서울',
+    publishToMoments:'✨ 모먼트에도 게시',
+    chooseVisibility:'공개 범위 선택',
+    whoCanSee:'👁 볼 수 있는 사람',
+    visAllContacts:'🌐 모든 연락처',visFamilyOnly:'👪 가족만',visFriendsOnly:'🤝 친구만',
   },
   es: {
     tagline:'Tiempo · Familia · Memoria<br>Captura los momentos más preciados con tu familia',
@@ -3373,6 +3627,57 @@ var I18N = {
     delete2:'Eliminar',
     noPwd:'[Mensaje cifrado antiguo]',
     lifeJourney2:'Viaje de vida',
+    addFamilyMember:'Añadir familiar',
+    btnLogin:'Iniciar sesión',
+    btnRegister:'Registrarse',
+    checkInDesc:'Toca para compartir ubicación → Familia te ve al instante',
+    langSettingLabel:'Idioma',
+    lifeFootprint:'Huella vital',
+    navChat:'Chat',
+    navMe:'Yo',
+    navSafe:'Guardianes',
+    privacyLink:'Política de privacidad',
+    privateSpace:'Espacio privado',
+    sDailySummary:'Resumen nocturno diario',
+    sDarkMode:'Modo oscuro',
+    sFontSize:'Tamaño de fuente',
+    sHelp:'Ayuda',
+    sPhone:'Teléfono',
+    sPrivacyPolicy:'Política de privacidad',
+    sProfile:'Perfil',
+    sSafeAlert:'Alertas de seguridad familiar',
+    sTerms:'Términos de servicio',
+    safetyOnline:'Hoy · Familia en línea',
+    safetyZones:'🛡 Zonas seguras',
+    sigBatt:'Monitor de batería',
+    sigLoc:'Activar ubicación',
+    sigPush:'Notificación diaria',
+    sigSafe:'Registrarse',
+    tabAll:'🗺 Todo',
+    tabEmail:'✉️ Email',
+    tabMoments:'Momentos',
+    tabYear:'📆 Año',
+    termsLink:'Términos de servicio',
+    termsText:'Al iniciar sesión aceptas nuestros',
+    whatHappened:'¿Qué pasó?',
+    evTitlePh:'Ej: Fui al parque a caminar hoy',
+    moodLabel:'Estado de ánimo',
+    moodHappy:'😊 Feliz',moodMoved:'❤️ Emocionado',moodCalm:'😌 Tranquilo',moodSad:'😔 Triste',
+    moodAngry:'😤 Frustrado',moodBlessed:'🥰 Bendecido',moodTired:'😴 Cansado',moodCelebrate:'🎉 Celebrar',
+    photoLabel:'Foto (opcional)',
+    takePhoto:'📷 Tomar foto',
+    fromGallery:'🖼 De galería',
+    photoHint:'📌 La foto se guarda automáticamente, no necesitas guardarla dos veces',
+    withWhom:'¿Con quién? (opcional)',
+    evWithPh:'Ej: Mamá, Juan, toda la familia',
+    timeLabel:'Hora',
+    chipToday:'Hoy',chipYesterday:'Ayer',chipCustomDate:'📅 Elegir fecha',
+    placeLabel:'Lugar (opcional, geocodificación automática)',
+    evPlacePh:'Ej: Madrid',
+    publishToMoments:'✨ Publicar también en Momentos',
+    chooseVisibility:'Elegir visibilidad',
+    whoCanSee:'👁 Quién puede ver',
+    visAllContacts:'🌐 Todos',visFamilyOnly:'👪 Solo familia',visFriendsOnly:'🤝 Solo amigos',
   }
 };
 function t(key) { return (I18N[_lang] || I18N.zh)[key] || (I18N.zh)[key] || key; }
@@ -3397,6 +3702,12 @@ function applyI18n() {
   document.querySelectorAll('[data-i18n-key]').forEach(function(el) {
     var key = el.getAttribute('data-i18n-key');
     if (L[key] !== undefined) el.textContent = L[key];
+  });
+
+  // 1b. Update all input/textarea placeholders with data-i18n-placeholder
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el) {
+    var key = el.getAttribute('data-i18n-placeholder');
+    if (L[key] !== undefined) el.placeholder = L[key];
   });
 
   // 2. Login page elements (innerHTML for tagline with <br>)
