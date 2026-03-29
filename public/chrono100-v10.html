@@ -279,7 +279,7 @@ button,input,textarea{font-family:inherit;-webkit-appearance:none;border:none;ou
 .cr-bar{flex-shrink:0;padding:8px 12px calc(8px + var(--sb));background:rgba(255,255,255,.97);border-top:1px solid var(--border);display:flex;gap:7px;align-items:flex-end}
 .cr-plus{width:34px;height:34px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;color:var(--ink3)}
 .cr-input-wrap{flex:1;background:var(--bg);border-radius:20px;display:flex;align-items:center;padding:8px 12px;gap:6px}
-.cr-input{flex:1;font-size:16px;color:var(--ink);resize:none;max-height:76px;background:transparent;font-family:inherit}
+.cr-input{flex:1;font-size:13px;color:var(--ink);resize:none;max-height:76px;background:transparent;font-family:inherit}
 .cr-input::placeholder{color:var(--ink4)}
 .cr-send{width:34px;height:34px;border-radius:50%;background:var(--blue2);color:#fff;font-size:14px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:transform .15s}
 .cr-send:active{transform:scale(.88)}
@@ -1691,11 +1691,20 @@ function sb() {
     );
     // Listen for auth changes immediately
     _sbClient.auth.onAuthStateChange(function(event, session) {
+      if (event === 'SIGNED_OUT') {
+        var loginEl = document.getElementById('login');
+        var appEl = document.getElementById('app');
+        if (loginEl) loginEl.style.display = 'flex';
+        if (appEl) appEl.style.display = 'none';
+        return;
+      }
       if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session && session.user) {
         var u = session.user;
         // 拒绝匿名用户进入App — 必须是真实注册/登录的用户
         var isAnon = u.is_anonymous === true
-          || (!u.email && !u.phone && !(u.app_metadata && u.app_metadata.provider && u.app_metadata.provider !== 'anonymous'));
+          || (!u.email && !u.phone
+              && !(u.app_metadata && u.app_metadata.provider && u.app_metadata.provider !== 'anonymous')
+              && !(u.identities && u.identities.length > 0));
         if (isAnon) return; // 匿名用户停在登录页
         userName = (u.user_metadata && u.user_metadata.full_name)
           || (u.email ? u.email.split('@')[0] : '用户');
@@ -1708,9 +1717,6 @@ function sb() {
 }
 
 // 立即初始化 Supabase，确保 onAuthStateChange 在 INITIAL_SESSION 前注册
-(function() { try { sb(); } catch(e) {} })();
-
-// 立即初始化 Supabase 避免刷新退出
 (function() { try { sb(); } catch(e) {} })();
 
 // Initialize Supabase immediately so it can handle the OAuth callback URL
@@ -7301,25 +7307,6 @@ function showEveningGreeting(text) {
   else document.getElementById('todayList') && document.getElementById('todayList').insertAdjacentElement('afterend', card);
 }
 
-
-// ── iOS keyboard handler: prevent zoom/scroll when keyboard appears ──
-if (window.visualViewport) {
-  function handleViewport() {
-    var bar = document.getElementById('crBar');
-    if (!bar) return;
-    var chatRoom = document.getElementById('chatRoom');
-    if (!chatRoom || !chatRoom.classList.contains('open')) return;
-    var offset = window.innerHeight - window.visualViewport.height - window.visualViewport.offsetTop;
-    bar.style.transform = 'translateY(-' + Math.max(0, offset) + 'px)';
-  }
-  window.visualViewport.addEventListener('resize', handleViewport);
-  window.visualViewport.addEventListener('scroll', handleViewport);
-  document.addEventListener('focusout', function() {
-    var bar = document.getElementById('crBar');
-    if (bar) bar.style.transform = '';
-  });
-}
-
 // Restore saved greeting on reload
 (function() {
   var key = 'c100_evening_' + new Date().toISOString().slice(0,10);
@@ -10949,11 +10936,12 @@ async function enforceLoginWall() {
     var u = sess && sess.data && sess.data.session && sess.data.session.user;
 
     if (u) {
-      // 严格验证：必须有email或phone，且不是匿名用户
+      // 验证是真实用户：非匿名，且有任意登录方式
       var isReal = !u.is_anonymous
         && (!!u.email || !!u.phone
             || (u.app_metadata && u.app_metadata.provider
-                && u.app_metadata.provider !== 'anonymous'));
+                && u.app_metadata.provider !== 'anonymous')
+            || (u.identities && u.identities.length > 0));
 
       if (isReal) {
         // 真实用户：记录访问日志，进入App
