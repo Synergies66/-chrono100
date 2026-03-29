@@ -1,5 +1,21 @@
 {
   "rewrites": [
-    { "source": "/", "destination": "/chrono100-v10.html" }
+    { "source": "/OneSignalSDKWorker.js", "destination": "/OneSignalSDKWorker.js" },
+    { "source": "/(.*)", "destination": "/public/chrono100-v10.html" }
+  ],
+  "headers": [
+    {
+      "source": "/OneSignalSDKWorker.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache" },
+        { "key": "Service-Worker-Allowed", "value": "/" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    }
   ]
 }
