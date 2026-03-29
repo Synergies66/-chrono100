@@ -39,6 +39,7 @@
 }
 html,body{height:100%;overflow:hidden;background:var(--bg);-webkit-font-smoothing:antialiased;font-family:'DM Sans',sans-serif;color:var(--ink);font-size:var(--f-md)}
 button,input,textarea{font-family:inherit;-webkit-appearance:none;border:none;outline:none;background:transparent}
+input,textarea,select{font-size:16px !important}
 ::-webkit-scrollbar{display:none}
 
 /* ─── SCREENS ─── */
@@ -100,7 +101,7 @@ button,input,textarea{font-family:inherit;-webkit-appearance:none;border:none;ou
 .sheet-title{font-size:var(--f-lg);font-weight:700;color:var(--ink);padding:4px 18px 4px}
 .sheet-sub{font-size:var(--f-sm);color:var(--ink3);padding:2px 18px 14px}
 .form-label{font-size:var(--f-sm);font-weight:600;color:var(--ink2);margin-bottom:5px;display:block}
-.form-input{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:12px;font-size:var(--f-md);background:var(--card);color:var(--ink);font-family:inherit}
+.form-input{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:12px;font-size:16px;background:var(--card);color:var(--ink);font-family:inherit}
 .form-input:focus{border-color:var(--blue2);outline:none}
 .form-submit{display:block;width:calc(100% - 36px);margin:4px 18px 0;padding:13px;border-radius:13px;background:var(--blue2);color:#fff;font-size:var(--f-md);font-weight:700;cursor:pointer;border:none;font-family:inherit}
 .card{background:var(--card);border-radius:16px;box-shadow:var(--sh)}
@@ -516,7 +517,7 @@ button,input,textarea{font-family:inherit;-webkit-appearance:none;border:none;ou
 /* Edit profile overlay */
 .edit-row{padding:0 18px;margin-bottom:13px}
 .edit-label{font-size:var(--f-sm);font-weight:600;color:var(--ink2);margin-bottom:6px;display:block}
-.edit-input{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:12px;font-size:var(--f-md);background:var(--card);color:var(--ink);font-family:inherit}
+.edit-input{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:12px;font-size:16px;background:var(--card);color:var(--ink);font-family:inherit}
 .edit-input:focus{border-color:var(--blue2);outline:none}
 .emoji-picker{display:flex;flex-wrap:wrap;gap:8px;padding:0 18px 10px}
 .ep-opt{width:42px;height:42px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:var(--f-xl);cursor:pointer;border:2px solid transparent;transition:all .15s}
@@ -4152,7 +4153,7 @@ function gotoPage(name) {
   var backBtn = document.getElementById('navBackBtn');
   if (backBtn) backBtn.style.visibility = name === 'life' ? 'hidden' : 'visible';
   // 相机按钮只在人生轨迹页显示
-  var cam = document.querySelector('.cam-nav-btn');
+  document.querySelectorAll(".cam-nav-btn").forEach(function(el) {
   if (cam) cam.style.display = name === 'life' ? '' : 'none';
   if (name === 'circle') {
     var nowC = Date.now();
@@ -6402,7 +6403,9 @@ async function saveEvent() {
   // Save to DB
   if (client) {
     var dbRow = {
-      user_id: uid, title: fullTitle, taken_at: takenAt,
+      user_id: uid,
+      archive_id: _activeArchive ? _activeArchive.id : null,
+      title: fullTitle, taken_at: takenAt,
       lat: geocodedLat, lng: geocodedLng,
       photo_url: photoUrls[0]||''
     };
