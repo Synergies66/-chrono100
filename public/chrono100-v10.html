@@ -5190,8 +5190,8 @@ function buildMomentsFeed() {
         + withHtml
         + imgHtml
         + '<div class="moment-foot"><div class="moment-action" onclick="likeMoment(\'' + m.id + '\',this)">♡ ' + m.likes + '</div>'
-        + '<div class="moment-action">💬 ' + m.cmts + '</div>'
-        + '<div class="moment-action" style="margin-left:auto" onclick="shareMoment(\'' + m.id + '\',\'\')" >↗ '+t('shareLabel')+'</div></div></div>';
+        + '<div class="moment-action" onclick="commentMoment(\'' + m.id + '\')">💬 ' + m.cmts + '</div>'
+        + '<div class="moment-action" style="margin-left:auto" onclick="shareMoment(\'' + m.id + '\',\'' + esc(m.txt||m.title||'') + '\')" >↗ '+t('shareLabel')+'</div></div></div>';
     }).join('');
 }
 
@@ -5307,6 +5307,38 @@ async function shareMoment(id, txt) {
   var text = txt || '来自 CHRONO100 的家人动态';
   if (navigator.share) { try { await navigator.share({ title: 'CHRONO100', text: text, url: 'https://chrono100.com' }); return; } catch(e) {} }
   try { await navigator.clipboard.writeText(text + ' https://chrono100.com'); toast('已复制分享内容'); } catch(e) {}
+}
+
+async function commentMoment(id) {
+  var ex=document.getElementById('commentOv'); if(ex)ex.remove();
+  var ov=document.createElement('div'); ov.id='commentOv';
+  ov.style.cssText='position:fixed;inset:0;z-index:9800;background:rgba(18,24,52,.4);display:flex;align-items:flex-end;justify-content:center';
+  var sheet=document.createElement('div');
+  sheet.style.cssText='width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:16px 18px 36px';
+  sheet.innerHTML='<div style="width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 14px"></div>'
+    +'<div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:12px">💬 写评论</div>'
+    +'<textarea id="commentInput" placeholder="写下你的评论…" rows="3" style="width:100%;border:1.5px solid var(--border);border-radius:12px;padding:12px;font-size:16px;font-family:inherit;resize:none;background:var(--bg);color:var(--ink);box-sizing:border-box"></textarea>'
+    +'<div style="display:flex;gap:8px;margin-top:10px">'
+    +'<button id="cmtCancel" style="flex:1;padding:12px;border-radius:12px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:14px;cursor:pointer">取消</button>'
+    +'<button id="cmtSend" style="flex:2;padding:12px;border-radius:12px;border:none;background:var(--blue2);color:#fff;font-size:14px;font-weight:700;cursor:pointer">发送</button>'
+    +'</div>';
+  ov.appendChild(sheet); document.body.appendChild(ov);
+  setTimeout(function(){ var i=document.getElementById('commentInput'); if(i)i.focus(); },100);
+  sheet.querySelector('#cmtCancel').onclick=function(){ov.remove();};
+  sheet.querySelector('#cmtSend').onclick=async function(){
+    var inp=document.getElementById('commentInput');
+    var text=inp?inp.value.trim():'';
+    if(!text){toast('请输入评论内容');return;}
+    ov.remove();
+    var cl=sb(); if(!cl){toast('连接失败');return;}
+    var uid=await getUid(); if(!uid)return;
+    try{
+      await cl.from('moments').update({cmts:1}).eq('id',id);
+      toast('💬 评论已发送');
+      setTimeout(function(){try{loadRealMoments_feed();}catch(e){}},500);
+    }catch(e){toast('评论失败');}
+  };
+  ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
 }
 
 async function loadRealMoments_feed() {
@@ -11848,30 +11880,23 @@ window.addEventListener('DOMContentLoaded', function() {
   if (appEl) appEl.style.display = 'none';
 });
 
-// ── iOS keyboard: lift input bar when keyboard appears ──
-(function() {
-  if (!window.visualViewport) return;
-  function onVP() {
-    var bar = document.getElementById('crBar');
-    var msgs = document.getElementById('crMessages');
-    var room = document.getElementById('chatRoom');
-    if (!bar || !room || !room.classList.contains('open')) return;
-    var kbHeight = window.innerHeight - window.visualViewport.height;
-    if (kbHeight > 50) {
-      bar.style.transform = 'translateY(-' + kbHeight + 'px)';
-      msgs.style.marginBottom = kbHeight + 'px';
-    } else {
-      bar.style.transform = '';
-      msgs.style.marginBottom = '';
-    }
+// iOS keyboard handler
+(function(){
+  if(!window.visualViewport)return;
+  function onVP(){
+    var bar=document.getElementById('crBar');
+    var msgs=document.getElementById('crMessages');
+    var room=document.getElementById('chatRoom');
+    if(!bar||!room||!room.classList.contains('open'))return;
+    var kb=window.innerHeight-window.visualViewport.height;
+    if(kb>50){bar.style.transform='translateY(-'+kb+'px)';if(msgs)msgs.style.marginBottom=kb+'px';}
+    else{bar.style.transform='';if(msgs)msgs.style.marginBottom='';}
   }
-  window.visualViewport.addEventListener('resize', onVP);
-  window.visualViewport.addEventListener('scroll', onVP);
-  document.addEventListener('focusout', function() {
-    var bar = document.getElementById('crBar');
-    var msgs = document.getElementById('crMessages');
-    if (bar) bar.style.transform = '';
-    if (msgs) msgs.style.marginBottom = '';
+  window.visualViewport.addEventListener('resize',onVP);
+  window.visualViewport.addEventListener('scroll',onVP);
+  document.addEventListener('focusout',function(){
+    var bar=document.getElementById('crBar');var msgs=document.getElementById('crMessages');
+    if(bar)bar.style.transform='';if(msgs)msgs.style.marginBottom='';
   });
 })();
 </script>
