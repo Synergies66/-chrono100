@@ -813,9 +813,7 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
 
     <div style="text-align:center;margin-top:16px;font-size:11px;color:var(--ink3);line-height:1.8">
       <span data-i18n-key="termsText">登录即表示同意</span>
-      <a href="/privacy.html" target="_blank" style="color:var(--blue2);text-decoration:none" data-i18n-key="privacyLink">隐私政策</a>
-      &amp;
-      <a href="/privacy.html" target="_blank" style="color:var(--blue2);text-decoration:none" data-i18n-key="termsLink">服务条款</a>
+      <a onclick="openPrivacyPolicy()" style="color:var(--blue2);text-decoration:none;cursor:pointer" data-i18n-key="privacyLink">隐私政策</a>
     </div>
   </div>
 </div>
@@ -1276,11 +1274,6 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
           <div class="settings-row" onclick="openPrivacyPolicy()">
             <div class="settings-ico" style="background:#F0F4FF">📄</div>
             <div class="settings-label" data-i18n-key="sPrivacyPolicy">隐私政策</div>
-            <span class="settings-arr">›</span>
-          </div>
-          <div class="settings-row" onclick="openPrivacyPolicy()">
-            <div class="settings-ico" style="background:#F0F4FF">📋</div>
-            <div class="settings-label" data-i18n-key="sTerms">服务条款</div>
             <span class="settings-arr">›</span>
           </div>
         </div>
