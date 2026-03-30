@@ -73,8 +73,8 @@ input,textarea,select{font-size:16px !important}
 #app{flex-direction:column}
 /* Top nav */
 .top-nav{flex-shrink:0;background:rgba(236,240,248,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);z-index:100}
-.top-nav-inner{display:flex;align-items:center;padding:var(--st) 16px 0;height:calc(52px + var(--st));gap:8px}
-.nav-logo{font-family:'Cormorant Garamond',Georgia,serif;font-size:17px;font-weight:700;color:#1E3A6E;letter-spacing:2px;cursor:pointer;flex-shrink:0}
+.top-nav-inner{display:flex;align-items:center;padding:calc(var(--st) + 8px) 14px 8px;min-height:calc(52px + var(--st));gap:8px}
+.nav-logo{font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;font-weight:700;color:#1E3A6E;letter-spacing:2px;cursor:pointer;flex-shrink:0;white-space:nowrap}
 .nav-icon-btn{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;cursor:pointer;flex-shrink:0;color:var(--ink);font-size:22px;font-weight:600}
 .nav-icon-btn:active{background:rgba(0,0,0,.06)}
 .nav-av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
@@ -824,12 +824,14 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
 <div class="screen" id="app">
   <div class="top-nav">
     <div class="top-nav-inner">
-      <div class="nav-logo" id="navTitle" onclick="gotoPage('life')">🕊 CHRONO100</div>
-      <!-- 问候 + 日期 居中展示 -->
-      <div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;padding:0 6px">
-        <div style="font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="hGreet"></div>
-        <div style="font-size:10px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="hDate"></div>
+      <!-- Logo + 日期 左侧两行 -->
+      <div style="display:flex;flex-direction:column;justify-content:center;cursor:pointer;flex-shrink:0" onclick="gotoPage('life')">
+        <div class="nav-logo" id="navTitle">🕊 CHRONO100</div>
+        <div style="font-size:10px;color:var(--ink3);line-height:1.3;margin-top:1px;white-space:nowrap" id="hDate"></div>
       </div>
+      <!-- 问候语（非首页时显示页面名） -->
+      <div style="flex:1;min-width:0" id="hGreet"></div>
+      <!-- 右侧图标 -->
       <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
         <div class="cam-nav-btn" id="navBackBtn" style="visibility:hidden;font-size:20px;font-weight:400" onclick="navBack()" title="返回">←</div>
         <div class="cam-nav-btn" onclick="openLifeArchive()" title="人生档案" style="font-size:15px">&#128196;</div>
@@ -1238,7 +1240,7 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
           </div>
           <div class="settings-row" onclick="openLangPicker()">
             <div class="settings-ico" style="background:#E3F5EE">🌐</div>
-            <div class="settings-label">语言 / Language</div>
+            <div class="settings-label" data-i18n-key="langSettingLabel">语言</div>
             <span class="settings-value" id="currentLangLabel">中文</span>
             <span class="settings-arr">›</span>
           </div>
@@ -3828,7 +3830,7 @@ function applyI18n() {
 
   // 7. Settings section language row label
   var langSettingLabel = document.querySelector('[data-i18n-key="langSettingLabel"]');
-  if (langSettingLabel) langSettingLabel.textContent = L.langLabel || '语言';
+  if (langSettingLabel) langSettingLabel.textContent = L.langSettingLabel || '语言';
 
   // 8. Refresh greeting text
   try { updateGreeting(); } catch(e) {}
@@ -4594,7 +4596,7 @@ function updateGreeting() {
   var g = h < 5 ? (L.greetingEvening || 'Good night') : h < 12 ? L.greeting : h < 18 ? L.greetingDay : L.greetingEvening;
   var name = (userName && userName !== '用户' && userName !== 'undefined' && userName !== 'null') ? userName.split(/[\s，,]/)[0] : '';
   var el = document.getElementById('hGreet');
-  if (el) el.textContent = name ? g + ', ' + name : g;
+  if (el) el.textContent = ''; // greeting no longer shown in nav — name shown in logo area
   var de = document.getElementById('hDate');
   var _lm={'zh':'zh-CN','zh-tw':'zh-TW','en':'en-US','ja':'ja-JP','ko':'ko-KR','es':'es-ES'};
   if (de) de.textContent = new Date().toLocaleDateString(_lm[_lang]||'zh-CN', {year:'numeric',month:'long',day:'numeric',weekday:'long'});
@@ -9092,7 +9094,10 @@ function updateMePage() {
     var uid = localStorage.getItem('c100_uid') || '';
     setT('meUserId', uid ? uid.substring(0,8).toUpperCase() + '…' : notBound);
     var badge = document.getElementById('meAccountBadge');
-    if (badge) badge.style.display = userEmail ? 'inline-block' : 'none';
+    if (badge) badge.style.display = 'none';
+    // Show ✅ in name if logged in
+    var nameEl = document.getElementById('meNameDisplay');
+    if (nameEl) nameEl.textContent = (userName || notBound) + (userEmail ? ' ✅' : '');
     // Load settings toggles
     loadSettingToggles();
     calcProfileCompletion();
