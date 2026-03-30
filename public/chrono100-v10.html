@@ -896,7 +896,13 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
       <!-- 晚间总结 -->
       <div class="summary-card" id="summaryCard" style="margin:10px 16px 0;display:none">
         <div class="summary-inner">
-          <div class="summary-tag" data-i18n-key="todayStory">⭐ 今日故事</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
+            <div class="summary-tag" data-i18n-key="todayStory">⭐ 今日故事</div>
+            <a href="https://k1980.com" target="_blank" style="display:flex;align-items:center;gap:4px;text-decoration:none;background:linear-gradient(135deg,#CC2222,#E03333);border-radius:99px;padding:3px 10px;flex-shrink:0">
+              <span style="font-size:9px;font-weight:700;color:#fff;letter-spacing:.3px">K1980</span>
+              <span style="font-size:9px;color:rgba(255,255,255,.9)">海外资讯 ›</span>
+            </a>
+          </div>
           <div class="summary-text" id="summaryText"></div>
         </div>
       </div>
@@ -5355,7 +5361,7 @@ function closeChatPanels(){
 }
 function renderMessageContent(content,isMe){
   if(!content)return'';
-  // 语音消息 [语音] dur | url
+  // 语音消息
   if(content.startsWith('[\u8bed\u97f3] ')) {
     var parts = content.slice(6).split(' | ');
     var dur = parseInt(parts[0]) || 0;
@@ -5371,19 +5377,36 @@ function renderMessageContent(content,isMe){
       + '<span class="voice-dur">'+timeStr+'</span>'
       + '</div>';
   }
-  if(content.startsWith(t('imgLabel')+' ')){
-    var url=content.slice(5).trim();
-    return'<img src="'+esc(url)+'" style="width:180px;max-height:200px;border-radius:12px;object-fit:cover;display:block;cursor:pointer" onclick="viewFullChatImage(this.src)" onerror="this.style.display=\'none\'">';
+  // 图片消息 — 支持多种前缀，点击在App内全屏查看
+  var imgPrefixes = [t('imgLabel')+' ', '[图片] ', '[圖片] ', '[Image] '];
+  for (var ip = 0; ip < imgPrefixes.length; ip++) {
+    if (content.startsWith(imgPrefixes[ip])) {
+      var imgUrl = content.slice(imgPrefixes[ip].length).trim();
+      return '<img src="'+esc(imgUrl)+'" style="width:200px;max-height:220px;border-radius:12px;object-fit:cover;display:block;cursor:pointer" onclick="viewFullChatImage(\''+esc(imgUrl)+'\')" onerror="this.style.display=\'none\'">';
+    }
   }
-  if(content.startsWith(t('fileLabel')+' ')){
-    var pp=content.slice(5).split(' | ');
-    var fn=pp[0]||'文件',fs=pp[1]||'',fu=pp[2]||'';
-    return'<div style="display:flex;align-items:center;gap:8px">'
-      +'<div style="width:34px;height:34px;border-radius:9px;background:'+(isMe?'rgba(255,255,255,.2)':'var(--blue-lt)')+';display:flex;align-items:center;justify-content:center;font-size:17px">📎</div>'
-      +'<div style="min-width:0"><div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px">'+esc(fn)+'</div>'
-      +'<div style="font-size:10px;opacity:.6">'+esc(fs)+'</div></div>'
-      +(fu?'<a href="'+esc(fu)+'" target="_blank" style="font-size:11px;font-weight:700;text-decoration:none;padding:4px 10px;border-radius:99px;white-space:nowrap;background:'+(isMe?'rgba(255,255,255,.2)':'var(--blue-lt)')+';color:'+(isMe?'#fff':'var(--blue2)')+'">下载</a>':'')
-      +'</div>';
+  // 如果内容是图片URL（直接发链接）
+  if (/\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(content) && content.startsWith('http')) {
+    return '<img src="'+esc(content)+'" style="width:200px;max-height:220px;border-radius:12px;object-fit:cover;display:block;cursor:pointer" onclick="viewFullChatImage(\''+esc(content)+'\')" onerror="this.style.display=\'none\'">';
+  }
+  // 文件消息 — 直接下载，不跳外部浏览器
+  var filePrefixes = [t('fileLabel')+' ', '[文件] ', '[檔案] ', '[File] '];
+  for (var fp = 0; fp < filePrefixes.length; fp++) {
+    if (content.startsWith(filePrefixes[fp])) {
+      var pp = content.slice(filePrefixes[fp].length).split(' | ');
+      var fn = pp[0]||'文件', fs = pp[1]||'', fu = pp[2]||'';
+      // 判断是否图片文件 — 直接显示缩略图
+      var isImg = /\.(jpg|jpeg|png|gif|webp)$/i.test(fn);
+      if (isImg && fu) {
+        return '<img src="'+esc(fu)+'" style="width:200px;max-height:220px;border-radius:12px;object-fit:cover;display:block;cursor:pointer" onclick="viewFullChatImage(\''+esc(fu)+'\')" onerror="this.style.display=\'none\'">';
+      }
+      return '<div style="display:flex;align-items:center;gap:8px">'
+        +'<div style="width:34px;height:34px;border-radius:9px;background:'+(isMe?'rgba(255,255,255,.2)':'var(--blue-lt)')+';display:flex;align-items:center;justify-content:center;font-size:17px">📎</div>'
+        +'<div style="min-width:0;flex:1"><div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px">'+esc(fn)+'</div>'
+        +'<div style="font-size:10px;opacity:.6">'+esc(fs)+'</div></div>'
+        +(fu?'<a href="'+esc(fu)+'" download="'+esc(fn)+'" style="font-size:11px;font-weight:700;text-decoration:none;padding:4px 10px;border-radius:99px;white-space:nowrap;background:'+(isMe?'rgba(255,255,255,.2)':'var(--blue-lt)')+';color:'+(isMe?'#fff':'var(--blue2)')+'">⬇ 存储</a>':'')
+        +'</div>';
+    }
   }
   if(content.startsWith('[Life Moment] ')){
     var text2=content.slice(14);
@@ -5396,9 +5419,12 @@ function renderMessageContent(content,isMe){
 }
 function viewFullChatImage(src){
   var ov=document.createElement('div');
-  ov.style.cssText='position:fixed;inset:0;z-index:999;background:#000;display:flex;align-items:center;justify-content:center;cursor:zoom-out';
-  ov.innerHTML='<img src="'+esc(src)+'" style="max-width:100%;max-height:100%;object-fit:contain">'
-    +'<div onclick="this.parentNode.remove()" style="position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;cursor:pointer">✕</div>';
+  ov.style.cssText='position:fixed;inset:0;z-index:9999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center';
+  ov.innerHTML='<img src="'+esc(src)+'" style="max-width:100%;max-height:85vh;object-fit:contain">'
+    +'<div style="position:absolute;top:16px;right:16px;display:flex;gap:10px">'
+    +'<a href="'+esc(src)+'" download style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;text-decoration:none" title="保存图片">⬇</a>'
+    +'<div onclick="this.parentNode.parentNode.remove()" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;cursor:pointer">✕</div>'
+    +'</div>';
   ov.addEventListener('click',function(e){if(e.target===ov||e.target.tagName==='IMG')ov.remove();});
   document.body.appendChild(ov);
 }
