@@ -73,8 +73,8 @@ input,textarea,select{font-size:16px !important}
 #app{flex-direction:column}
 /* Top nav */
 .top-nav{flex-shrink:0;background:rgba(236,240,248,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);z-index:100}
-.top-nav-inner{display:flex;align-items:center;padding:var(--st) 16px 0;height:calc(52px + var(--st));gap:10px}
-.nav-logo{font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;color:var(--blue);letter-spacing:3px;flex:1;text-align:center;cursor:pointer}
+.top-nav-inner{display:flex;align-items:center;padding:var(--st) 16px 0;height:calc(52px + var(--st));gap:8px}
+.nav-logo{font-family:'Cormorant Garamond',Georgia,serif;font-size:17px;font-weight:700;color:#1E3A6E;letter-spacing:2px;cursor:pointer;flex-shrink:0}
 .nav-icon-btn{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;cursor:pointer;flex-shrink:0;color:var(--ink);font-size:22px;font-weight:600}
 .nav-icon-btn:active{background:rgba(0,0,0,.06)}
 .nav-av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
@@ -666,6 +666,42 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
 .voice-rec-actions{display:flex;gap:20px;align-items:center;margin-top:4px}
 .voice-rec-cancel{padding:10px 24px;border-radius:99px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:14px;cursor:pointer;font-family:inherit}
 .voice-rec-send{padding:10px 28px;border-radius:99px;border:none;background:var(--blue2);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+
+/* Privacy Policy Overlay */
+@keyframes ppSlideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.pp-hero { background: linear-gradient(135deg,#1E3A6E 0%,#2D5FA8 60%,#3D72D4 100%); padding:50px 24px 40px; text-align:center; }
+.pp-hero-badge { display:inline-block; background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.25); color:rgba(255,255,255,.9); font-size:12px; font-weight:600; padding:4px 14px; border-radius:99px; margin-bottom:16px; letter-spacing:.06em; }
+.pp-hero h1 { font-size:clamp(24px,5vw,38px); font-weight:600; color:#fff; margin-bottom:8px; }
+.pp-hero .hero-sub { color:rgba(255,255,255,.7); font-size:14px; margin-bottom:4px; }
+.pp-hero .hero-date { color:rgba(255,255,255,.5); font-size:12px; }
+.pp-commitment { background:#1E3A6E; border-radius:16px; padding:24px 28px; margin:28px 20px; position:relative; overflow:hidden; }
+.pp-commitment::before { content:'🛡'; position:absolute; right:20px; top:12px; font-size:44px; opacity:.12; }
+.pp-commitment h3 { font-size:17px; font-weight:600; color:#C4973A; margin-bottom:10px; }
+.pp-commitment p { color:rgba(255,255,255,.82); font-size:13px; line-height:1.8; margin-bottom:4px; }
+.pp-section { background:#fff; border-radius:16px; padding:26px 24px; margin:0 16px 16px; border:1px solid #D8E6F4; box-shadow:0 2px 10px rgba(18,30,62,.04); }
+.pp-section-title { display:flex; align-items:center; font-size:16px; font-weight:700; color:#1E3A6E; margin-bottom:18px; }
+.pp-section-num { display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:50%; background:#1E3A6E; color:#fff; font-size:12px; font-weight:700; margin-right:10px; flex-shrink:0; }
+.pp-sub-title { font-size:13px; font-weight:600; color:#2D5FA8; margin:16px 0 8px; }
+.pp-body { font-size:13px; color:#38436A; line-height:1.85; margin-bottom:8px; }
+.pp-note { font-size:12px; color:#6E769E; font-style:italic; line-height:1.7; margin-top:6px; }
+.pp-list { list-style:none; margin:6px 0; }
+.pp-list li { display:flex; gap:8px; font-size:13px; color:#38436A; line-height:1.75; padding:3px 0; }
+.pp-list li::before { content:'›'; color:#2D5FA8; font-weight:700; font-size:15px; flex-shrink:0; }
+.pp-highlight { background:#EEF5FD; border-left:3px solid #2D5FA8; border-radius:0 12px 12px 0; padding:14px 18px; margin:12px 0; }
+.pp-highlight p { font-size:13px; color:#38436A; line-height:1.75; margin-bottom:3px; }
+.pp-highlight strong { color:#1E3A6E; }
+.pp-table { width:100%; border-collapse:collapse; margin:12px 0; font-size:12px; }
+.pp-table th { background:#1E3A6E; color:#fff; padding:9px 12px; text-align:left; font-weight:600; }
+.pp-table th:first-child { border-radius:8px 0 0 0; } .pp-table th:last-child { border-radius:0 8px 0 0; }
+.pp-table td { padding:9px 12px; border-bottom:1px solid #D8E6F4; color:#38436A; line-height:1.55; vertical-align:top; }
+.pp-table tr:nth-child(even) td { background:#EEF5FD; }
+.pp-contact { background:linear-gradient(135deg,#1E3A6E 0%,#2D5FA8 100%); border-radius:16px; padding:28px; margin:16px 16px 0; text-align:center; }
+.pp-contact h3 { font-size:20px; color:#fff; margin-bottom:14px; }
+.pp-contact a { display:inline-block; color:#C4973A; font-size:13px; font-weight:600; text-decoration:none; margin:3px 0; }
+.pp-contact p { color:rgba(255,255,255,.6); font-size:12px; margin-top:14px; line-height:1.7; }
+.pp-footer { text-align:center; padding:20px; color:#6E769E; font-size:11px; }
+[data-lang] { display: none; }
+
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
@@ -788,10 +824,14 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
 <div class="screen" id="app">
   <div class="top-nav">
     <div class="top-nav-inner">
-      <div class="nav-icon-btn" id="navBackBtn" style="visibility:hidden;font-size:20px;font-weight:400" onclick="navBack()" title="返回">←</div>
-      <div class="nav-logo" id="navTitle" onclick="gotoPage('life')">CHRONO100</div>
-      <div style="display:flex;align-items:center;gap:6px">
-        <!-- Real system camera button: opens native camera, photo auto-saves to gallery, app receives the file -->
+      <div class="nav-logo" id="navTitle" onclick="gotoPage('life')">🕊 CHRONO100</div>
+      <!-- 问候 + 日期 居中展示 -->
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;padding:0 6px">
+        <div style="font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="hGreet"></div>
+        <div style="font-size:10px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="hDate"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+        <div class="cam-nav-btn" id="navBackBtn" style="visibility:hidden;font-size:20px;font-weight:400" onclick="navBack()" title="返回">←</div>
         <div class="cam-nav-btn" onclick="openLifeArchive()" title="人生档案" style="font-size:15px">&#128196;</div>
         <div class="cam-nav-btn" onclick="openMomentSearch()" title="搜索" style="font-size:16px">&#128269;</div>
         <label class="cam-nav-btn" title="拍照" style="cursor:pointer">
@@ -810,11 +850,6 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
 
     <!-- ██ LIFE PAGE ██ -->
     <div class="page active" id="page-life">
-      <!-- 问候 + 今日动态 -->
-      <div style="padding:14px 16px 0">
-        <div style="font-size:24px;font-weight:700;color:var(--ink);letter-spacing:-.4px" id="hGreet"></div>
-        <div style="font-size:12px;color:var(--ink3);margin-top:2px" id="hDate"></div>
-      </div>
 
       <!-- Safety bar (隐藏保留) -->
       <div class="sfbar" id="safetyBar" style="display:none !important;visibility:hidden;height:0;overflow:hidden;margin:0;padding:0">
@@ -1703,7 +1738,7 @@ function sb() {
               && !(u.app_metadata && u.app_metadata.provider && u.app_metadata.provider !== 'anonymous')
               && !(u.identities && u.identities.length > 0));
         if (isAnon) return; // 匿名用户停在登录页
-        userName = (u.user_metadata && u.user_metadata.full_name)
+        userName = (u.user_metadata && u.user_metadata.full_name && u.user_metadata.full_name !== "undefined" ? u.user_metadata.full_name : null)
           || (u.email ? u.email.split('@')[0] : '用户');
         var loginEl = document.getElementById('login');
         if (loginEl && loginEl.style.display !== 'none') enterApp();
@@ -3782,7 +3817,7 @@ function applyI18n() {
   // 5. Page titles (when navigating between pages)
   var _pageTitles = { life: L.pageLife||L.navLife, circle: L.pageSafe||L.navSafe, chat: L.pageChat||L.navChat, me: L.pageMe||L.navMe };
   var navTitle = document.getElementById('navTitle');
-  if (navTitle && navTitle.textContent !== 'CHRONO100') {
+  if (navTitle && navTitle.textContent.indexOf('CHRONO100') === -1) {
     // Only update if it's showing a page name (not the logo)
   }
 
@@ -3933,7 +3968,7 @@ async function doEmailLogin() {
       return;
     }
     if (res.data && res.data.user) {
-      userName = (res.data.user.user_metadata && res.data.user.user_metadata.full_name) || email.split('@')[0];
+      userName = (res.data.user.user_metadata && res.data.user.user_metadata.full_name && res.data.user.user_metadata.full_name !== "undefined" ? res.data.user.user_metadata.full_name : null) || email.split('@')[0];
       try { localStorage.setItem('c100_uid', res.data.user.id); } catch(e) {}
     }
     enterApp();
@@ -4219,7 +4254,7 @@ async function restoreProfileFromDB() {
 }
 
 function updateUI() {
-  if (!userName || userName === 'undefined') userName = localStorage.getItem('c100_name') || '用户';
+  if (!userName || userName === 'undefined') var _storedName = localStorage.getItem('c100_name'); userName = (_storedName && _storedName !== 'undefined') ? _storedName : '用户';
   var av = document.getElementById('navAv');
   if (av) av.textContent = (userName[0] || '你').toUpperCase();
   updateGreeting();
@@ -4249,7 +4284,7 @@ function checkOAuthCallback() {
     }).then(function(res) {
       if (res && res.data && res.data.user) {
         var u = res.data.user;
-        userName = (u.user_metadata && u.user_metadata.full_name)
+        userName = (u.user_metadata && u.user_metadata.full_name && u.user_metadata.full_name !== "undefined" ? u.user_metadata.full_name : null)
           || (u.email ? u.email.split('@')[0] : '用户');
         // Merge anon UID → Google UID in DB
         setTimeout(function(){ mergeAnonToRealUid(u.id); }, 1000);
@@ -4309,7 +4344,7 @@ function checkExistingSession() {
     var loginEl = document.getElementById('login');
     if (!loginEl || loginEl.style.display === 'none') return;
     var u = session.user;
-    userName = (u.user_metadata && u.user_metadata.full_name)
+    userName = (u.user_metadata && u.user_metadata.full_name && u.user_metadata.full_name !== "undefined" ? u.user_metadata.full_name : null)
       || (u.email ? u.email.split('@')[0] : '用户');
     // Ensure localStorage uid matches real uid
     localStorage.setItem('c100_uid', u.id);
@@ -4494,9 +4529,19 @@ function gotoPage(name) {
     b.classList.toggle('on', b.dataset.page === name);
   });
   var L = I18N[_lang] || I18N.zh;
-  var titles = { life: L.pageLife||'人生轨迹', circle: L.pageSafe||'家人守护', chat: L.pageChat||'私密聊天', me: L.pageMe||'个人设置' };
+  // Always keep CHRONO100 logo — show page name in greeting area instead
   var t = document.getElementById('navTitle');
-  if (t) t.textContent = titles[name] || 'CHRONO100';
+  if (t) t.innerHTML = '🕊 CHRONO100';
+  // Show page name in hGreet when not on life page
+  var hGreet = document.getElementById('hGreet');
+  if (hGreet) {
+    if (name === 'life') {
+      updateGreeting();
+    } else {
+      var pageTitles = { circle: L.pageSafe||'家人守护', chat: L.pageChat||'私密聊天', me: L.pageMe||'个人设置' };
+      hGreet.textContent = pageTitles[name] || '';
+    }
+  }
   // Show back button on all pages except life (the first tab)
   var backBtn = document.getElementById('navBackBtn');
   if (backBtn) backBtn.style.visibility = name === 'life' ? 'hidden' : 'visible';
@@ -4547,7 +4592,7 @@ function updateGreeting() {
   var h = new Date().getHours();
   var L = I18N[_lang] || I18N.zh;
   var g = h < 5 ? (L.greetingEvening || 'Good night') : h < 12 ? L.greeting : h < 18 ? L.greetingDay : L.greetingEvening;
-  var name = (userName && userName !== '用户') ? userName.split(/[\s，,]/)[0] : '';
+  var name = (userName && userName !== '用户' && userName !== 'undefined' && userName !== 'null') ? userName.split(/[\s，,]/)[0] : '';
   var el = document.getElementById('hGreet');
   if (el) el.textContent = name ? g + ', ' + name : g;
   var de = document.getElementById('hDate');
@@ -9561,7 +9606,48 @@ async function exportMyData() {
 
 // ── Privacy policy ──
 function openPrivacyPolicy() {
-  window.open('https://chrono100.com/privacy.html', '_blank');
+  var ex = document.getElementById('privacyPolicyOv'); if (ex) ex.remove();
+  var ov = document.createElement('div');
+  ov.id = 'privacyPolicyOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#F0F5FC;overflow-y:auto;-webkit-overflow-scrolling:touch;animation:ppSlideIn .28s cubic-bezier(.4,0,.2,1)';
+  
+  var closeBar = '<div style="position:sticky;top:0;z-index:10;background:#1E3A6E;padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 12px rgba(0,0,0,.2)">'
+    + '<span style="font-family:serif;font-size:18px;font-weight:600;color:#fff;letter-spacing:.08em">CHRONO<span style=\'color:#C4973A\'>100</span></span>'
+    + '<div style="display:flex;gap:4px;background:rgba(255,255,255,.12);border-radius:99px;padding:4px">'
+    + '<button onclick="ppSetLang(\'zh\',this)" id="ppLang-zh" style="padding:5px 14px;border-radius:99px;border:none;background:#fff;color:#1E3A6E;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">简体</button>'
+    + '<button onclick="ppSetLang(\'zh-hant\',this)" id="ppLang-zh-hant" style="padding:5px 14px;border-radius:99px;border:none;background:transparent;color:rgba(255,255,255,.75);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">繁體</button>'
+    + '<button onclick="ppSetLang(\'en\',this)" id="ppLang-en" style="padding:5px 14px;border-radius:99px;border:none;background:transparent;color:rgba(255,255,255,.75);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">EN</button>'
+    + '</div>'
+    + '<button onclick="document.getElementById(\'privacyPolicyOv\').remove()" style="width:32px;height:32px;border-radius:50%;border:none;background:rgba(255,255,255,.15);color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1">×</button>'
+    + '</div>';
+
+  ov.innerHTML = closeBar + '<div id="ppContent" style="max-width:860px;margin:0 auto;padding:0 0 60px"></div>';
+  document.body.appendChild(ov);
+  
+  // Inject privacy content
+  var ppContent = document.getElementById('ppContent');
+  ppContent.innerHTML = '\n<!-- HEADER -->\n<header class="site-header">\n  <div class="header-inner">\n    <div class="logo">CHRONO<span>100</span></div>\n    <div class="lang-switcher">\n      <button class="lang-btn active" onclick="setLang(\'zh\',this)">简体</button>\n      <button class="lang-btn" onclick="setLang(\'zh-hant\',this)">繁體</button>\n      <button class="lang-btn" onclick="setLang(\'en\',this)">EN</button>\n    </div>\n  </div>\n</header>\n\n<!-- HERO -->\n<div class="hero">\n  <div class="hero-badge">\n    <span data-lang="zh">数据主权 · 海外华人隐私保护</span>\n    <span data-lang="zh-hant">數據主權 · 海外華人隱私保護</span>\n    <span data-lang="en">Data Sovereignty · Privacy for Overseas Chinese</span>\n  </div>\n  <h1>\n    <span data-lang="zh">隐私政策</span>\n    <span data-lang="zh-hant">隱私政策</span>\n    <span data-lang="en">Privacy Policy</span>\n  </h1>\n  <p class="hero-sub">\n    <span data-lang="zh">适用于所有 Chrono100 用户</span>\n    <span data-lang="zh-hant">適用於所有 Chrono100 用戶</span>\n    <span data-lang="en">Applicable to all Chrono100 users</span>\n  </p>\n  <p class="hero-date">\n    <span data-lang="zh">生效日期：2026年4月1日 · 版本 V1.0</span>\n    <span data-lang="zh-hant">生效日期：2026年4月1日 · 版本 V1.0</span>\n    <span data-lang="en">Effective: April 1, 2026 · Version V1.0</span>\n  </p>\n</div>\n\n<!-- MAIN -->\n<div class="container">\n\n  <!-- Commitment -->\n  <div class="commitment">\n    <h3>\n      <span data-lang="zh">我们的核心承诺</span>\n      <span data-lang="zh-hant">我們的核心承諾</span>\n      <span data-lang="en">Our Core Commitment</span>\n    </h3>\n    <p data-lang="zh">Chrono100 由新西兰注册公司运营。所有用户数据存储于新西兰及澳大利亚境内服务器，受当地法律保护。</p>\n    <p data-lang="zh">我们不向任何外国政府、广告商或数据经纪商出售或共享您的个人数据。</p>\n    <p data-lang="zh-hant">Chrono100 由紐西蘭注冊公司營運。所有用戶數據存儲於紐西蘭及澳大利亞境內伺服器，受當地法律保護。</p>\n    <p data-lang="zh-hant">我們不向任何外國政府、廣告商或數據經紀商出售或共享您的個人數據。</p>\n    <p data-lang="en">Chrono100 is operated by a New Zealand registered company. All user data is stored on servers in New Zealand and Australia, protected under local law.</p>\n    <p data-lang="en">We do not sell or share your personal data with any foreign government, advertiser, or data broker.</p>\n  </div>\n\n  <!-- §1 -->\n  <div class="section">\n    <div class="section-title"><span class="section-num">1</span>\n      <span data-lang="zh">我们收集的信息</span>\n      <span data-lang="zh-hant">我們收集的資訊</span>\n      <span data-lang="en">Information We Collect</span>\n    </div>\n    <p class="sub-title">\n      <span data-lang="zh">1.1 您主动提供的信息</span>\n      <span data-lang="zh-hant">1.1 您主動提供的資訊</span>\n      <span data-lang="en">1.1 Information You Provide</span>\n    </p>\n    <ul class="policy-list">\n      <li data-lang="zh">注册信息：姓名（可使用昵称）、电子邮件地址、手机号码</li>\n      <li data-lang="zh">个人资料：头像、简介（均为可选）</li>\n      <li data-lang="zh">通讯内容：私信、群聊消息（端到端加密）</li>\n      <li data-lang="zh">生活轨迹：您主动记录的地点、照片、事件备注</li>\n      <li data-lang="zh-hant">註冊資訊：姓名（可使用暱稱）、電子郵件地址、手機號碼</li>\n      <li data-lang="zh-hant">個人資料：頭像、簡介（均為可選）</li>\n      <li data-lang="zh-hant">通訊內容：私訊、群聊消息（端到端加密）</li>\n      <li data-lang="zh-hant">生活軌跡：您主動記錄的地點、照片、事件備注</li>\n      <li data-lang="en">Registration: name (nickname accepted), email address, phone number</li>\n      <li data-lang="en">Profile: avatar, bio (all optional)</li>\n      <li data-lang="en">Communications: messages and group chats (end-to-end encrypted)</li>\n      <li data-lang="en">Life timeline: locations, photos and notes you actively record</li>\n    </ul>\n    <p class="sub-title">\n      <span data-lang="zh">1.2 自动收集的技术信息</span>\n      <span data-lang="zh-hant">1.2 自動收集的技術資訊</span>\n      <span data-lang="en">1.2 Automatically Collected Information</span>\n    </p>\n    <ul class="policy-list">\n      <li data-lang="zh">设备信息：操作系统、浏览器类型、设备型号</li>\n      <li data-lang="zh">位置信息：仅在您明确授权后收集GPS坐标</li>\n      <li data-lang="zh">使用日志：功能使用频率、匿名错误日志（不含内容）</li>\n      <li data-lang="zh-hant">設備資訊：作業系統、瀏覽器類型、設備型號</li>\n      <li data-lang="zh-hant">位置資訊：僅在您明確授權後收集GPS座標</li>\n      <li data-lang="zh-hant">使用日誌：功能使用頻率、匿名錯誤日誌（不含內容）</li>\n      <li data-lang="en">Device info: OS, browser type, device model</li>\n      <li data-lang="en">Location: GPS coordinates only when you explicitly grant permission</li>\n      <li data-lang="en">Usage logs: feature frequency, anonymous error logs (no content)</li>\n    </ul>\n    <p class="note" data-lang="zh">我们不收集您的通讯录、相册或麦克风数据，除非您明确授权特定功能使用。</p>\n    <p class="note" data-lang="zh-hant">我們不收集您的通訊錄、相冊或麥克風數據，除非您明確授權特定功能使用。</p>\n    <p class="note" data-lang="en">We do not access your contacts, photo library, or microphone unless you explicitly grant permission for a specific feature.</p>\n  </div>\n\n  <!-- §2 -->\n  <div class="section">\n    <div class="section-title"><span class="section-num">2</span>\n      <span data-lang="zh">数据存储与主权</span>\n      <span data-lang="zh-hant">數據存儲與主權</span>\n      <span data-lang="en">Data Storage & Sovereignty</span>\n    </div>\n    <table class="policy-table">\n      <tr>\n        <th data-lang="zh">项目</th><th data-lang="zh">详情</th>\n        <th data-lang="zh-hant">項目</th><th data-lang="zh-hant">詳情</th>\n        <th data-lang="en">Item</th><th data-lang="en">Details</th>\n      </tr>\n      <tr>\n        <td data-lang="zh">服务器位置</td><td data-lang="zh">新西兰 Auckland / 澳大利亚 Sydney（AWS ap-southeast-2）</td>\n        <td data-lang="zh-hant">伺服器位置</td><td data-lang="zh-hant">紐西蘭 Auckland / 澳大利亞 Sydney（AWS ap-southeast-2）</td>\n        <td data-lang="en">Server Location</td><td data-lang="en">New Zealand Auckland / Australia Sydney (AWS ap-southeast-2)</td>\n      </tr>\n      <tr>\n        <td data-lang="zh">传输加密</td><td data-lang="zh">TLS 1.3 全程加密</td>\n        <td data-lang="zh-hant">傳輸加密</td><td data-lang="zh-hant">TLS 1.3 全程加密</td>\n        <td data-lang="en">Transport Encryption</td><td data-lang="en">TLS 1.3 end-to-end</td>\n      </tr>\n      <tr>\n        <td data-lang="zh">静态加密</td><td data-lang="zh">AES-256 数据库加密</td>\n        <td data-lang="zh-hant">靜態加密</td><td data-lang="zh-hant">AES-256 資料庫加密</td>\n        <td data-lang="en">At-Rest Encryption</td><td data-lang="en">AES-256 database encryption</td>\n      </tr>\n      <tr>\n        <td data-lang="zh">聊天内容</td><td data-lang="zh">端到端加密，服务器无法读取明文</td>\n        <td data-lang="zh-hant">聊天內容</td><td data-lang="zh-hant">端到端加密，伺服器無法讀取明文</td>\n        <td data-lang="en">Chat Messages</td><td data-lang="en">End-to-end encrypted; plaintext is never accessible on our servers</td>\n      </tr>\n      <tr>\n        <td data-lang="zh">数据保留期</td><td data-lang="zh">账户活跃期间 + 注销后30天彻底删除</td>\n        <td data-lang="zh-hant">數據保留期</td><td data-lang="zh-hant">帳戶活躍期間 + 登出後30天徹底刪除</td>\n        <td data-lang="en">Retention Period</td><td data-lang="en">Active account period + 30 days after deletion request</td>\n      </tr>\n    </table>\n\n    <p class="note" data-lang="zh">我们每年发布透明度报告，公示所有数据请求及处理情况。</p>\n    <p class="note" data-lang="zh-hant">我們每年發布透明度報告，公示所有數據請求及處理情況。</p>\n    <p class="note" data-lang="en">We publish an annual transparency report disclosing all data requests received and how they were handled.</p>\n  </div>\n\n  <!-- §3 -->\n  <div class="section">\n    <div class="section-title"><span class="section-num">3</span>\n      <span data-lang="zh">数据使用目的</span>\n      <span data-lang="zh-hant">數據使用目的</span>\n      <span data-lang="en">How We Use Your Data</span>\n    </div>\n    <ul class="policy-list">\n      <li data-lang="zh">提供产品核心功能：定位共享、聊天、轨迹记录</li>\n      <li data-lang="zh">账户安全验证与反欺诈</li>\n      <li data-lang="zh">使用匿名化聚合数据改进产品</li>\n      <li data-lang="zh">响应您的客服请求</li>\n      <li data-lang="zh-hant">提供產品核心功能：定位共享、聊天、軌跡記錄</li>\n      <li data-lang="zh-hant">帳戶安全驗證與反欺詐</li>\n      <li data-lang="zh-hant">使用匿名化聚合數據改進產品</li>\n      <li data-lang="zh-hant">響應您的客服請求</li>\n      <li data-lang="en">Providing core features: location sharing, chat, timeline recording</li>\n      <li data-lang="en">Account security verification and fraud prevention</li>\n      <li data-lang="en">Product improvement using anonymised aggregate statistics</li>\n      <li data-lang="en">Responding to your support requests</li>\n    </ul>\n    <div class="highlight-box" style="margin-top:16px">\n      <p data-lang="zh"><strong>我们绝不将您的数据用于：</strong></p>\n      <p data-lang="zh">出售给广告商 · 政治分析或内容审查 · 向第三方平台同步（包括微信、微博）· 训练对外销售的AI模型</p>\n      <p data-lang="zh-hant"><strong>我們絕不將您的數據用於：</strong></p>\n      <p data-lang="zh-hant">出售給廣告商 · 政治分析或內容審查 · 向第三方平台同步（包括微信、微博）· 訓練對外銷售的AI模型</p>\n      <p data-lang="en"><strong>We will never use your data for:</strong></p>\n      <p data-lang="en">Selling to advertisers · Political analysis or content censorship · Syncing to third-party platforms (including WeChat, Weibo) · Training AI models sold externally</p>\n    </div>\n  </div>\n\n  <!-- §4 -->\n  <div class="section">\n    <div class="section-title"><span class="section-num">4</span>\n      <span data-lang="zh">您的数据权利</span>\n      <span data-lang="zh-hant">您的數據權利</span>\n      <span data-lang="en">Your Data Rights</span>\n    </div>\n    <p class="body-text" data-lang="zh">根据新西兰《隐私法2020》及GDPR相关原则，您享有以下权利：</p>\n    <p class="body-text" data-lang="zh-hant">根據紐西蘭《隱私法2020》及GDPR相關原則，您享有以下權利：</p>\n    <p class="body-text" data-lang="en">Under New Zealand\'s Privacy Act 2020 and relevant GDPR principles, you have the following rights:</p>\n    <table class="policy-table" style="margin-top:12px">\n      <tr>\n        <th data-lang="zh">权利</th><th data-lang="zh">说明</th>\n        <th data-lang="zh-hant">權利</th><th data-lang="zh-hant">說明</th>\n        <th data-lang="en">Right</th><th data-lang="en">Description</th>\n      </tr>\n      <tr>\n        <td data-lang="zh">访问权</td><td data-lang="zh">申请获取我们持有的您的全部个人数据副本</td>\n        <td data-lang="zh-hant">存取權</td><td data-lang="zh-hant">申請獲取我們持有的您的全部個人數據副本</td>\n        <td data-lang="en">Right of Access</td><td data-lang="en">Request a copy of all personal data we hold about you</td>\n      </tr>\n      <tr>\n        <td data-lang="zh">更正权</td><td data-lang="zh">要求更正不准确或不完整的数据</td>\n        <td data-lang="zh-hant">更正權</td><td data-lang="zh-hant">要求更正不準確或不完整的數據</td>\n        <td data-lang="en">Right to Rectification</td><td data-lang="en">Request correction of inaccurate or incomplete data</td>\n      </tr>\n      <tr>\n        <td data-lang="zh">删除权</td><td data-lang="zh">要求彻底删除您的账户及所有相关数据</td>\n        <td data-lang="zh-hant">刪除權</td><td data-lang="zh-hant">要求徹底刪除您的帳戶及所有相關數據</td>\n        <td data-lang="en">Right to Erasure</td><td data-lang="en">Request complete deletion of your account and all associated data</td>\n      </tr>\n      <tr>\n        <td data-lang="zh">可携带权</td><td data-lang="zh">以机器可读格式导出您的全部数据</td>\n        <td data-lang="zh-hant">可攜帶權</td><td data-lang="zh-hant">以機器可讀格式匯出您的全部數據</td>\n        <td data-lang="en">Data Portability</td><td data-lang="en">Export all your data in a machine-readable format</td>\n      </tr>\n      <tr>\n        <td data-lang="zh">撤回同意权</td><td data-lang="zh">随时撤回您此前给予的数据授权</td>\n        <td data-lang="zh-hant">撤回同意權</td><td data-lang="zh-hant">隨時撤回您此前給予的數據授權</td>\n        <td data-lang="en">Right to Withdraw Consent</td><td data-lang="en">Withdraw any previously granted data authorisation at any time</td>\n      </tr>\n    </table>\n    <p class="note" data-lang="zh" style="margin-top:14px">行使上述权利，请发送邮件至 privacy@chrono100.com，我们将在15个工作日内响应。</p>\n    <p class="note" data-lang="zh-hant" style="margin-top:14px">行使上述權利，請發送郵件至 privacy@chrono100.com，我們將在15個工作日內響應。</p>\n    <p class="note" data-lang="en" style="margin-top:14px">To exercise any of these rights, email privacy@chrono100.com. We will respond within 15 business days.</p>\n  </div>\n\n  <!-- §5 -->\n  <div class="section">\n    <div class="section-title"><span class="section-num">5</span>\n      <span data-lang="zh">数据安全措施</span>\n      <span data-lang="zh-hant">數據安全措施</span>\n      <span data-lang="en">Security Measures</span>\n    </div>\n    <ul class="policy-list">\n      <li data-lang="zh">端到端加密（聊天内容）</li>\n      <li data-lang="zh">AES-256 数据库静态加密</li>\n      <li data-lang="zh">TLS 1.3 传输层加密</li>\n      <li data-lang="zh">最小权限原则：员工仅访问工作必需数据</li>\n      <li data-lang="zh">定期安全审计与渗透测试</li>\n      <li data-lang="zh">数据泄露发生后72小时内通知受影响用户及新西兰隐私专员办公室</li>\n      <li data-lang="zh-hant">端到端加密（聊天內容）</li>\n      <li data-lang="zh-hant">AES-256 資料庫靜態加密</li>\n      <li data-lang="zh-hant">TLS 1.3 傳輸層加密</li>\n      <li data-lang="zh-hant">最小權限原則：員工僅存取工作必需數據</li>\n      <li data-lang="zh-hant">定期安全稽核與滲透測試</li>\n      <li data-lang="zh-hant">數據洩露發生後72小時內通知受影響用戶及紐西蘭隱私專員辦公室</li>\n      <li data-lang="en">End-to-end encryption for all chat messages</li>\n      <li data-lang="en">AES-256 database at-rest encryption</li>\n      <li data-lang="en">TLS 1.3 transport encryption</li>\n      <li data-lang="en">Least-privilege principle: staff access only data required for their role</li>\n      <li data-lang="en">Regular security audits and penetration testing</li>\n      <li data-lang="en">Breach notification to affected users and NZ Privacy Commissioner within 72 hours</li>\n    </ul>\n  </div>\n\n  <!-- §6 -->\n  <div class="section">\n    <div class="section-title"><span class="section-num">6</span>\n      <span data-lang="zh">第三方服务</span>\n      <span data-lang="zh-hant">第三方服務</span>\n      <span data-lang="en">Third-Party Services</span>\n    </div>\n    <table class="policy-table">\n      <tr>\n        <th data-lang="zh">服务商</th><th data-lang="zh">用途</th><th data-lang="zh">数据存储地</th>\n        <th data-lang="zh-hant">服務商</th><th data-lang="zh-hant">用途</th><th data-lang="zh-hant">數據存儲地</th>\n        <th data-lang="en">Provider</th><th data-lang="en">Purpose</th><th data-lang="en">Data Location</th>\n      </tr>\n      <tr>\n        <td data-lang="zh">Supabase</td><td data-lang="zh">数据库与认证</td><td data-lang="zh">AWS 澳洲</td>\n        <td data-lang="zh-hant">Supabase</td><td data-lang="zh-hant">資料庫與認證</td><td data-lang="zh-hant">AWS 澳洲</td>\n        <td data-lang="en">Supabase</td><td data-lang="en">Database & auth</td><td data-lang="en">AWS Australia</td>\n      </tr>\n      <tr>\n        <td data-lang="zh">AWS S3</td><td data-lang="zh">图片/文件存储</td><td data-lang="zh">AWS 澳洲</td>\n        <td data-lang="zh-hant">AWS S3</td><td data-lang="zh-hant">圖片/檔案存儲</td><td data-lang="zh-hant">AWS 澳洲</td>\n        <td data-lang="en">AWS S3</td><td data-lang="en">File & image storage</td><td data-lang="en">AWS Australia</td>\n      </tr>\n      <tr>\n        <td data-lang="zh">Cloudflare</td><td data-lang="zh">CDN / 安全防护</td><td data-lang="zh">全球节点（不含中国大陆）</td>\n        <td data-lang="zh-hant">Cloudflare</td><td data-lang="zh-hant">CDN / 安全防護</td><td data-lang="zh-hant">全球節點（不含中國大陸）</td>\n        <td data-lang="en">Cloudflare</td><td data-lang="en">CDN / DDoS protection</td><td data-lang="en">Global nodes (excluding mainland China)</td>\n      </tr>\n    </table>\n  </div>\n\n  <!-- §7 -->\n  <div class="section">\n    <div class="section-title"><span class="section-num">7</span>\n      <span data-lang="zh">Cookie 政策</span>\n      <span data-lang="zh-hant">Cookie 政策</span>\n      <span data-lang="en">Cookie Policy</span>\n    </div>\n    <p class="body-text" data-lang="zh">我们仅使用功能性Cookie：维持登录状态、存储语言偏好、基本错误追踪。不使用任何第三方广告Cookie或跨站追踪技术。</p>\n    <p class="body-text" data-lang="zh-hant">我們僅使用功能性Cookie：維持登入狀態、存儲語言偏好、基本錯誤追蹤。不使用任何第三方廣告Cookie或跨站追蹤技術。</p>\n    <p class="body-text" data-lang="en">We only use functional cookies: maintaining login sessions, storing language preferences, and basic error tracking. We do not use any third-party advertising cookies or cross-site tracking technologies.</p>\n  </div>\n\n  <!-- §8 -->\n  <div class="section">\n    <div class="section-title"><span class="section-num">8</span>\n      <span data-lang="zh">适用法律</span>\n      <span data-lang="zh-hant">適用法律</span>\n      <span data-lang="en">Governing Law</span>\n    </div>\n    <p class="body-text" data-lang="zh">本政策受新西兰《隐私法2020》（Privacy Act 2020）管辖。如有投诉，您可联系新西兰隐私专员办公室（OPC）：www.privacy.org.nz · 免费热线 0800 803 909</p>\n    <p class="body-text" data-lang="zh-hant">本政策受紐西蘭《隱私法2020》（Privacy Act 2020）管轄。如有投訴，您可聯繫紐西蘭隱私專員辦公室（OPC）：www.privacy.org.nz · 免費熱線 0800 803 909</p>\n    <p class="body-text" data-lang="en">This policy is governed by New Zealand\'s Privacy Act 2020. To file a complaint, contact the Office of the Privacy Commissioner (OPC): www.privacy.org.nz · Free phone 0800 803 909</p>\n  </div>\n\n  <!-- Contact -->\n  <div class="contact-box">\n    <h3>\n      <span data-lang="zh">联系隐私团队</span>\n      <span data-lang="zh-hant">聯繫隱私團隊</span>\n      <span data-lang="en">Contact Our Privacy Team</span>\n    </h3>\n    <a href="mailto:privacy@chrono100.com">privacy@chrono100.com</a><br>\n    <a href="https://chrono100.com" target="_blank">www.chrono100.com</a>\n    <p data-lang="zh">Auckland, New Zealand · 我们将在15个工作日内回复</p>\n    <p data-lang="zh-hant">Auckland, New Zealand · 我們將在15個工作日內回覆</p>\n    <p data-lang="en">Auckland, New Zealand · We respond within 15 business days</p>\n  </div>\n\n</div>\n\n<footer>\n  © 2026 Chrono100 · Auckland, New Zealand ·\n  <span data-lang="zh">保留所有权利</span>\n  <span data-lang="zh-hant">保留所有權利</span>\n  <span data-lang="en">All rights reserved</span>\n</footer>\n\n<script>\nvar BLOCK_TAGS = [\'P\',\'DIV\',\'UL\',\'OL\',\'TABLE\'];\n\nfunction getDisplayType(el) {\n  var tag = el.tagName;\n  if (tag === \'SPAN\') return \'inline\';\n  if (tag === \'TD\' || tag === \'TH\') return \'table-cell\';\n  if (tag === \'LI\') return \'flex\';\n  if (tag === \'TABLE\') return \'table\';\n  return \'block\';\n}\n\nfunction setLang(lang, btn) {\n  // Hide all data-lang elements\n  document.querySelectorAll(\'[data-lang]\').forEach(function(el) {\n    el.style.display = \'none\';\n  });\n  // Show only elements matching the selected lang\n  document.querySelectorAll(\'[data-lang="\' + lang + \'"]\').forEach(function(el) {\n    el.style.display = getDisplayType(el);\n  });\n  // Update buttons\n  document.querySelectorAll(\'.lang-btn\').forEach(function(b) { b.classList.remove(\'active\'); });\n  btn.classList.add(\'active\');\n  document.documentElement.lang = lang === \'zh\' ? \'zh-Hans\' : lang === \'zh-hant\' ? \'zh-Hant\' : \'en\';\n}\n\n// Init: show zh on load\ndocument.addEventListener(\'DOMContentLoaded\', function() {\n  setLang(\'zh\', document.querySelector(\'.lang-btn.active\'));\n';
+  
+  // Init lang display
+  ppSetLang('zh', document.getElementById('ppLang-zh'));
+}
+
+function ppSetLang(lang, btn) {
+  var ov = document.getElementById('privacyPolicyOv'); if (!ov) return;
+  ov.querySelectorAll('[data-lang]').forEach(function(el) { el.style.display = 'none'; });
+  ov.querySelectorAll('[data-lang="' + lang + '"]').forEach(function(el) {
+    var tag = el.tagName;
+    if (tag === 'SPAN') el.style.display = 'inline';
+    else if (tag === 'TD' || tag === 'TH') el.style.display = 'table-cell';
+    else if (tag === 'LI') el.style.display = 'flex';
+    else el.style.display = 'block';
+  });
+  ['zh','zh-hant','en'].forEach(function(l) {
+    var b = document.getElementById('ppLang-' + l);
+    if (!b) return;
+    if (l === lang) { b.style.background='#fff'; b.style.color='#1E3A6E'; }
+    else { b.style.background='transparent'; b.style.color='rgba(255,255,255,.75)'; }
+  });
 }
 
 // ── Logout ──
@@ -9576,7 +9662,7 @@ function _doLogout() {
 
   // 保留 c100_uid 和 c100_name，这样访客重新进入还能找到自己
   // 只清除登录状态相关的内容
-  userName = localStorage.getItem('c100_name') || '用户';
+  var _storedName = localStorage.getItem('c100_name'); userName = (_storedName && _storedName !== 'undefined') ? _storedName : '用户';
   userEmoji = localStorage.getItem('c100_emoji') || '😊';
   userBio = ''; userAvatarUrl = '';
 
@@ -11764,7 +11850,7 @@ async function enforceLoginWall() {
       if (isReal) {
         // 真实用户：记录访问日志，进入App
         logAccess('app_open', { provider: u.app_metadata && u.app_metadata.provider });
-        userName = (u.user_metadata && u.user_metadata.full_name)
+        userName = (u.user_metadata && u.user_metadata.full_name && u.user_metadata.full_name !== "undefined" ? u.user_metadata.full_name : null)
                  || (u.email ? u.email.split('@')[0] : '用户');
         enterApp();
         return;
@@ -11961,118 +12047,123 @@ function openLifeArchive() {
 
   // ── Header ──
   var hdr = document.createElement('div');
-  hdr.style.cssText = 'flex-shrink:0;display:flex;align-items:center;gap:12px;padding:calc(var(--st)+12px) 16px 12px;background:var(--card);border-bottom:1px solid var(--border)';
+  hdr.style.cssText = 'flex-shrink:0;display:flex;align-items:center;gap:12px;padding:calc(var(--st)+10px) 14px 10px;background:var(--card);border-bottom:1px solid var(--border)';
   var back = document.createElement('div');
   back.innerHTML = '&#8592;';
   back.style.cssText = 'font-size:22px;cursor:pointer;color:var(--ink3);padding:4px';
   back.onclick = function(){ ov.remove(); };
   var hTitle = document.createElement('div');
-  hTitle.style.cssText = 'flex:1;font-size:17px;font-weight:700;color:var(--ink)';
+  hTitle.style.cssText = 'flex:1;font-size:16px;font-weight:700;color:var(--ink)';
   hTitle.textContent = t('sLifeArchive');
   hdr.appendChild(back); hdr.appendChild(hTitle);
 
   // ── Scroll body ──
   var body = document.createElement('div');
-  body.style.cssText = 'flex:1;overflow-y:auto;padding:16px';
+  body.style.cssText = 'flex:1;overflow-y:auto;padding:12px 14px';
 
-  // 模板选择
+  // 模板选择 — 2列紧凑网格
   var tplSection = _archiveSection('&#128196; ' + t('archiveTemplate'), [
-    { id:'general',   label:t('tplGeneral'),   desc:t('tplGeneralDesc') },
-    { id:'visa',      label:t('tplVisa'),      desc:t('tplVisaDesc') },
-    { id:'work',      label:t('tplWork'),      desc:t('tplWorkDesc') },
-    { id:'family',    label:t('tplFamily'),    desc:t('tplFamilyDesc') },
+    { id:'general', label:t('tplGeneral'),   desc:t('tplGeneralDesc') },
+    { id:'visa',    label:t('tplVisa'),      desc:t('tplVisaDesc') },
+    { id:'work',    label:t('tplWork'),      desc:t('tplWorkDesc') },
+    { id:'family',  label:t('tplFamily'),    desc:t('tplFamilyDesc') },
   ], 'tpl', 'general');
   body.appendChild(tplSection);
 
-  // 时间范围
+  // 时间范围 — 横排紧凑
   var dateSection = _archiveSection('&#128197; ' + t('timeRange'), [
-    { id:'all',       label:t('timeAll'),    desc:'' },
-    { id:'year',      label:t('timeYear'),   desc:'' },
-    { id:'half_year',  label:t('timeHalfYear'), desc:'' },
-    { id:'three_months', label:t('timeThreeMonths'), desc:'' },
-    { id:'custom',     label:t('timeCustom'),  desc:'' },
+    { id:'all',          label:t('timeAll'),          desc:'' },
+    { id:'year',         label:t('timeYear'),         desc:'' },
+    { id:'half_year',    label:t('timeHalfYear'),     desc:'' },
+    { id:'three_months', label:t('timeThreeMonths'),  desc:'' },
+    { id:'custom',       label:t('timeCustom'),       desc:'' },
   ], 'daterange', 'all');
   body.appendChild(dateSection);
 
   var customDates = document.createElement('div');
   customDates.id = 'archiveCustomDates';
-  customDates.style.cssText = 'display:none;gap:10px;margin-bottom:14px';
+  customDates.style.cssText = 'display:none;gap:8px;margin-bottom:12px';
   ['archiveDateFrom','archiveDateTo'].forEach(function(id,i){
     var inp = document.createElement('input');
     inp.type='date'; inp.id=id;
-    inp.style.cssText='flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:11px;font-size:13px;background:var(--card);color:var(--ink);-webkit-appearance:none';
+    inp.style.cssText='flex:1;padding:9px 11px;border:1.5px solid var(--border);border-radius:11px;font-size:13px;background:var(--card);color:var(--ink);-webkit-appearance:none';
     inp.placeholder = i===0 ? t('startDate') : t('endDate');
     customDates.appendChild(inp);
   });
   body.appendChild(customDates);
 
-  // 关键词搜索
+  // 关键词
   var kwWrap = document.createElement('div');
-  kwWrap.style.cssText = 'margin-bottom:14px';
+  kwWrap.style.cssText = 'margin-bottom:12px';
   var kwLabel = document.createElement('div');
-  kwLabel.style.cssText = 'font-size:12px;font-weight:700;color:var(--ink3);margin-bottom:8px;letter-spacing:.4px';
+  kwLabel.style.cssText = 'font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:6px;letter-spacing:.4px';
   kwLabel.textContent = '🔍 关键词筛选（可选）';
   var kwInp = document.createElement('input');
   kwInp.type='text'; kwInp.id='archiveKeyword';
   kwInp.placeholder=t('keywordPlaceholder');
-  kwInp.style.cssText='width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:13px;background:var(--card);color:var(--ink);box-sizing:border-box;-webkit-appearance:none;outline:none';
+  kwInp.style.cssText='width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:12px;font-size:13px;background:var(--card);color:var(--ink);box-sizing:border-box;-webkit-appearance:none;outline:none';
   kwWrap.appendChild(kwLabel); kwWrap.appendChild(kwInp);
   body.appendChild(kwWrap);
 
-  // 内容类型
+  // 内容类型 — 新增「仅含位置」选项
   var typeSection = _archiveSection('&#127775; ' + t('contentType'), [
-    { id:'all_types',  label:t('typeAll'),     desc:'' },
-    { id:'gps_only',   label:t('typeGPS'),     desc:t('typeGPSDesc') },
-    { id:'photo_only', label:t('typePhoto'),   desc:t('typePhotoDesc') },
-    { id:'people',     label:t('typePeople'),  desc:t('typePeopleDesc') },
+    { id:'all_types',   label:t('typeAll'),    desc:'' },
+    { id:'gps_only',    label:'仅含位置',       desc:'有GPS坐标的记录' },
+    { id:'photo_only',  label:t('typePhoto'),  desc:t('typePhotoDesc') },
+    { id:'people',      label:t('typePeople'), desc:t('typePeopleDesc') },
   ], 'contenttype', 'all_types');
   body.appendChild(typeSection);
+
+  // 位置显示精度选项
+  var locOptWrap = document.createElement('div');
+  locOptWrap.style.cssText = 'margin-bottom:12px;background:var(--card);border-radius:12px;padding:12px 14px;border:1px solid var(--border)';
+  locOptWrap.innerHTML = '<div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:8px;letter-spacing:.4px">📍 位置显示方式</div>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+    + '<label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink);cursor:pointer"><input type="radio" name="archivePicker_locmode" value="city" checked style="accent-color:var(--blue2)"> 🏙 仅城市名</label>'
+    + '<label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink);cursor:pointer"><input type="radio" name="archivePicker_locmode" value="coords" style="accent-color:var(--blue2)"> 📍 精确坐标</label>'
+    + '<label style="display:flex;align-items:center;gap=6px;font-size:13px;color:var(--ink);cursor:pointer"><input type="radio" name="archivePicker_locmode" value="hidden" style="accent-color:var(--blue2)"> 🔒 隐藏位置</label>'
+    + '</div>';
+  body.appendChild(locOptWrap);
 
   // 预览统计
   var previewCard = document.createElement('div');
   previewCard.id = 'archivePreview';
-  previewCard.style.cssText = 'background:var(--blue-lt);border:1.5px solid var(--blue-soft);border-radius:14px;padding:14px 16px;margin-bottom:16px';
+  previewCard.style.cssText = 'background:var(--blue-lt);border:1.5px solid var(--blue-soft);border-radius:14px;padding:12px 14px;margin-bottom:14px;min-height:60px';
   previewCard.innerHTML = '<div style="font-size:12px;color:var(--ink3)">设置筛选条件后点击「预览」查看匹配记录</div>';
   body.appendChild(previewCard);
 
-  // 行动区（固定底部）
+  // 底部按钮
   var archiveFooter = document.createElement('div');
-  archiveFooter.style.cssText = 'flex-shrink:0;padding:12px 16px calc(env(safe-area-inset-bottom,0px)+12px);background:var(--card);border-top:1px solid var(--border);display:flex;gap:8px';
+  archiveFooter.style.cssText = 'flex-shrink:0;padding:12px 14px 16px;margin-bottom:70px;background:var(--card);border-top:1px solid var(--border);display:flex;gap:8px';
   var previewBtn2 = document.createElement('button');
-  previewBtn2.style.cssText = 'flex:1;padding:14px;border-radius:14px;border:1.5px solid var(--blue2);background:transparent;color:var(--blue2);font-size:14px;font-weight:600;cursor:pointer;-webkit-appearance:none';
+  previewBtn2.style.cssText = 'flex:1;padding:13px;border-radius:14px;border:1.5px solid var(--blue2);background:transparent;color:var(--blue2);font-size:14px;font-weight:600;cursor:pointer;-webkit-appearance:none';
   previewBtn2.innerHTML = '&#128269; ' + t('preview');
   previewBtn2.onclick = function(){ _archivePreview(); };
   var genBtn2 = document.createElement('button');
-  genBtn2.style.cssText = 'flex:2;padding:14px;border-radius:14px;border:none;background:var(--blue2);color:#fff;font-size:14px;font-weight:700;cursor:pointer;-webkit-appearance:none';
+  genBtn2.style.cssText = 'flex:2;padding:13px;border-radius:14px;border:none;background:var(--blue2);color:#fff;font-size:14px;font-weight:700;cursor:pointer;-webkit-appearance:none';
   genBtn2.innerHTML = '&#128196; ' + t('generatePDF');
   genBtn2.onclick = function(){ _doGeneratePDF(); };
   archiveFooter.appendChild(previewBtn2); archiveFooter.appendChild(genBtn2);
-  // 顶部生成按钮改为预览
-  var topGen = document.getElementById('archiveGenBtn');
-  if(topGen){ topGen.style.display='none'; }
 
   ov.appendChild(hdr); ov.appendChild(body); ov.appendChild(archiveFooter);
   document.body.appendChild(ov);
 
-  // 监听自定义日期切换
   ov.addEventListener('change', function(e){
     if(e.target && e.target.name==='archivePicker_daterange') {
       customDates.style.display = e.target.value==='custom' ? 'flex' : 'none';
       setTimeout(function(){ _archivePreview(); }, 100);
     }
-    // 任何radio变化都自动更新预览
     if(e.target && e.target.type==='radio') {
       setTimeout(function(){ _archivePreview(); }, 100);
     }
   });
-  // 关键词输入自动触发
   ov.addEventListener('input', function(e){
     if(e.target && e.target.id==='archiveKeyword') {
       clearTimeout(window._archiveKwTimer);
       window._archiveKwTimer = setTimeout(function(){ _archivePreview(); }, 500);
     }
   });
-  // 默认预览
+  // 自动触发预览（会先加载数据）
   setTimeout(function(){ _archivePreview(); }, 300);
 }
 
@@ -12124,21 +12215,22 @@ function _archiveGetFilter() {
   var tpl = getRadio('tpl') || 'general';
   var daterange = getRadio('daterange') || 'all';
   var contenttype = getRadio('contenttype') || 'all_types';
+  var locmode = getRadio('locmode') || 'city';
   var keyword = (document.getElementById('archiveKeyword')||{}).value || '';
   var fromDate = null, toDate = null;
   if(daterange==='custom') {
     var f = (document.getElementById('archiveDateFrom')||{}).value;
-    var t = (document.getElementById('archiveDateTo')||{}).value;
+    var t2 = (document.getElementById('archiveDateTo')||{}).value;
     if(f) fromDate = new Date(f);
-    if(t) { toDate = new Date(t); toDate.setHours(23,59,59,999); }
+    if(t2) { toDate = new Date(t2); toDate.setHours(23,59,59,999); }
   } else {
     toDate = new Date();
-    if(daterange==='year')     { fromDate = new Date(); fromDate.setFullYear(fromDate.getFullYear()-1); }
-    else if(daterange==='halfyear')  { fromDate = new Date(); fromDate.setMonth(fromDate.getMonth()-6); }
-    else if(daterange==='month3')    { fromDate = new Date(); fromDate.setMonth(fromDate.getMonth()-3); }
+    if(daterange==='year')        { fromDate = new Date(); fromDate.setFullYear(fromDate.getFullYear()-1); }
+    else if(daterange==='half_year')   { fromDate = new Date(); fromDate.setMonth(fromDate.getMonth()-6); }
+    else if(daterange==='three_months'){ fromDate = new Date(); fromDate.setMonth(fromDate.getMonth()-3); }
     else { fromDate = null; toDate = null; }
   }
-  return { tpl, daterange, contenttype, keyword: keyword.trim(), fromDate, toDate };
+  return { tpl, daterange, contenttype, locmode, keyword: keyword.trim(), fromDate, toDate };
 }
 
 function _archiveFilterMoments(filter) {
@@ -12306,12 +12398,12 @@ async function _doGeneratePDF() {
 async function exportLifePDF(moments_override, filter_ctx) {
   toast('📄 正在生成人生档案...');
 
-  // 收集数据：支持外部传入（来自档案筛选器）
   var moments = moments_override && moments_override.length ? moments_override
     : (window._allYearsMomentsCache || window._allMomentsCache || window._momentsCache || []);
   if (!moments.length) moments = window._trajMomentsCache || [];
   if (!moments.length) { toast('❌ 暂无记录数据'); return; }
-  // 模板标题
+
+  var locmode = (filter_ctx && filter_ctx.locmode) || 'city';
   var tplLabels = {general:'人生轨迹档案', visa:'签证行程证明', work:'工作履历档案', family:'家庭历史记录'};
   var docTitle = (filter_ctx && tplLabels[filter_ctx.tpl]) ? tplLabels[filter_ctx.tpl] : '人生轨迹档案';
 
@@ -12322,6 +12414,32 @@ async function exportLifePDF(moments_override, filter_ctx) {
   var email = userEmail || localStorage.getItem('c100_email') || '';
   var today = new Date();
   var todayStr = today.getFullYear() + '年' + (today.getMonth()+1) + '月' + today.getDate() + '日';
+
+  // 反向地理编码缓存
+  var _cityCache = {};
+  async function getCityName(lat, lng) {
+    if (!lat || !lng) return '';
+    var key = parseFloat(lat).toFixed(2) + ',' + parseFloat(lng).toFixed(2);
+    if (_cityCache[key]) return _cityCache[key];
+    try {
+      var r = await fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='+lat+'&lon='+lng+'&zoom=10&accept-language=zh');
+      var d = await r.json();
+      var addr = d.address || {};
+      var city = addr.city || addr.town || addr.county || addr.state || addr.country || '';
+      _cityCache[key] = city;
+      return city;
+    } catch(e) { return ''; }
+  }
+
+  // 为有GPS的记录获取城市名（批量，避免太多请求）
+  if (locmode === 'city') {
+    toast('📍 正在获取城市信息...');
+    var gpsItems = moments.filter(function(m){ return m.lat && m.lng && !m._cityName; }).slice(0, 100);
+    for (var i = 0; i < gpsItems.length; i++) {
+      var city = await getCityName(gpsItems[i].lat, gpsItems[i].lng);
+      gpsItems[i]._cityName = city;
+    }
+  }
 
   // 统计
   var photoCount = moments.filter(function(m){ return m.photo_url || m.image_urls; }).length;
@@ -12344,14 +12462,28 @@ async function exportLifePDF(moments_override, filter_ctx) {
   moments.forEach(function(m){ if(m.place_name&&m.place_name!=='含位置') places[m.place_name]=(places[m.place_name]||0)+1; });
   var topPlaces = Object.keys(places).sort(function(a,b){ return places[b]-places[a]; }).slice(0,5);
 
-  // 生成HTML
+  // 位置显示函数
+  function getLocDisplay(m) {
+    if (locmode === 'hidden') return '';
+    if (locmode === 'city') {
+      if (m._cityName) return '🏙 ' + m._cityName;
+      if (m.place_name && m.place_name !== '含位置') return m.place_name;
+      if (m.lat) return '📍 GPS';
+      return '';
+    }
+    // coords
+    if (m.place_name && m.place_name !== '含位置') return m.place_name;
+    if (m.lat && m.lng) return '📍 ' + parseFloat(m.lat).toFixed(4) + ', ' + parseFloat(m.lng).toFixed(4);
+    return '';
+  }
+
   var yearSections = years.map(function(yr) {
     var yMoments = byYear[yr];
-    var rows = yMoments.slice(0,50).map(function(m) { // max 50 per year for PDF size
+    var rows = yMoments.slice(0,50).map(function(m) {
       var d = new Date(m.taken_at||m.created_at);
       var dateStr = (d.getMonth()+1)+'月'+d.getDate()+'日';
       var timeStr = d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
-      var loc = m.place_name && m.place_name !== '含位置' ? m.place_name : (m.lat ? '📍 GPS' : '');
+      var loc = getLocDisplay(m);
       var with_ = m.with_people ? '👥 '+m.with_people : '';
       var hasPhoto = (m.photo_url || m.image_urls) ? '📷' : '';
       return '<tr><td style="color:#666;white-space:nowrap;padding:5px 8px;font-size:11px">'+dateStr+' '+timeStr+'</td>'
@@ -12367,7 +12499,7 @@ async function exportLifePDF(moments_override, filter_ctx) {
       + '<thead><tr style="background:#F0F5FF">'
       + '<th style="padding:6px 8px;font-size:10px;text-align:left;font-weight:600;color:#1A3A6B;border-bottom:1.5px solid #C8D8F0">时间</th>'
       + '<th style="padding:6px 8px;font-size:10px;text-align:left;font-weight:600;color:#1A3A6B;border-bottom:1.5px solid #C8D8F0">记录内容</th>'
-      + '<th style="padding:6px 8px;font-size:10px;text-align:left;font-weight:600;color:#1A3A6B;border-bottom:1.5px solid #C8D8F0">地点</th>'
+      + (locmode !== 'hidden' ? '<th style="padding:6px 8px;font-size:10px;text-align:left;font-weight:600;color:#1A3A6B;border-bottom:1.5px solid #C8D8F0">地点</th>' : '')
       + '<th style="padding:6px 8px;font-size:10px;text-align:left;font-weight:600;color:#1A3A6B;border-bottom:1.5px solid #C8D8F0">同行</th>'
       + '<th style="padding:6px 8px;font-size:10px;text-align:center;font-weight:600;color:#1A3A6B;border-bottom:1.5px solid #C8D8F0">照片</th>'
       + '</tr></thead>'
@@ -12379,6 +12511,7 @@ async function exportLifePDF(moments_override, filter_ctx) {
     : '<span style="color:#999;font-size:11px">暂无地点记录</span>';
 
   var htmlContent = '<!DOCTYPE html><html><head><meta charset="utf-8">'
+    + '<meta name="viewport" content="width=device-width,initial-scale=1">'
     + '<title>CHRONO100 '+docTitle+' · '+escPDF(name)+'</title>'
     + '<style>'
     + 'body{font-family:-apple-system,system-ui,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;padding:0;background:#fff;color:#1a1a1a}'
@@ -12395,7 +12528,6 @@ async function exportLifePDF(moments_override, filter_ctx) {
     + 'table tr:nth-child(even){background:#FAFCFF}'
     + 'table tr:hover{background:#EBF3FF}'
     + '</style></head><body>'
-    // Cover
     + '<div class="cover">'
     + '<div style="font-size:11px;letter-spacing:2px;opacity:.7;margin-bottom:8px">CHRONO100 · '+docTitle+'</div>'
     + '<div style="font-size:28px;font-weight:700;margin-bottom:4px">'+escPDF(name)+'</div>'
@@ -12405,7 +12537,6 @@ async function exportLifePDF(moments_override, filter_ctx) {
     + '</div>'
     + '<div style="font-size:11px;opacity:.6">生成日期：'+todayStr+'&nbsp;&nbsp;|&nbsp;&nbsp;记录跨度：'+firstDate.getFullYear()+'年 — '+lastDate.getFullYear()+'年</div>'
     + '</div>'
-    // Stats
     + '<div style="padding:20px 28px">'
     + '<div class="stat-grid">'
     + '<div class="stat-box"><div class="stat-num">'+moments.length+'</div><div class="stat-lbl">总记录数</div></div>'
@@ -12413,37 +12544,36 @@ async function exportLifePDF(moments_override, filter_ctx) {
     + '<div class="stat-box"><div class="stat-num">'+photoCount+'</div><div class="stat-lbl">照片记录</div></div>'
     + '<div class="stat-box"><div class="stat-num">'+gpsCount+'</div><div class="stat-lbl">'+t('gpsLoc')+'</div></div>'
     + '</div>'
-    // Top places
-    + '<div style="margin-bottom:20px">'
-    + '<div style="font-size:12px;font-weight:700;color:#1A3A6B;margin-bottom:8px">&#128205; 常去地点</div>'
-    + topPlaceHTML + '</div>'
-    // Disclaimer
+    + (locmode !== 'hidden' ? '<div style="margin-bottom:20px"><div style="font-size:12px;font-weight:700;color:#1A3A6B;margin-bottom:8px">&#128205; 常去地点</div>'+topPlaceHTML+'</div>' : '')
     + '<div style="border:1px solid #C8D8F0;border-radius:8px;padding:12px 14px;margin-bottom:24px;background:#F8FBFF">'
     + '<div style="font-size:11px;font-weight:700;color:#1A3A6B;margin-bottom:4px">&#128274; 数据真实性声明</div>'
     + '<div style="font-size:10px;color:#555;line-height:1.7">本档案由 CHRONO100 系统基于用户真实记录生成。所有时间戳、GPS坐标、照片元数据均由设备自动采集，未经人工修改。记录 ID：'+uid.slice(0,16)+'… · 生成时间：'+new Date().toISOString()+'</div>'
     + '</div>'
-    // Year sections
     + yearSections
     + '<div style="text-align:center;padding:20px;color:#999;font-size:10px;border-top:1px solid #E8EEF8;margin-top:8px">CHRONO100 · chrono100.com · 本档案为个人隐私文件，请妥善保管</div>'
     + '</div>'
-    // Print button (no-print)
+    // 打印按钮（桌面可见）
     + '<div class="no-print" style="position:fixed;bottom:20px;right:20px;display:flex;gap:10px">'
-    + '<button onclick="window.print()" style="padding:12px 22px;background:#1A3A6B;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(26,58,107,.3)">&#128194; 保存/打印 PDF</button>'
+    + '<button onclick="window.print()" style="padding:12px 22px;background:#1A3A6B;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(26,58,107,.3)">&#128194; 保存 / 打印 PDF</button>'
     + '<button onclick="window.close()" style="padding:12px 18px;background:#fff;color:#666;border:1px solid #ddd;border-radius:12px;font-size:14px;cursor:pointer">关闭</button>'
     + '</div>'
     + '</body></html>';
 
-  // 打开新窗口渲染并打印
-  var win = window.open('', '_blank', 'width=900,height=700');
-  if (!win) {
-    toast('⚠️ 请允许弹出窗口，或在浏览器设置中允许此网站的弹窗');
-    return;
-  }
-  win.document.write(htmlContent);
-  win.document.close();
+  // 移动端用 Blob URL（iOS/Android 都能直接打开保存）
+  var blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+  var blobUrl = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = blobUrl;
+  a.target = '_blank';
+  // 桌面：直接下载 PDF 文件名
+  a.download = 'CHRONO100_' + docTitle + '_' + (name||'用户') + '.html';
+  document.body.appendChild(a);
+  a.click();
   setTimeout(function(){
-    try { win.focus(); } catch(e) {}
-  }, 600);
+    document.body.removeChild(a);
+    URL.revokeObjectURL(blobUrl);
+  }, 1000);
+  toast('✅ 档案已生成，在新窗口中点击「保存/打印 PDF」');
 }
 
 function escPDF(str) {
@@ -12972,7 +13102,7 @@ async function showTodayLocations() {
   sheet.style.cssText = 'width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:20px 18px 40px;max-height:80vh;overflow-y:auto';
   try {
     var today = new Date(); today.setHours(0,0,0,0);
-    var res = await cl.from('user_locations').select('*').eq('user_id',uid).gte('updated_at',today.toISOString()).order('updated_at',{ascending:false}).limit(50);
+    var res = await cl.from('location_history').select('*').eq('user_id',uid).gte('created_at',today.toISOString()).order('created_at',{ascending:false}).limit(50);
     var rows = res.data || [];
     var handle = document.createElement('div');
     handle.style.cssText = 'width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 14px';
@@ -12990,7 +13120,7 @@ async function showTodayLocations() {
       sheet.appendChild(empty);
     } else {
       rows.forEach(function(r) {
-        var d = new Date(r.updated_at);
+        var d = new Date(r.created_at);
         var ts = d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
         var row = document.createElement('div');
         row.style.cssText = 'padding:10px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center';
@@ -13030,7 +13160,7 @@ async function showHistoryLocations() {
   sheet.style.cssText = 'width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:20px 18px 40px;max-height:80vh;overflow-y:auto';
   try {
     var twoMonthsAgo = new Date(); twoMonthsAgo.setMonth(twoMonthsAgo.getMonth()-2);
-    var res = await cl.from('user_locations').select('*').eq('user_id',uid).gte('updated_at',twoMonthsAgo.toISOString()).order('updated_at',{ascending:false}).limit(200);
+    var res = await cl.from('location_history').select('*').eq('user_id',uid).gte('created_at',twoMonthsAgo.toISOString()).order('created_at',{ascending:false}).limit(200);
     var rows = res.data || [];
     var handle = document.createElement('div');
     handle.style.cssText = 'width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 14px';
@@ -13048,7 +13178,7 @@ async function showHistoryLocations() {
       sheet.appendChild(empty);
     } else {
       rows.forEach(function(r) {
-        var d = new Date(r.updated_at);
+        var d = new Date(r.created_at);
         var ds = d.toLocaleDateString('zh-CN',{month:'numeric',day:'numeric'}) + ' ' + d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
         var row = document.createElement('div');
         row.style.cssText = 'padding:10px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center';
