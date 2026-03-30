@@ -12965,41 +12965,7 @@ async function _snAnalyze() {
     toast('请先输入或上传笔记内容'); return;
   }
 
-  var btn = document.getElementById('snAnalyzeBtn');
-  if (btn) { btn.innerHTML = '⏳ 分析中...'; btn.disabled = true; }
-  resultArea.style.display = 'none';
-
-  // ── 尝试提交到后台队列 ──
-  var jobId = await _snSubmitToQueue(
-    text, type, date,
-    window._snImageData || null,
-    window._snPdfUrl || null,
-    window._snFileName || null
-  );
-
-  if (jobId) {
-    // 后台队列成功 — 显示等待UI，轮询结果
-    resultArea.style.display = 'block';
-    resultArea.innerHTML = _snRenderWaiting(window._snFileName || '笔记');
-    resultArea.scrollIntoView({behavior:'smooth', block:'start'});
-
-    _snPollResult(jobId,
-      function(result) {
-        // 成功
-        if (btn) { btn.innerHTML = '✨ ' + t('aiAnalyze'); btn.disabled = false; }
-        _snRenderResult(result, date, type, saveToLife);
-      },
-      function(errMsg) {
-        // 失败 — 降级为直接调用
-        if (btn) { btn.innerHTML = '✨ ' + t('aiAnalyze'); btn.disabled = false; }
-        toast('后台处理失败，切换为直接分析...');
-        _snDirectAnalyze(text, type, date, saveToLife);
-      }
-    );
-    return;
-  }
-
-  // ── 降级：直接调用 Claude API ──
+  // 直接调用 ai-proxy（跳过 analysis_queue，避免 ai-analyze 404）
   await _snDirectAnalyze(text, type, date, saveToLife);
 }
 
