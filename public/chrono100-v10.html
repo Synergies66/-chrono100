@@ -1721,7 +1721,12 @@ function sb() {
     _sbClient = supabase.createClient(
       'https://flerfkkbzrnxreszxmcd.supabase.co',
       'sb_publishable_9ipOnX_DwgqDi1-z8Im4qA_EeAs7MEn',
-      { auth: { detectSessionInUrl: true, persistSession: true } }
+      { auth: {
+          detectSessionInUrl: true,
+          persistSession: true,
+          autoRefreshToken: true,
+          storageKey: 'chrono100_auth'
+      } }
     );
     // Listen for auth changes immediately
     _sbClient.auth.onAuthStateChange(function(event, session) {
@@ -1732,14 +1737,15 @@ function sb() {
         if (appEl) appEl.style.display = 'none';
         return;
       }
+      // TOKEN_REFRESHED — session renewed silently, stay in app
+      if (event === 'TOKEN_REFRESHED') return;
       if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session && session.user) {
         var u = session.user;
-        // 拒绝匿名用户进入App — 必须是真实注册/登录的用户
         var isAnon = u.is_anonymous === true
           || (!u.email && !u.phone
               && !(u.app_metadata && u.app_metadata.provider && u.app_metadata.provider !== 'anonymous')
               && !(u.identities && u.identities.length > 0));
-        if (isAnon) return; // 匿名用户停在登录页
+        if (isAnon) return;
         userName = (u.user_metadata && u.user_metadata.full_name && u.user_metadata.full_name !== "undefined" ? u.user_metadata.full_name : null)
           || (u.email ? u.email.split('@')[0] : '用户');
         var loginEl = document.getElementById('login');
@@ -1761,11 +1767,34 @@ window.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('.lng-btn').forEach(function(b){ b.classList.remove('active'); });
   var lb = document.getElementById('lng-' + _lang);
   if (lb) lb.classList.add('active');
-  // Update settings label
   var labelMap = { zh:'简体中文', 'zh-tw':'繁體中文', en:'English', ja:'日本語', ko:'한국어', es:'Español' };
   var ll = document.getElementById('currentLangLabel');
   if (ll) ll.textContent = labelMap[_lang] || _lang;
   sb();
+
+  // ── 自动登录：刷新页面后无需重新输入密码 ──
+  // Supabase 的 persistSession + autoRefreshToken 会自动恢复 session
+  // 但我们额外做一次主动检查，确保 onAuthStateChange 的 INITIAL_SESSION 已触发
+  setTimeout(async function() {
+    try {
+      var cl = sb(); if (!cl) return;
+      var sess = await cl.auth.getSession();
+      var u = sess && sess.data && sess.data.session && sess.data.session.user;
+      if (!u) {
+        return; // 无 session，停在登录页
+      }
+      var isAnon = u.is_anonymous === true
+        || (!u.email && !u.phone && !(u.identities && u.identities.length > 0));
+      if (isAnon) return;
+      // 有有效 session → 静默进入 App
+      var loginEl = document.getElementById('login');
+      if (loginEl && loginEl.style.display !== 'none') {
+        userName = (u.user_metadata && u.user_metadata.full_name && u.user_metadata.full_name !== 'undefined'
+          ? u.user_metadata.full_name : null) || (u.email ? u.email.split('@')[0] : '用户');
+        enterApp();
+      }
+    } catch(e) {}
+  }, 300);
 });
 function getSbClient() { return sb(); }
 
@@ -4205,6 +4234,16 @@ async function enterApp() {
   } catch(e) {}
   document.getElementById('login').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
+  // Save email for biometric auto-login next time
+  try {
+    var cl2 = sb();
+    if (cl2) {
+      cl2.auth.getSession().then(function(s) {
+        var email = s && s.data && s.data.session && s.data.session.user && s.data.session.user.email;
+        if (email) localStorage.setItem('c100_last_email', email);
+      }).catch(function(){});
+    }
+  } catch(e) {}
   // Restore any locally saved profile data
   loadProfileFromStorage();
   updateUI();
@@ -4232,7 +4271,7 @@ async function restoreProfileFromDB() {
   var uid = await getUid();
   if (!uid) return;
   try {
-    var res = await client.from('profiles').select('display_name,emoji,bio,invite_code').eq('id', uid).maybeSingle();
+    var res = await client.from('profiles').select('display_name,emoji,bio,invite_code,avatar_url').eq('id', uid).maybeSingle();
     if (res.data) {
       var p = res.data;
       // Only update if DB has richer data than what we have
@@ -4243,6 +4282,10 @@ async function restoreProfileFromDB() {
       if (p.emoji && p.emoji !== '😊') {
         userEmoji = p.emoji;
         try { localStorage.setItem('c100_emoji', userEmoji); } catch(e) {}
+      }
+      if (p.avatar_url && !userAvatarUrl) {
+        userAvatarUrl = p.avatar_url;
+        try { localStorage.setItem('c100_avatar', userAvatarUrl); } catch(e) {}
       }
       updateUI();
     } else if (userName && userName !== '用户') {
@@ -4258,7 +4301,15 @@ async function restoreProfileFromDB() {
 function updateUI() {
   if (!userName || userName === 'undefined') var _storedName = localStorage.getItem('c100_name'); userName = (_storedName && _storedName !== 'undefined') ? _storedName : '用户';
   var av = document.getElementById('navAv');
-  if (av) av.textContent = (userName[0] || '你').toUpperCase();
+  if (av) {
+    if (userAvatarUrl) {
+      av.innerHTML = '<img src="'+esc(userAvatarUrl)+'" style="width:100%;height:100%;border-radius:50%;object-fit:cover">';
+      av.style.background = 'transparent';
+    } else {
+      av.textContent = (userName[0] || '你').toUpperCase();
+      av.style.background = '';
+    }
+  }
   updateGreeting();
   try { updateMePage(); } catch(e) {}
 }
@@ -4611,7 +4662,7 @@ async function loadRealContacts() {
   var client = sb();
   if (!client) { buildChatList(); return; }
   try {
-    var uid = await getUid(); // works for both Google and anon
+    var uid = await getUid();
     if (!uid) { buildChatList(); return; }
     var res = await client.from('circles')
       .select('member_id,nickname,status')
@@ -4619,9 +4670,29 @@ async function loadRealContacts() {
       .eq('status', 'active');
     var circles = (res.data || []).filter(function(c){ return c.member_id; });
     if (circles.length > 0) {
+      // 批量获取联系人的真实头像和emoji
+      var memberIds = circles.map(function(c){ return c.member_id; });
+      var profileMap = {};
+      try {
+        var pr = await client.from('profiles')
+          .select('id,display_name,emoji,avatar_url')
+          .in('id', memberIds);
+        (pr.data || []).forEach(function(p){ profileMap[p.id] = p; });
+      } catch(e) {}
+
       CHATS = circles.map(function(c) {
         var meta = getSavedRelationMeta(c.member_id) || {};
-        return { n: meta.note || c.nickname||'家人', relation: meta.isFamily === false ? 'friend' : 'family', e:'😊', on:false, preview:'暂无消息', time:'', unread:0, msgs:[], memberId: c.member_id };
+        var profile = profileMap[c.member_id] || {};
+        var avatarUrl = profile.avatar_url || '';
+        var emoji = profile.emoji || '😊';
+        return {
+          n: meta.note || c.nickname || profile.display_name || '家人',
+          relation: meta.isFamily === false ? 'friend' : 'family',
+          e: emoji,
+          avatarUrl: avatarUrl,
+          on: false, preview: '暂无消息', time: '', unread: 0, msgs: [],
+          memberId: c.member_id
+        };
       });
     } else {
       CHATS = [];
@@ -4900,8 +4971,11 @@ function buildChatList() {
     var _pins={}; try{_pins=JSON.parse(localStorage.getItem('c100_pinned')||'{}');}catch(e){}
     html += CHATS.map(function(c, i) {
       var ip=!!_pins[c.memberId];
+      var avHtml = c.avatarUrl
+        ? '<img src="'+esc(c.avatarUrl)+'" style="width:100%;height:100%;border-radius:50%;object-fit:cover">' + (c.on ? '<div class="chat-av-dot"></div>' : '')
+        : c.e + (c.on ? '<div class="chat-av-dot"></div>' : '');
       return '<div class="chat-row" onclick="openChat(' + i + ')" oncontextmenu="chatLongPress(event,' + i + ')" ontouchstart="chatTouchStart(event,' + i + ')" ontouchend="chatTouchEnd()">'
-        + '<div class="chat-av">' + c.e + (c.on ? '<div class="chat-av-dot"></div>' : '') + '</div>'
+        + '<div class="chat-av">' + avHtml + '</div>'
         + '<div style="flex:1;min-width:0"><div class="chat-name">' + (ip ? '📌 ' : '') + c.n + '</div>'
         + '<div class="chat-preview">' + (c.preview||t('noMsgs')) + '</div></div>'
         + '<div style="text-align:right;flex-shrink:0">'
@@ -5000,7 +5074,14 @@ async function openChat(idx) {
   if (_activeArchive) { toast('📚 档案模式下不支持聊天，请切换回主账户'); return; }
   activeChatIdx = idx;
   var c = CHATS[idx];
-  document.getElementById('crAvatar').innerHTML = c.e + (c.on ? '<div class="cr-av-sm-dot"></div>' : '');
+  var crAv = document.getElementById('crAvatar');
+  if (crAv) {
+    if (c.avatarUrl) {
+      crAv.innerHTML = '<img src="'+esc(c.avatarUrl)+'" style="width:100%;height:100%;border-radius:50%;object-fit:cover">' + (c.on ? '<div class="cr-av-sm-dot"></div>' : '');
+    } else {
+      crAv.innerHTML = c.e + (c.on ? '<div class="cr-av-sm-dot"></div>' : '');
+    }
+  }
   document.getElementById('crName').textContent = c.n;
   var st = document.getElementById('crStatus');
   if (st) { st.textContent = ''; }
@@ -5684,10 +5765,13 @@ function buildContactsList() {
   var sorted = CHATS.slice().sort(function(a, b) { return a.n.localeCompare(b.n, 'zh'); });
 
   sorted.forEach(function(c) {
+    var avInner = c.avatarUrl
+      ? '<img src="'+esc(c.avatarUrl)+'" style="width:46px;height:46px;border-radius:50%;object-fit:cover;flex-shrink:0">'
+      : '<div style="width:46px;height:46px;border-radius:50%;background:var(--blue-lt);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0">' + c.e + '</div>';
     html += '<div class="contact-row" data-name="' + c.n.toLowerCase() + '" onclick="openChatByMemberId(\'' + c.memberId + '\')"'
       + ' style="display:flex;align-items:center;gap:14px;padding:13px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s"'
       + ' onmouseover="this.style.background=\'var(--blue-lt)\'" onmouseout="this.style.background=\'\'">'
-      + '<div style="width:46px;height:46px;border-radius:50%;background:var(--blue-lt);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0">' + c.e + '</div>'
+      + avInner
       + '<div style="flex:1;min-width:0">'
       + '<div style="font-size:15px;font-weight:700;color:var(--ink)">' + c.n + '</div>'
       + '<div style="font-size:12px;color:var(--ink3);margin-top:2px">' + (c.relation === 'family' ? '👨‍👩‍👧 家人' : '👤 好友') + (c.on ? ' · 🟢 在线' : '') + '</div>'
@@ -9087,7 +9171,16 @@ function updateMePage() {
     setT('meNameShort', userName || notBound);
     setT('meBioDisplay', userBio || '');
     // meEmailDisplay removed from hero (shown in account section below)
-    setT('navAv', ((userName&&userName[0])||'你').toUpperCase());
+    var navAvEl = document.getElementById('navAv');
+    if (navAvEl) {
+      if (userAvatarUrl) {
+        navAvEl.innerHTML = '<img src="'+esc(userAvatarUrl)+'" style="width:100%;height:100%;border-radius:50%;object-fit:cover">';
+        navAvEl.style.background = 'transparent';
+      } else {
+        navAvEl.textContent = ((userName&&userName[0])||'你').toUpperCase();
+        navAvEl.style.background = '';
+      }
+    }
     // Real phone/email/id in account settings
     setT('mePhone', userPhone ? (userPhoneCC||'') + userPhone : notBound);
     setT('meEmailShort', userEmail || notBound);
