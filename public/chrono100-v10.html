@@ -4764,14 +4764,7 @@ async function loadMessages(roomId) {
 
     data.forEach(function(m) {
       var isMe = m.sender_id === myUid;
-      box.insertAdjacentHTML('beforeend',
-        '<div class="msg ' + (isMe ? 'me' : '') + '">'
-        + (isMe ? '' : '<div class="msg-av-xs">' + (m.sender_emoji||'😊') + '</div>')
-        + '<div class="bubble ' + (isMe ? 'me' : 'them') + '">'
-        + renderMessageContent(m.content, isMe)
-        + '<div class="bubble-time">' + fmtTime(m.created_at) + '</div>'
-        + '</div></div>'
-      );
+      box.insertAdjacentHTML('beforeend', buildMsgHTML(m, isMe));
     });
     box.scrollTop = box.scrollHeight;
   } catch(e) { console.warn('loadMessages error:', e); }
@@ -4816,15 +4809,79 @@ function subscribeRoom(roomId) {
       if (!chatRoomOpen) return;
       var empty = box.querySelector('.msg-empty');
       if (empty) empty.remove();
-      box.insertAdjacentHTML('beforeend',
-        '<div class="msg"><div class="msg-av-xs">' + (m.sender_emoji||'😊') + '</div>'
-        + '<div class="bubble them">'
-        + renderMessageContent(plainContent, false)
-        + '<div class="bubble-time">' + fmtTime(m.created_at) + '</div>'
-        + '</div></div>'
-      );
+      var mWithContent = Object.assign({}, m, { content: plainContent });
+      var isMe2 = m.sender_id === myUid;
+      box.insertAdjacentHTML('beforeend', buildMsgHTML(mWithContent, isMe2));
       box.scrollTop = box.scrollHeight;
     }).subscribe();
+}
+
+// ── Message long-press delete (all messages, both sides) ────────
+var _lpTimer = null;
+var _lpMoved = false;
+
+function buildMsgHTML(m, isMe) {
+  var msgId = m.id || '';
+  var lp = msgId
+    ? ' id="msgrow_'+msgId+'"'
+      + ' onmousedown="lpStart(\''+msgId+'\')"'
+      + ' onmouseup="lpCancel()" onmouseleave="lpCancel()"'
+      + ' ontouchstart="lpStart(\''+msgId+'\')" ontouchmove="lpCancel()" ontouchend="lpCancel()"'
+      + ' oncontextmenu="event.preventDefault();lpCancel();showMsgMenu(\''+msgId+'\')"'
+      + ' style="user-select:none;-webkit-user-select:none"'
+    : '';
+  return '<div class="msg ' + (isMe ? 'me' : '') + '">'
+    + (isMe ? '' : '<div class="msg-av-xs">' + (m.sender_emoji||'😊') + '</div>')
+    + '<div class="bubble ' + (isMe ? 'me' : 'them') + '"' + lp + '>'
+    + renderMessageContent(m.content, isMe)
+    + '<div class="bubble-time">' + fmtTime(m.created_at) + '</div>'
+    + '</div></div>';
+}
+
+function lpStart(msgId) {
+  _lpMoved = false;
+  lpCancel();
+  _lpTimer = setTimeout(function() { showMsgMenu(msgId); }, 600);
+}
+function lpCancel() {
+  clearTimeout(_lpTimer); _lpTimer = null;
+}
+
+function showMsgMenu(msgId) {
+  lpCancel();
+  var ex = document.getElementById('msgMenuOv'); if (ex) ex.remove();
+  var ov = document.createElement('div');
+  ov.id = 'msgMenuOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9900;background:rgba(18,24,52,.4);display:flex;align-items:flex-end;justify-content:center';
+  ov.innerHTML =
+    '<div style="width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:20px 18px calc(40px + env(safe-area-inset-bottom))">'
+    + '<div style="width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 18px"></div>'
+    + '<div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:18px;text-align:center">消息操作</div>'
+    + '<button onclick="deleteMessage(\''+msgId+'\')" style="width:100%;padding:15px;border-radius:14px;background:#FFF0F0;color:#DC4545;font-size:15px;font-weight:700;cursor:pointer;border:1.5px solid #FFCECE;font-family:inherit;margin-bottom:10px">🗑 删除这条消息（双方）</button>'
+    + '<button onclick="document.getElementById(\'msgMenuOv\').remove()" style="width:100%;padding:14px;border-radius:14px;background:transparent;color:var(--ink3);font-size:14px;cursor:pointer;border:1.5px solid var(--border);font-family:inherit">取消</button>'
+    + '</div>';
+  ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
+  document.body.appendChild(ov);
+}
+
+async function deleteMessage(msgId) {
+  var ov = document.getElementById('msgMenuOv'); if (ov) ov.remove();
+  if (!msgId) return;
+  var client = sb(); if (!client) { toast('连接失败'); return; }
+  try {
+    var res = await client.from('messages').delete().eq('id', msgId);
+    if (res.error) { toast('❌ 删除失败：' + res.error.message); return; }
+    // Remove from DOM — bubble is inside msgrow, find by id on bubble
+    var bubble = document.getElementById('msgrow_' + msgId);
+    var row = bubble ? bubble.closest('.msg') || bubble.parentElement : null;
+    var target = row || bubble;
+    if (target) {
+      target.style.transition = 'opacity .2s,transform .2s';
+      target.style.opacity = '0'; target.style.transform = 'scale(.95)';
+      setTimeout(function(){ if(target.parentNode) target.remove(); }, 220);
+    }
+    toast('🗑 已删除');
+  } catch(e) { toast('❌ 删除出错：' + (e.message||'')); }
 }
 
 function closeChatRoom() {
@@ -6884,14 +6941,6 @@ async function reportSafe() {
       } else {
         toast('✅ 已报平安！位置已共享给家人');
         locOn = true;
-        // Save to location_history for historical records
-        try {
-          await client.from('location_history').insert({
-            user_id: uid, lat: lat, lng: lng,
-            battery: battery, source: 'checkIn',
-            created_at: new Date().toISOString()
-          });
-        } catch(e) { console.warn('history insert error:', e); }
         // Refresh the circle page
         setTimeout(function(){ loadRealCircle_impl(); }, 1000);
       }
@@ -6967,16 +7016,6 @@ async function uploadMyLocation() {
         console.warn('uploadMyLocation DB error:', res.error.message);
       } else {
         console.log('📍 Location uploaded OK:', pos.coords.latitude.toFixed(4), pos.coords.longitude.toFixed(4));
-        // Save to location_history for historical records
-        try {
-          await client.from('location_history').insert({
-            user_id: uid,
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
-            battery: battery, source: 'auto',
-            created_at: new Date().toISOString()
-          });
-        } catch(e) { console.warn('history insert error:', e); }
         // Also save uid to profiles so others can find us
         try {
           await client.from('profiles').upsert({
@@ -12607,7 +12646,7 @@ async function showTodayLocations() {
   sheet.style.cssText = 'width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:20px 18px 40px;max-height:80vh;overflow-y:auto';
   try {
     var today = new Date(); today.setHours(0,0,0,0);
-    var res = await cl.from('location_history').select('*').eq('user_id',uid).gte('created_at',today.toISOString()).order('created_at',{ascending:false}).limit(50);
+    var res = await cl.from('user_locations').select('*').eq('user_id',uid).gte('updated_at',today.toISOString()).order('updated_at',{ascending:false}).limit(50);
     var rows = res.data || [];
     var handle = document.createElement('div');
     handle.style.cssText = 'width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 14px';
@@ -12625,12 +12664,12 @@ async function showTodayLocations() {
       sheet.appendChild(empty);
     } else {
       rows.forEach(function(r) {
-        var d = new Date(r.created_at);
+        var d = new Date(r.updated_at);
         var ts = d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
         var row = document.createElement('div');
         row.style.cssText = 'padding:10px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center';
         var left = document.createElement('div');
-        left.innerHTML = '<div style="font-size:13px;font-weight:600;color:var(--ink)">📍 ' + ts + (r.source==='checkIn' ? ' <span style="font-size:10px;background:#E8F5E9;color:#27AE72;padding:1px 6px;border-radius:99px">报平安</span>' : '') + '</div>'
+        left.innerHTML = '<div style="font-size:13px;font-weight:600;color:var(--ink)">📍 ' + ts + '</div>'
           + '<div style="font-size:11px;color:var(--ink3)">' + Number(r.lat).toFixed(4) + ', ' + Number(r.lng).toFixed(4) + (r.battery != null ? ' · 🔋' + r.battery + '%' : '') + '</div>';
         var link = document.createElement('a');
         link.href = 'https://maps.google.com/?q=' + r.lat + ',' + r.lng;
@@ -12665,7 +12704,7 @@ async function showHistoryLocations() {
   sheet.style.cssText = 'width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:20px 18px 40px;max-height:80vh;overflow-y:auto';
   try {
     var twoMonthsAgo = new Date(); twoMonthsAgo.setMonth(twoMonthsAgo.getMonth()-2);
-    var res = await cl.from('location_history').select('*').eq('user_id',uid).gte('created_at',twoMonthsAgo.toISOString()).order('created_at',{ascending:false}).limit(200);
+    var res = await cl.from('user_locations').select('*').eq('user_id',uid).gte('updated_at',twoMonthsAgo.toISOString()).order('updated_at',{ascending:false}).limit(200);
     var rows = res.data || [];
     var handle = document.createElement('div');
     handle.style.cssText = 'width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 14px';
@@ -12683,12 +12722,12 @@ async function showHistoryLocations() {
       sheet.appendChild(empty);
     } else {
       rows.forEach(function(r) {
-        var d = new Date(r.created_at);
+        var d = new Date(r.updated_at);
         var ds = d.toLocaleDateString('zh-CN',{month:'numeric',day:'numeric'}) + ' ' + d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
         var row = document.createElement('div');
         row.style.cssText = 'padding:10px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center';
         var left = document.createElement('div');
-        left.innerHTML = '<div style="font-size:13px;font-weight:600;color:var(--ink)">📍 ' + ds + (r.source==='checkIn' ? ' <span style="font-size:10px;background:#E8F5E9;color:#27AE72;padding:1px 6px;border-radius:99px">报平安</span>' : '') + '</div>'
+        left.innerHTML = '<div style="font-size:13px;font-weight:600;color:var(--ink)">📍 ' + ds + '</div>'
           + '<div style="font-size:11px;color:var(--ink3)">' + Number(r.lat).toFixed(4) + ', ' + Number(r.lng).toFixed(4) + (r.battery != null ? ' · 🔋' + r.battery + '%' : '') + '</div>';
         var link = document.createElement('a');
         link.href = 'https://maps.google.com/?q=' + r.lat + ',' + r.lng;
