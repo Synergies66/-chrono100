@@ -653,10 +653,10 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
 .voice-bubble{display:flex;align-items:center;gap:8px;padding:8px 12px;min-width:140px;max-width:220px}
 .voice-play{width:32px;height:32px;border-radius:50%;border:none;background:currentColor;opacity:.85;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px}
 .voice-wave{flex:1;display:flex;align-items:center;gap:2px;height:24px}
-.voice-wave span{display:inline-block;width:3px;border-radius:2px;background:currentColor;opacity:.7;animation:wave-idle 1.2s ease-in-out infinite}
-.voice-wave span:nth-child(2){animation-delay:.1s}.voice-wave span:nth-child(3){animation-delay:.2s}.voice-wave span:nth-child(4){animation-delay:.3s}.voice-wave span:nth-child(5){animation-delay:.4s}.voice-wave span:nth-child(6){animation-delay:.5s}.voice-wave span:nth-child(7){animation-delay:.6s}
-@keyframes wave-idle{0%,100%{height:4px}50%{height:16px}}
-.voice-wave.playing span{animation:wave-play .5s ease-in-out infinite}
+.voice-wave span{display:inline-block;width:3px;border-radius:2px;background:currentColor;opacity:.5;height:4px;transition:height .15s}
+.voice-wave span:nth-child(1){height:8px}.voice-wave span:nth-child(2){height:14px}.voice-wave span:nth-child(3){height:18px}.voice-wave span:nth-child(4){height:20px}.voice-wave span:nth-child(5){height:16px}.voice-wave span:nth-child(6){height:10px}.voice-wave span:nth-child(7){height:6px}
+.voice-wave.playing span{opacity:.9;animation:wave-play .5s ease-in-out infinite}
+.voice-wave.playing span:nth-child(2){animation-delay:.1s}.voice-wave.playing span:nth-child(3){animation-delay:.2s}.voice-wave.playing span:nth-child(4){animation-delay:.3s}.voice-wave.playing span:nth-child(5){animation-delay:.4s}.voice-wave.playing span:nth-child(6){animation-delay:.5s}.voice-wave.playing span:nth-child(7){animation-delay:.6s}
 @keyframes wave-play{0%,100%{height:6px}50%{height:20px}}
 .voice-dur{font-size:11px;opacity:.7;flex-shrink:0;min-width:24px;text-align:right}
 .voice-rec-bar{position:fixed;bottom:0;left:0;right:0;z-index:9900;background:var(--card);border-top:1px solid var(--border);padding:14px 20px 30px;display:none;flex-direction:column;align-items:center;gap:10px;box-shadow:0 -4px 24px rgba(0,0,0,.1)}
@@ -1339,7 +1339,7 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
   
   <!-- Input bar -->
   <div class="cr-bar" id="crBar">
-    <div class="cr-plus" onclick="toggleChatMediaPanel()" id="crPlusBtn">＋</div>
+    <div class="cr-plus" onclick="showChatAttachSheet()" id="crPlusBtn">＋</div>
     <div class="cr-input-wrap">
       <textarea class="cr-input" id="crInput" placeholder="发消息…" rows="1"
         onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}"
@@ -1349,30 +1349,14 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
     <button class="voice-btn" id="voiceBtn" ontouchstart="voiceStart(event)" ontouchend="voiceEnd(event)" onmousedown="voiceStart(event)" onmouseup="voiceEnd(event)" onmouseleave="voiceCancelIfRecording()" title="按住录音">🎤</button>
     <button class="cr-send" onclick="sendMessage()" type="button">↑</button>
   </div>
-  <!-- Media panel -->
-  <div id="crMediaPanel" style="display:none;flex-shrink:0;padding:10px 14px 14px;background:var(--card);border-top:1px solid var(--border)">
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
-      <label style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer">
-        <div style="width:52px;height:52px;border-radius:14px;background:var(--blue-lt);display:flex;align-items:center;justify-content:center;font-size:24px">🖼</div>
-        <span style="font-size:10px;color:var(--ink3);font-weight:600">图片</span>
-        <input type="file" accept="image/*" multiple style="display:none" onchange="sendChatImages(this.files)">
-      </label>
-      <label style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer">
-        <div style="width:52px;height:52px;border-radius:14px;background:#E8F5E9;display:flex;align-items:center;justify-content:center;font-size:24px">📷</div>
-        <span style="font-size:10px;color:var(--ink3);font-weight:600">拍照</span>
-        <input type="file" accept="image/*" capture="environment" style="display:none" onchange="sendChatImages(this.files)">
-      </label>
-      <label style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer">
-        <div style="width:52px;height:52px;border-radius:14px;background:#FFF3E0;display:flex;align-items:center;justify-content:center;font-size:24px">📎</div>
-        <span style="font-size:10px;color:var(--ink3);font-weight:600">文件</span>
-        <input type="file" style="display:none" onchange="sendChatFile(this.files[0])">
-      </label>
-      <div style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer" onclick="sendLifeMomentToChat()">
-        <div style="width:52px;height:52px;border-radius:14px;background:#E8EBF8;display:flex;align-items:center;justify-content:center;font-size:24px">🗺</div>
-        <span style="font-size:10px;color:var(--ink3);font-weight:600">Life Moment</span>
-      </div>
-    </div>
-  </div>
+
+  <!-- 隐藏的文件输入，由底部弹窗触发 -->
+  <input type="file" id="chatImgInput"    accept="image/jpeg,image/png,image/gif,image/webp,image/heic" multiple style="display:none" onchange="sendChatImages(this.files)">
+  <input type="file" id="chatCamInput"    accept="image/*" capture="environment" style="display:none" onchange="sendChatImages(this.files)">
+  <input type="file" id="chatFileInput"   style="display:none" onchange="sendChatFile(this.files[0])">
+
+  <!-- Media panel (hidden, backward compat) -->
+  <div id="crMediaPanel" style="display:none"></div>
   <!-- Emoji quick-pick panel -->
   <div id="crEmojiPanel" style="display:none;flex-shrink:0;padding:8px 14px 10px;background:var(--card);border-top:1px solid var(--border)">
     <div id="crEmojiGrid" style="display:flex;flex-wrap:wrap;gap:4px;max-height:120px;overflow-y:auto"></div>
@@ -4282,8 +4266,8 @@ async function restoreProfileFromDB() {
         userEmoji = p.emoji;
         try { localStorage.setItem('c100_emoji', userEmoji); } catch(e) {}
       }
-      if (p.avatar_url && !userAvatarUrl) {
-        userAvatarUrl = p.avatar_url;
+      if (p.avatar_url) {
+        userAvatarUrl = p.avatar_url + (p.avatar_url.includes('?') ? '' : '?t=' + Date.now());
         try { localStorage.setItem('c100_avatar', userAvatarUrl); } catch(e) {}
       }
       updateUI();
@@ -4933,10 +4917,15 @@ async function refreshChatPreviews() {
       var r = await q.order('created_at', {ascending:false}).limit(5);
       if (r.data && r.data[0]) {
         var last = r.data[0];
-        chat.preview = (last.content || '').slice(0, 26) || t('noMsgs');
+        var rp = last.content || '';
+        if (rp.startsWith('[语音]') || rp.startsWith('[Voice]')) rp = '🎤 语音';
+        else if (rp.startsWith('[图片]') || rp.startsWith('[圖片]') || rp.startsWith('[Photo]') || rp.startsWith('[Foto]')) rp = '📷 图片';
+        else if (rp.startsWith('[文件]') || rp.startsWith('[檔案]') || rp.startsWith('[File]') || rp.startsWith('[Archivo]')) rp = '📎 文件';
+        else if (rp.startsWith('[Life Moment]')) rp = '🗺 生活记录';
+        else if (rp.startsWith('e1:')) rp = t('noMsgs');
+        chat.preview = rp.slice(0, 26) || t('noMsgs');
         chat.time = fmtTime(last.created_at);
         chat._lastTs = new Date(last.created_at).getTime();
-        // Count unread: messages from others after last read time
         var lastReadTs = lastRead[roomId||legacyRoomId] || 0;
         chat.unread = r.data.filter(function(m) {
           return m.sender_id !== myUid && new Date(m.created_at).getTime() > lastReadTs;
@@ -5164,8 +5153,11 @@ function subscribeRoom(roomId) {
       var plainContent = await decryptMsg(m.content, roomId);
       if (chat) {
         var rawPreview = plainContent || '';
-        // Strip leftover encrypted prefix from preview
-        if (rawPreview.startsWith('e1:')) rawPreview = '[对方版本较旧，请让对方刷新App]';
+        if (rawPreview.startsWith('[语音]') || rawPreview.startsWith('[Voice]')) rawPreview = '🎤 语音';
+        else if (rawPreview.startsWith('[图片]') || rawPreview.startsWith('[圖片]') || rawPreview.startsWith('[Photo]')) rawPreview = '📷 图片';
+        else if (rawPreview.startsWith('[文件]') || rawPreview.startsWith('[檔案]') || rawPreview.startsWith('[File]')) rawPreview = '📎 文件';
+        else if (rawPreview.startsWith('[Life Moment]')) rawPreview = '🗺 生活记录';
+        else if (rawPreview.startsWith('e1:')) rawPreview = '[对方版本较旧，请让对方刷新App]';
         chat.preview = rawPreview.slice(0, 26) || t('newMsg');
         chat.time = fmtTime(m.created_at);
         if (m.sender_id !== myUid && !chatRoomOpen) {
@@ -5325,6 +5317,55 @@ var CHAT_EMOJIS=['😊','❤️','😂','👍','🙏','😍','🥰','😘','🤗
   '🎉','🔥','✅','💪','😅','🤔','😢','😭','🙄','😤',
   '🥳','🎂','🌸','🌈','☀️','⭐','💕','💯','👏','🤝',
   '🍜','🍣','🍕','☕','🧋','🍦','🌺','🌻','🐱','🐶'];
+
+function showChatAttachSheet() {
+  var ex = document.getElementById('chatAttachSheet'); if (ex) { ex.remove(); return; }
+  var sheet = document.createElement('div');
+  sheet.id = 'chatAttachSheet';
+  sheet.style.cssText = 'position:fixed;inset:0;z-index:9850;display:flex;flex-direction:column;justify-content:flex-end';
+
+  // backdrop
+  var bd = document.createElement('div');
+  bd.style.cssText = 'flex:1;background:rgba(18,24,52,.35)';
+  bd.onclick = function(){ sheet.remove(); };
+
+  // panel
+  var panel = document.createElement('div');
+  panel.style.cssText = 'background:var(--card);border-radius:22px 22px 0 0;padding:16px 20px calc(env(safe-area-inset-bottom,0px)+20px)';
+
+  // handle
+  panel.innerHTML = '<div style="width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 18px"></div>';
+
+  // three buttons
+  var items = [
+    { ico:'🖼', label:'图片', color:'var(--blue-lt)', id:'chatImgInput' },
+    { ico:'📷', label:'拍照', color:'#E8F5E9',       id:'chatCamInput' },
+    { ico:'📁', label:'文件', color:'#FFF3E0',       id:'chatFileInput' },
+  ];
+  var grid = document.createElement('div');
+  grid.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:4px';
+
+  items.forEach(function(item) {
+    var btn = document.createElement('div');
+    btn.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer';
+    btn.innerHTML = '<div style="width:62px;height:62px;border-radius:18px;background:'+item.color+';display:flex;align-items:center;justify-content:center;font-size:28px">'+item.ico+'</div>'
+      + '<span style="font-size:12px;color:var(--ink2);font-weight:600">'+item.label+'</span>';
+    btn.onclick = function() {
+      sheet.remove();
+      // Small delay so iOS registers the tap before opening picker
+      setTimeout(function() {
+        var inp = document.getElementById(item.id);
+        if (inp) { inp.value = ''; inp.click(); }
+      }, 80);
+    };
+    grid.appendChild(btn);
+  });
+
+  panel.appendChild(grid);
+  sheet.appendChild(bd);
+  sheet.appendChild(panel);
+  document.body.appendChild(sheet);
+}
 
 function toggleChatMediaPanel(){
   _crMediaOpen=!_crMediaOpen;
@@ -9256,6 +9297,15 @@ async function uploadAvatar(file) {
     var pub = client.storage.from('moments').getPublicUrl(path);
     userAvatarUrl = pub.data.publicUrl + '?t=' + Date.now();
     localStorage.setItem('c100_avatar', userAvatarUrl);
+    // 同步保存到 profiles 表，这样联系人页面能读到
+    try {
+      await client.from('profiles').upsert({
+        id: uploadUid,
+        avatar_url: pub.data.publicUrl,
+        display_name: userName || '用户',
+        emoji: userEmoji || '😊'
+      }, { onConflict: 'id' });
+    } catch(e2) { console.warn('avatar profile sync error:', e2); }
     updateMePage();
     toast('✅ 头像已更新');
   } catch(e) { toast('上传失败'); }
