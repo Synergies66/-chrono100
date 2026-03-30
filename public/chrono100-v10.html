@@ -12601,70 +12601,148 @@ async function exportLifePDF(moments_override, filter_ctx) {
     ? topPlaces.map(function(p){ return '<span style="display:inline-block;padding:3px 10px;background:#EBF3FF;border-radius:99px;font-size:11px;color:#1A3A6B;margin:3px">'+escPDF(p)+' ×'+places[p]+'</span>'; }).join('')
     : '<span style="color:#999;font-size:11px">暂无地点记录</span>';
 
-  var htmlContent = '<!DOCTYPE html><html><head><meta charset="utf-8">'
-    + '<meta name="viewport" content="width=device-width,initial-scale=1">'
-    + '<title>CHRONO100 '+docTitle+' · '+escPDF(name)+'</title>'
-    + '<style>'
-    + 'body{font-family:-apple-system,system-ui,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;padding:0;background:#fff;color:#1a1a1a}'
-    + '@media print{'
-    + '  body{margin:0} .no-print{display:none!important}'
-    + '  .year-section{page-break-inside:avoid}'
-    + '  thead{display:table-header-group}'
-    + '}'
-    + '.cover{background:linear-gradient(135deg,#0F2044,#1A3A6B,#2D5FA8);color:#fff;padding:40px 36px;min-height:200px}'
-    + '.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0}'
-    + '.stat-box{background:#F0F5FF;border-radius:10px;padding:12px;text-align:center}'
-    + '.stat-num{font-size:22px;font-weight:700;color:#1A3A6B}'
-    + '.stat-lbl{font-size:10px;color:#555;margin-top:2px}'
-    + 'table tr:nth-child(even){background:#FAFCFF}'
-    + 'table tr:hover{background:#EBF3FF}'
-    + '</style></head><body>'
-    + '<div class="cover">'
-    + '<div style="font-size:11px;letter-spacing:2px;opacity:.7;margin-bottom:8px">CHRONO100 · '+docTitle+'</div>'
-    + '<div style="font-size:28px;font-weight:700;margin-bottom:4px">'+escPDF(name)+'</div>'
-    + '<div style="font-size:13px;opacity:.8;margin-bottom:20px">'
-    + (phone?'📱 '+escPDF(phone)+'&nbsp;&nbsp;':'')
-    + (email?'✉️ '+escPDF(email):'')
-    + '</div>'
-    + '<div style="font-size:11px;opacity:.6">生成日期：'+todayStr+'&nbsp;&nbsp;|&nbsp;&nbsp;记录跨度：'+firstDate.getFullYear()+'年 — '+lastDate.getFullYear()+'年</div>'
-    + '</div>'
-    + '<div style="padding:20px 28px">'
-    + '<div class="stat-grid">'
-    + '<div class="stat-box"><div class="stat-num">'+moments.length+'</div><div class="stat-lbl">总记录数</div></div>'
-    + '<div class="stat-box"><div class="stat-num">'+totalDays+'</div><div class="stat-lbl">记录天数</div></div>'
-    + '<div class="stat-box"><div class="stat-num">'+photoCount+'</div><div class="stat-lbl">照片记录</div></div>'
-    + '<div class="stat-box"><div class="stat-num">'+gpsCount+'</div><div class="stat-lbl">'+t('gpsLoc')+'</div></div>'
-    + '</div>'
-    + (locmode !== 'hidden' ? '<div style="margin-bottom:20px"><div style="font-size:12px;font-weight:700;color:#1A3A6B;margin-bottom:8px">&#128205; 常去地点</div>'+topPlaceHTML+'</div>' : '')
-    + '<div style="border:1px solid #C8D8F0;border-radius:8px;padding:12px 14px;margin-bottom:24px;background:#F8FBFF">'
-    + '<div style="font-size:11px;font-weight:700;color:#1A3A6B;margin-bottom:4px">&#128274; 数据真实性声明</div>'
-    + '<div style="font-size:10px;color:#555;line-height:1.7">本档案由 CHRONO100 系统基于用户真实记录生成。所有时间戳、GPS坐标、照片元数据均由设备自动采集，未经人工修改。记录 ID：'+uid.slice(0,16)+'… · 生成时间：'+new Date().toISOString()+'</div>'
-    + '</div>'
-    + yearSections
-    + '<div style="text-align:center;padding:20px;color:#999;font-size:10px;border-top:1px solid #E8EEF8;margin-top:8px">CHRONO100 · chrono100.com · 本档案为个人隐私文件，请妥善保管</div>'
-    + '</div>'
-    // 打印按钮（桌面可见）
-    + '<div class="no-print" style="position:fixed;bottom:20px;right:20px;display:flex;gap:10px">'
-    + '<button onclick="window.print()" style="padding:12px 22px;background:#1A3A6B;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(26,58,107,.3)">&#128194; 保存 / 打印 PDF</button>'
-    + '<button onclick="window.close()" style="padding:12px 18px;background:#fff;color:#666;border:1px solid #ddd;border-radius:12px;font-size:14px;cursor:pointer">关闭</button>'
-    + '</div>'
-    + '</body></html>';
+  // ── 用 jsPDF 直接生成真正的 PDF 文件 ──
+  toast('📄 正在生成 PDF...');
 
-  // 移动端用 Blob URL（iOS/Android 都能直接打开保存）
-  var blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
-  var blobUrl = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = blobUrl;
-  a.target = '_blank';
-  // 桌面：直接下载 PDF 文件名
-  a.download = 'CHRONO100_' + docTitle + '_' + (name||'用户') + '.html';
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(function(){
-    document.body.removeChild(a);
-    URL.revokeObjectURL(blobUrl);
-  }, 1000);
-  toast('✅ 档案已生成，在新窗口中点击「保存/打印 PDF」');
+  // 动态加载 jsPDF
+  async function loadJsPDF() {
+    if (window.jspdf && window.jspdf.jsPDF) return window.jspdf.jsPDF;
+    return new Promise(function(resolve, reject) {
+      var s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      s.onload = function() { resolve(window.jspdf.jsPDF); };
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+
+  var JsPDF;
+  try { JsPDF = await loadJsPDF(); }
+  catch(e) { toast('❌ PDF库加载失败，请检查网络'); return; }
+
+  var doc = new JsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  var pageW = 210, pageH = 297, margin = 14, lineH = 6;
+  var y = 0;
+
+  function checkPage(need) {
+    if (y + need > pageH - 16) { doc.addPage(); y = 14; }
+  }
+
+  // ── 封面 ──
+  doc.setFillColor(26, 58, 107);
+  doc.rect(0, 0, pageW, 55, 'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(10); doc.setFont('helvetica','normal');
+  doc.text('CHRONO100 · ' + docTitle, margin, 16);
+  doc.setFontSize(20); doc.setFont('helvetica','bold');
+  doc.text(name, margin, 30);
+  doc.setFontSize(9); doc.setFont('helvetica','normal');
+  var contactLine = (phone ? phone + '  ' : '') + (email || '');
+  if (contactLine) doc.text(contactLine, margin, 39);
+  doc.setFontSize(8);
+  doc.text('生成日期：' + todayStr + '  |  记录跨度：' + firstDate.getFullYear() + ' — ' + lastDate.getFullYear(), margin, 47);
+  y = 64;
+
+  // ── 统计栏 ──
+  doc.setTextColor(26,58,107);
+  doc.setFontSize(9); doc.setFont('helvetica','bold');
+  var stats = [
+    { v: moments.length, l: '总记录数' },
+    { v: totalDays,      l: '记录天数' },
+    { v: photoCount,     l: '照片记录' },
+    { v: gpsCount,       l: 'GPS定位' }
+  ];
+  var boxW = (pageW - margin*2) / 4;
+  stats.forEach(function(s, i) {
+    var bx = margin + i * boxW;
+    doc.setFillColor(240,245,255);
+    doc.roundedRect(bx, y, boxW-2, 14, 2, 2, 'F');
+    doc.setFontSize(13); doc.setFont('helvetica','bold'); doc.setTextColor(26,58,107);
+    doc.text(String(s.v), bx + boxW/2 - 1, y+8, {align:'center'});
+    doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(100,100,100);
+    doc.text(s.l, bx + boxW/2 - 1, y+12.5, {align:'center'});
+  });
+  y += 20;
+
+  // ── 真实性声明 ──
+  doc.setFillColor(248,251,255);
+  doc.setDrawColor(200,216,240);
+  doc.roundedRect(margin, y, pageW-margin*2, 14, 2, 2, 'FD');
+  doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(26,58,107);
+  doc.text('数据真实性声明', margin+3, y+5);
+  doc.setFont('helvetica','normal'); doc.setTextColor(80,80,80);
+  doc.text('本档案由 CHRONO100 基于真实记录生成，时间戳与GPS坐标均由设备自动采集，未经人工修改。ID：'+uid.slice(0,12)+'…', margin+3, y+10);
+  y += 20;
+
+  // ── 按年输出记录 ──
+  years.forEach(function(yr) {
+    checkPage(20);
+    // 年份标题
+    doc.setFillColor(26,58,107);
+    doc.rect(margin, y, pageW-margin*2, 9, 'F');
+    doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
+    doc.text(yr + ' 年  共 ' + byYear[yr].length + ' 条记录', margin+3, y+6.5);
+    y += 12;
+
+    // 表头
+    checkPage(8);
+    doc.setFillColor(240,245,255);
+    doc.rect(margin, y, pageW-margin*2, 7, 'F');
+    doc.setFontSize(7.5); doc.setFont('helvetica','bold'); doc.setTextColor(26,58,107);
+    doc.text('时间',     margin+2,   y+5);
+    doc.text('记录内容', margin+28,  y+5);
+    doc.text('地点',     margin+100, y+5);
+    doc.text('同行',     margin+143, y+5);
+    y += 8;
+
+    byYear[yr].slice(0, 80).forEach(function(m) {
+      checkPage(7);
+      var d = new Date(m.taken_at||m.created_at);
+      var dateStr = (d.getMonth()+1)+'/'+ d.getDate()+' '
+        + d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+      var locStr = getLocDisplay(m).replace(/📍|🏙/g,'').trim();
+      var withStr = (m.with_people||'').slice(0,10);
+      var titleStr = (m.title||'记录').slice(0,28);
+
+      // 隔行底色
+      if (byYear[yr].indexOf(m) % 2 === 0) {
+        doc.setFillColor(250,252,255);
+        doc.rect(margin, y-1, pageW-margin*2, 6.5, 'F');
+      }
+      doc.setDrawColor(220,228,240);
+      doc.line(margin, y+5.5, pageW-margin, y+5.5);
+
+      doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(80,80,80);
+      doc.text(dateStr,  margin+2,   y+4);
+      doc.setTextColor(30,30,30); doc.setFont('helvetica','bold');
+      doc.text(titleStr, margin+28,  y+4);
+      doc.setFont('helvetica','normal'); doc.setTextColor(80,80,80);
+      doc.text(locStr.slice(0,22),  margin+100, y+4);
+      doc.text(withStr,  margin+143, y+4);
+      y += 6.5;
+    });
+    if (byYear[yr].length > 80) {
+      checkPage(7);
+      doc.setFontSize(7); doc.setTextColor(150,150,150);
+      doc.text('…还有 '+(byYear[yr].length-80)+' 条记录未显示', margin+3, y+4);
+      y += 7;
+    }
+    y += 4;
+  });
+
+  // ── 页脚 ──
+  var totalPages = doc.getNumberOfPages();
+  for (var p = 1; p <= totalPages; p++) {
+    doc.setPage(p);
+    doc.setFontSize(7); doc.setTextColor(180,180,180);
+    doc.text('CHRONO100 · chrono100.com · 本档案为个人隐私文件，请妥善保管', pageW/2, pageH-6, {align:'center'});
+    doc.text(p + ' / ' + totalPages, pageW-margin, pageH-6, {align:'right'});
+  }
+
+  // ── 保存文件 ──
+  var fileName = 'CHRONO100_' + docTitle + '_' + (name||'用户') + '.pdf';
+  doc.save(fileName);
+  toast('✅ PDF 已生成，请在下载文件夹查看');
 }
 
 function escPDF(str) {
