@@ -6884,6 +6884,14 @@ async function reportSafe() {
       } else {
         toast('✅ 已报平安！位置已共享给家人');
         locOn = true;
+        // Save to location_history for historical records
+        try {
+          await client.from('location_history').insert({
+            user_id: uid, lat: lat, lng: lng,
+            battery: battery, source: 'checkIn',
+            created_at: new Date().toISOString()
+          });
+        } catch(e) { console.warn('history insert error:', e); }
         // Refresh the circle page
         setTimeout(function(){ loadRealCircle_impl(); }, 1000);
       }
@@ -6959,6 +6967,16 @@ async function uploadMyLocation() {
         console.warn('uploadMyLocation DB error:', res.error.message);
       } else {
         console.log('📍 Location uploaded OK:', pos.coords.latitude.toFixed(4), pos.coords.longitude.toFixed(4));
+        // Save to location_history for historical records
+        try {
+          await client.from('location_history').insert({
+            user_id: uid,
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            battery: battery, source: 'auto',
+            created_at: new Date().toISOString()
+          });
+        } catch(e) { console.warn('history insert error:', e); }
         // Also save uid to profiles so others can find us
         try {
           await client.from('profiles').upsert({
@@ -12589,7 +12607,7 @@ async function showTodayLocations() {
   sheet.style.cssText = 'width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:20px 18px 40px;max-height:80vh;overflow-y:auto';
   try {
     var today = new Date(); today.setHours(0,0,0,0);
-    var res = await cl.from('user_locations').select('*').eq('user_id',uid).gte('updated_at',today.toISOString()).order('updated_at',{ascending:false}).limit(50);
+    var res = await cl.from('location_history').select('*').eq('user_id',uid).gte('created_at',today.toISOString()).order('created_at',{ascending:false}).limit(50);
     var rows = res.data || [];
     var handle = document.createElement('div');
     handle.style.cssText = 'width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 14px';
@@ -12607,12 +12625,12 @@ async function showTodayLocations() {
       sheet.appendChild(empty);
     } else {
       rows.forEach(function(r) {
-        var d = new Date(r.updated_at);
+        var d = new Date(r.created_at);
         var ts = d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
         var row = document.createElement('div');
         row.style.cssText = 'padding:10px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center';
         var left = document.createElement('div');
-        left.innerHTML = '<div style="font-size:13px;font-weight:600;color:var(--ink)">📍 ' + ts + '</div>'
+        left.innerHTML = '<div style="font-size:13px;font-weight:600;color:var(--ink)">📍 ' + ts + (r.source==='checkIn' ? ' <span style="font-size:10px;background:#E8F5E9;color:#27AE72;padding:1px 6px;border-radius:99px">报平安</span>' : '') + '</div>'
           + '<div style="font-size:11px;color:var(--ink3)">' + Number(r.lat).toFixed(4) + ', ' + Number(r.lng).toFixed(4) + (r.battery != null ? ' · 🔋' + r.battery + '%' : '') + '</div>';
         var link = document.createElement('a');
         link.href = 'https://maps.google.com/?q=' + r.lat + ',' + r.lng;
@@ -12647,7 +12665,7 @@ async function showHistoryLocations() {
   sheet.style.cssText = 'width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:20px 18px 40px;max-height:80vh;overflow-y:auto';
   try {
     var twoMonthsAgo = new Date(); twoMonthsAgo.setMonth(twoMonthsAgo.getMonth()-2);
-    var res = await cl.from('user_locations').select('*').eq('user_id',uid).gte('updated_at',twoMonthsAgo.toISOString()).order('updated_at',{ascending:false}).limit(200);
+    var res = await cl.from('location_history').select('*').eq('user_id',uid).gte('created_at',twoMonthsAgo.toISOString()).order('created_at',{ascending:false}).limit(200);
     var rows = res.data || [];
     var handle = document.createElement('div');
     handle.style.cssText = 'width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 14px';
@@ -12665,12 +12683,12 @@ async function showHistoryLocations() {
       sheet.appendChild(empty);
     } else {
       rows.forEach(function(r) {
-        var d = new Date(r.updated_at);
+        var d = new Date(r.created_at);
         var ds = d.toLocaleDateString('zh-CN',{month:'numeric',day:'numeric'}) + ' ' + d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
         var row = document.createElement('div');
         row.style.cssText = 'padding:10px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center';
         var left = document.createElement('div');
-        left.innerHTML = '<div style="font-size:13px;font-weight:600;color:var(--ink)">📍 ' + ds + '</div>'
+        left.innerHTML = '<div style="font-size:13px;font-weight:600;color:var(--ink)">📍 ' + ds + (r.source==='checkIn' ? ' <span style="font-size:10px;background:#E8F5E9;color:#27AE72;padding:1px 6px;border-radius:99px">报平安</span>' : '') + '</div>'
           + '<div style="font-size:11px;color:var(--ink3)">' + Number(r.lat).toFixed(4) + ', ' + Number(r.lng).toFixed(4) + (r.battery != null ? ' · 🔋' + r.battery + '%' : '') + '</div>';
         var link = document.createElement('a');
         link.href = 'https://maps.google.com/?q=' + r.lat + ',' + r.lng;
