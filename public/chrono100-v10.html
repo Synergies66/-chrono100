@@ -112,6 +112,7 @@ input,textarea,select{font-size:16px !important}
 .toggle.on .toggle-knob{left:22px}.toggle.off .toggle-knob{left:2.5px}
 .pulse-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s ease-in-out infinite;flex-shrink:0}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(39,174,114,.3)}50%{box-shadow:0 0 0 5px rgba(39,174,114,0)}}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 .blink{animation:blink 1.4s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
 
@@ -893,18 +894,21 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
         </div>
       </div>
 
-      <!-- 晚间总结 -->
-      <div class="summary-card" id="summaryCard" style="margin:10px 16px 0;display:none">
-        <div class="summary-inner">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
+      <!-- 今日故事 + K1980 合并一行 -->
+      <div style="margin:10px 16px 0;display:flex;gap:8px;align-items:stretch">
+        <!-- 今日故事（有记录时显示） -->
+        <div class="summary-card" id="summaryCard" style="flex:1;margin:0;display:none">
+          <div class="summary-inner" style="height:100%;box-sizing:border-box">
             <div class="summary-tag" data-i18n-key="todayStory">⭐ 今日故事</div>
-            <a href="https://k1980.com" target="_blank" style="display:flex;align-items:center;gap:4px;text-decoration:none;background:linear-gradient(135deg,#CC2222,#E03333);border-radius:99px;padding:3px 10px;flex-shrink:0">
-              <span style="font-size:9px;font-weight:700;color:#fff;letter-spacing:.3px">K1980</span>
-              <span style="font-size:9px;color:rgba(255,255,255,.9)">海外资讯 ›</span>
-            </a>
+            <div class="summary-text" id="summaryText"></div>
           </div>
-          <div class="summary-text" id="summaryText"></div>
         </div>
+        <!-- K1980 海外资讯 — 常驻 -->
+        <a href="https://k1980.com" target="_blank" id="k1980Bar"
+           style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:12px 14px;background:var(--card);border-radius:14px;box-shadow:var(--sh);text-decoration:none;border:1px solid rgba(204,34,34,.12);flex-shrink:0;min-width:90px">
+          <div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#CC2222,#E03333);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;flex-shrink:0">K</div>
+          <div id="k1980Label" style="font-size:10px;font-weight:700;color:var(--ink);text-align:center;line-height:1.3">K1980<br><span style="font-weight:400;color:var(--ink3)">海外资讯</span></div>
+        </a>
       </div>
 
       <!-- 人生轨迹 section — compact card layout -->
@@ -1989,8 +1993,7 @@ var I18N = {
     sArchiveTitle:'档案 & 智能分析',
     sFolder:'文件夹',
     sLifeArchive:'人生轨迹档案',
-    sSmartNotes:'AI 智能笔记分析',
-    sCopy:'复制',
+    sSmartNotes:'AI 智能笔记分析',    sCopy:'复制',
     sAuthorize:'授权 →',
     viewAll:'查看全部',
     albumSubtitle:'生活 · 工作 · 家人',
@@ -2051,6 +2054,11 @@ var I18N = {
     recordDate:'记录日期：',
     saveToJourney:'存入人生轨迹',
     aiAnalyze:'AI 分析',
+    snTypeWork:'工作会议',
+    snTypeLife:'生活日记',
+    snTypeStudy:'学习笔记',
+    snPlaceholder:'在这里粘贴会议纪要、工作日志、生活感悟、学习笔记…\n\nAI自动提取要点 · 生成行动清单 · 给出专属建议\n\n也可以点下方上传 PDF / 图片文件',
+    snUploadFile:'上传文件',
     archiveTemplate:'档案模板',
     timeRange:'时间范围',
     contentType:'包含内容',
@@ -2361,6 +2369,11 @@ var I18N = {
     recordDate:'Date: ',
     saveToJourney:'Save to Journey',
     aiAnalyze:'AI Analyze',
+    snTypeWork:'Work Meeting',
+    snTypeLife:'Life Diary',
+    snTypeStudy:'Study Notes',
+    snPlaceholder:'Paste meeting notes, work journal, life reflections, study notes here…\n\nAI will extract key points · generate action items · give personalized suggestions\n\nOr upload a PDF / image file below',
+    snUploadFile:'Upload File',
     archiveTemplate:'Archive Template',
     timeRange:'Time Range',
     contentType:'Content Type',
@@ -2651,6 +2664,11 @@ var I18N = {
     recordDate:'記錄日期：',
     saveToJourney:'存入人生軌跡',
     aiAnalyze:'AI 分析',
+    snTypeWork:'工作會議',
+    snTypeLife:'生活日記',
+    snTypeStudy:'學習筆記',
+    snPlaceholder:'在這裡粘貼會議紀要、工作日誌、生活感悟、學習筆記…\n\nAI自動提取要點 · 生成行動清單 · 給出專屬建議\n\n也可以點下方上傳 PDF / 圖片文件',
+    snUploadFile:'上傳文件',
     archiveTemplate:'檔案模板',
     timeRange:'時間範圍',
     contentType:'包含內容',
@@ -8022,14 +8040,23 @@ function buildSummary(msgs, photos) {
   var card = document.getElementById('summaryCard');
   var text = document.getElementById('summaryText');
   if (!card || !text) return;
-  var hour = new Date().getHours();
   var parts = [];
   if (photos.length) parts.push(t('summaryPhotos').replace('{n}', photos.length));
   if (msgs.length) parts.push(t('条消息').replace('{n}', msgs.length));
-  if (!parts.length && hour < 17) { card.style.display = 'none'; return; }
-  if (!parts.length) parts.push(t('noRecordTodayFull'));
+  if (!parts.length) {
+    card.style.display = 'none';
+    var k = document.getElementById('k1980Bar');
+    var kl = document.getElementById('k1980Label');
+    if (k) { k.style.flexDirection='row'; k.style.minWidth=''; k.style.flex='1'; k.style.gap='12px'; k.style.justifyContent='flex-start'; }
+    if (kl) kl.innerHTML = '<div style="font-size:13px;font-weight:700;color:var(--ink)">K1980 海外华人资讯</div><div style="font-size:11px;color:var(--ink3)">新西兰 · 澳洲 · 移民生活 · 时事</div>';
+    return;
+  }
   text.innerHTML = parts.join('，') + '。';
   card.style.display = 'block';
+  var k2 = document.getElementById('k1980Bar');
+  var kl2 = document.getElementById('k1980Label');
+  if (k2) { k2.style.flexDirection='column'; k2.style.flex=''; k2.style.minWidth='90px'; k2.style.justifyContent='center'; k2.style.gap='4px'; }
+  if (kl2) kl2.innerHTML = 'K1980<br><span style="font-weight:400;color:var(--ink3)">海外资讯</span>';
 }
 
 function openContactOptions(memberId, name) {
@@ -11754,21 +11781,21 @@ function openSmartNotes() {
   // 类型选择
   var typeRow = document.createElement('div');
   typeRow.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px';
-  var typeColors = {work:{bg:'var(--blue2)',ico:'&#128188;',label:'工作会议'}, life:{bg:'#27AE60',ico:'&#127775;',label:'生活日记'}, study:{bg:'#8E44AD',ico:'&#128218;',label:'学习笔记'}};
+  var typeColors = {work:{bg:'var(--blue2)',ico:'&#128188;',labelKey:'snTypeWork'}, life:{bg:'#27AE60',ico:'&#127775;',labelKey:'snTypeLife'}, study:{bg:'#8E44AD',ico:'&#128218;',labelKey:'snTypeStudy'}};
   Object.keys(typeColors).forEach(function(id){
-    var t = typeColors[id];
+    var tc = typeColors[id];
     var btn = document.createElement('button');
     btn.id = 'sntype-'+id;
-    btn.innerHTML = t.ico + '<br><span style="font-size:11px">' + t.label + '</span>';
+    btn.innerHTML = tc.ico + '<br><span style="font-size:11px">' + t(tc.labelKey) + '</span>';
     btn.style.cssText = 'padding:10px 6px;border-radius:13px;border:2px solid var(--border);background:var(--card);color:var(--ink3);font-size:16px;font-weight:600;cursor:pointer;-webkit-appearance:none;line-height:1.4;transition:all .15s';
     btn.onclick = function(){
       typeRow.querySelectorAll('button').forEach(function(b){
         b.style.background='var(--card)'; b.style.color='var(--ink3)'; b.style.borderColor='var(--border)'; b.style.transform='scale(1)';
       });
-      btn.style.background=t.bg; btn.style.color='#fff'; btn.style.borderColor='transparent'; btn.style.transform='scale(1.03)';
+      btn.style.background=tc.bg; btn.style.color='#fff'; btn.style.borderColor='transparent'; btn.style.transform='scale(1.03)';
       window._snCurrentType = id;
     };
-    if(id==='work'){ btn.style.background=t.bg; btn.style.color='#fff'; btn.style.borderColor='transparent'; window._snCurrentType='work'; }
+    if(id==='work'){ btn.style.background=tc.bg; btn.style.color='#fff'; btn.style.borderColor='transparent'; window._snCurrentType='work'; }
     typeRow.appendChild(btn);
   });
   body.appendChild(typeRow);
@@ -11790,7 +11817,7 @@ function openSmartNotes() {
 
   var ta = document.createElement('textarea');
   ta.id = 'snTextarea';
-  ta.placeholder = '在这里粘贴会议纪要、工作日志、生活感悟、学习笔记…\n\nAI自动提取要点 · 生成行动清单 · 给出专属建议\n\n也可以点下方上传 PDF / 图片文件';
+  ta.placeholder = t('snPlaceholder') || '在这里粘贴会议纪要、工作日志、生活感悟、学习笔记…\n\nAI自动提取要点 · 生成行动清单 · 给出专属建议\n\n也可以点下方上传 PDF / 图片文件';
   ta.style.cssText = 'width:100%;min-height:180px;max-height:40vh;border:none;outline:none;font-size:14px;color:var(--ink);line-height:1.75;background:transparent;resize:vertical;font-family:inherit;box-sizing:border-box';
   ta.addEventListener('input', function(){
     var n = ta.value.length;
@@ -11804,7 +11831,7 @@ function openSmartNotes() {
   uploadRow.style.cssText = 'display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)';
   var uploadLabel = document.createElement('label');
   uploadLabel.style.cssText = 'display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;background:var(--bg);border:1.5px dashed var(--border);font-size:13px;color:var(--ink3);cursor:pointer;flex:1;transition:border-color .15s';
-  uploadLabel.innerHTML = '&#128206; 上传文件 <span style="font-size:11px;color:var(--ink4)">(PDF / 图片 / TXT)</span>';
+  uploadLabel.innerHTML = '&#128206; ' + (t('snUploadFile')||'上传文件') + ' <span style="font-size:11px;color:var(--ink4)">(PDF / 图片 / TXT)</span>';
   var fileInput = document.createElement('input');
   fileInput.type='file'; fileInput.accept='.pdf,.txt,image/*'; fileInput.style.display='none';
   fileInput.onchange = function(){ _snHandleFile(this.files[0], ta, uploadLabel); };
@@ -11839,9 +11866,9 @@ function openSmartNotes() {
   metaRow.appendChild(divider); metaRow.appendChild(saveToggle);
   body.appendChild(metaRow);
 
-  // 分析按钮（固定在底部）
+  // 分析按钮（固定在底部，往上移）
   var footer = document.createElement('div');
-  footer.style.cssText = 'flex-shrink:0;padding:12px 16px calc(env(safe-area-inset-bottom,0px)+12px);background:var(--card);border-top:1px solid var(--border)';
+  footer.style.cssText = 'flex-shrink:0;padding:12px 16px calc(env(safe-area-inset-bottom,0px)+48px);background:var(--card);border-top:1px solid var(--border)';
   var analyzeBtn = document.createElement('button');
   analyzeBtn.id='snAnalyzeBtn';
   analyzeBtn.style.cssText='width:100%;padding:15px;border-radius:15px;background:var(--blue2);color:#fff;font-size:16px;font-weight:700;border:none;cursor:pointer;-webkit-appearance:none;display:flex;align-items:center;justify-content:center;gap:8px';
@@ -12031,37 +12058,126 @@ async function enforceLoginWall() {
 
 function _snCloseHist() { var o=document.getElementById('snHistOv'); if(o) o.remove(); }
 async function _snHandleFile(file, ta, uploadLabel) {
-  if(!file) return;
+  if (!file) return;
   var status = document.getElementById('snFileStatus');
-  if(status){ status.style.display='block'; status.textContent='读取中...'; }
-  // 图片：base64提示（告知AI）
-  if(file.type.startsWith('image/')) {
+  if (status) { status.style.display='block'; status.textContent='读取中...'; }
+
+  // 图片：base64存储供后台处理
+  if (file.type.startsWith('image/')) {
     var reader = new FileReader();
     reader.onload = function(e) {
       window._snImageData = e.target.result;
-      if(status){ status.textContent='&#128444; '+file.name; }
-      uploadLabel.style.borderColor='var(--blue2)';
-      if(!ta.value.trim()) ta.value='（已上传图片，AI将识别其中的文字内容）';
+      window._snFileName = file.name;
+      if (status) { status.textContent = '🖼 ' + file.name; }
+      uploadLabel.style.borderColor = 'var(--blue2)';
+      if (!ta.value.trim()) ta.value = '（已上传图片，AI将识别其中的文字内容进行分析）';
     };
     reader.readAsDataURL(file);
     return;
   }
-  // PDF/TXT：读取为文本
-  if(file.type==='text/plain') {
+
+  // TXT：直接读取文字
+  if (file.type === 'text/plain') {
     var reader2 = new FileReader();
     reader2.onload = function(e) {
-      ta.value = e.target.result.slice(0, 8000);
-      if(status){ status.textContent='&#128196; '+file.name; }
-      uploadLabel.style.borderColor='var(--blue2)';
+      ta.value = e.target.result.slice(0, 12000);
+      if (status) { status.textContent = '📄 ' + file.name; }
+      uploadLabel.style.borderColor = 'var(--blue2)';
     };
     reader2.readAsText(file, 'utf-8');
     return;
   }
-  // PDF：上传到Supabase，告知AI文件名
-  toast('PDF已接收，AI将基于文件名和你补充的描述进行分析');
-  if(status){ status.textContent='&#128196; '+file.name; }
-  uploadLabel.style.borderColor='var(--blue2)';
-  if(!ta.value.trim()) ta.value = '【文件：'+file.name+'】\n请在此补充文件的主要内容或会议讨论要点：\n\n';
+
+  // PDF：上传到 Supabase Storage，走后台队列处理
+  if (file.type === 'application/pdf') {
+    if (status) { status.textContent = '⏳ 上传中...'; }
+    var client = sb();
+    var uid = await getUid();
+    if (!client || !uid) { toast('请先登录'); return; }
+    try {
+      var path = 'notes/' + uid + '/' + Date.now() + '_' + file.name.replace(/\s/g,'_');
+      var up = await client.storage.from('moments').upload(path, file, { contentType: 'application/pdf', upsert: true });
+      if (up.error) { toast('PDF上传失败：' + up.error.message); return; }
+      var pub = client.storage.from('moments').getPublicUrl(path);
+      window._snPdfUrl = pub.data.publicUrl;
+      window._snFileName = file.name;
+      if (status) { status.textContent = '📑 ' + file.name; }
+      uploadLabel.style.borderColor = 'var(--blue2)';
+      if (!ta.value.trim()) ta.value = '（已上传PDF：' + file.name + '，点击「AI分析」开始后台处理）';
+      toast('✅ PDF已上传，点击「✨ AI分析」开始处理');
+    } catch(e) { toast('上传失败：' + (e.message||'')); }
+    return;
+  }
+
+  // 其他文件类型
+  if (status) { status.textContent = '📎 ' + file.name; }
+  uploadLabel.style.borderColor = 'var(--blue2)';
+  window._snFileName = file.name;
+  if (!ta.value.trim()) ta.value = '【文件：' + file.name + '】\n请在此补充文件的主要内容或讨论要点：\n\n';
+}
+
+// ── 后台队列处理 ──────────────────────────────────────────────
+async function _snSubmitToQueue(text, type, date, imgData, pdfUrl, fileName) {
+  var cl = sb(); if (!cl) { toast('连接失败'); return null; }
+  var uid = await getUid(); if (!uid) { toast('请先登录'); return null; }
+  try {
+    var payload = {
+      user_id: uid,
+      content: text.slice(0, 12000) || '',
+      note_type: type,
+      record_date: date,
+      file_url: pdfUrl || null,
+      file_name: fileName || null,
+      has_image: !!imgData,
+      image_data: imgData ? imgData.slice(0, 500000) : null, // 限制大小
+      status: 'pending',
+      created_at: new Date().toISOString()
+    };
+    var res = await cl.from('analysis_queue').insert(payload).select().single();
+    if (res.error) throw new Error(res.error.message);
+    var jobId = res.data.id;
+    // 立即触发 Edge Function 处理（不等待响应）
+    try {
+      var sess = await cl.auth.getSession();
+      var token = sess && sess.data && sess.data.session ? sess.data.session.access_token : '';
+      fetch(EDGE_URL + '/ai-analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ trigger: 'immediate' })
+      }).catch(function(){});
+    } catch(e) {}
+    return jobId;
+  } catch(e) {
+    // 如果表不存在，降级为直接调用
+    console.warn('Queue unavailable, falling back to direct call:', e.message);
+    return null;
+  }
+}
+
+async function _snPollResult(jobId, onDone, onError) {
+  var cl = sb(); if (!cl) { onError('连接失败'); return; }
+  var attempts = 0;
+  var maxAttempts = 60; // 最多等2分钟
+  var timer = setInterval(async function() {
+    attempts++;
+    if (attempts > maxAttempts) {
+      clearInterval(timer);
+      onError('处理超时，请重试');
+      return;
+    }
+    try {
+      var res = await cl.from('analysis_queue').select('status,result,error_msg').eq('id', jobId).single();
+      if (!res.data) return;
+      if (res.data.status === 'done') {
+        clearInterval(timer);
+        onDone(res.data.result);
+      } else if (res.data.status === 'error') {
+        clearInterval(timer);
+        onError(res.data.error_msg || 'AI分析失败');
+      }
+      // 还在 pending/processing 就继续等
+    } catch(e) {}
+  }, 2000); // 每2秒轮询
 }
 
 async function _snAnalyze() {
@@ -12069,13 +12185,63 @@ async function _snAnalyze() {
   var type = window._snCurrentType || 'work';
   var date = (document.getElementById('snDate')||{}).value || new Date().toISOString().slice(0,10);
   var saveToLife = (document.getElementById('snSaveToLife')||{}).checked;
-  var resultArea = document.getElementById('snResult'); if(!resultArea) return;
+  var resultArea = document.getElementById('snResult'); if (!resultArea) return;
 
-  if(!text.trim() && !window._snImageData) { toast('请先输入或上传笔记内容'); return; }
+  if (!text.trim() && !window._snImageData && !window._snPdfUrl) {
+    toast('请先输入或上传笔记内容'); return;
+  }
 
   var btn = document.getElementById('snAnalyzeBtn');
-  if(btn){ btn.textContent='分析中...'; btn.disabled=true; }
-  resultArea.style.display='none';
+  if (btn) { btn.innerHTML = '⏳ 分析中...'; btn.disabled = true; }
+  resultArea.style.display = 'none';
+
+  // ── 尝试提交到后台队列 ──
+  var jobId = await _snSubmitToQueue(
+    text, type, date,
+    window._snImageData || null,
+    window._snPdfUrl || null,
+    window._snFileName || null
+  );
+
+  if (jobId) {
+    // 后台队列成功 — 显示等待UI，轮询结果
+    resultArea.style.display = 'block';
+    resultArea.innerHTML = _snRenderWaiting(window._snFileName || '笔记');
+    resultArea.scrollIntoView({behavior:'smooth', block:'start'});
+
+    _snPollResult(jobId,
+      function(result) {
+        // 成功
+        if (btn) { btn.innerHTML = '✨ ' + t('aiAnalyze'); btn.disabled = false; }
+        _snRenderResult(result, date, type, saveToLife);
+      },
+      function(errMsg) {
+        // 失败 — 降级为直接调用
+        if (btn) { btn.innerHTML = '✨ ' + t('aiAnalyze'); btn.disabled = false; }
+        toast('后台处理失败，切换为直接分析...');
+        _snDirectAnalyze(text, type, date, saveToLife);
+      }
+    );
+    return;
+  }
+
+  // ── 降级：直接调用 Claude API ──
+  await _snDirectAnalyze(text, type, date, saveToLife);
+}
+
+function _snRenderWaiting(fileName) {
+  return '<div style="background:var(--card);border-radius:18px;padding:32px 20px;text-align:center;border:1px solid var(--border)">'
+    + '<div style="font-size:40px;margin-bottom:14px;animation:spin 2s linear infinite">⚙️</div>'
+    + '<div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:8px">AI 正在后台分析中</div>'
+    + '<div style="font-size:13px;color:var(--ink3);margin-bottom:6px">' + esc(fileName) + '</div>'
+    + '<div style="font-size:12px;color:var(--ink4)">通常需要10~30秒，大文件可能更长<br>你可以先去做别的，完成后自动显示结果</div>'
+    + '</div>';
+}
+
+async function _snDirectAnalyze(text, type, date, saveToLife) {
+  var btn = document.getElementById('snAnalyzeBtn');
+  var resultArea = document.getElementById('snResult');
+  if (btn) { btn.innerHTML = '⏳ 分析中...'; btn.disabled = true; }
 
   var typePrompts = {
     work: '你是一位专业的工作效率助手。请分析以下会议纪要或工作日志，输出严格的JSON格式（不含```）：{"summary":"一段话总结核心内容","keyPoints":["要点1","要点2","要点3"],"actionItems":["待办1（负责人/截止日期）","待办2"],"risks":["潜在风险或注意事项"],"advice":"基于内容给出的专业建议（50-100字）","mood":"用一个emoji表达整体工作状态","title":"5字以内的标题"}',
@@ -12084,84 +12250,80 @@ async function _snAnalyze() {
   };
 
   var prompt = typePrompts[type] + '\n\n内容如下：\n\n' + text.slice(0, 4000);
+  var raw = await callClaude(prompt, 1000);
 
-  var raw = await callClaude(prompt, 800);
-  if(btn){ btn.innerHTML='&#10024; AI 分析'; btn.disabled=false; }
-  if(!raw) return;
+  if (btn) { btn.innerHTML = '✨ ' + t('aiAnalyze'); btn.disabled = false; }
+  if (!raw) return;
 
   var data;
   try {
-    var clean = raw.replace(/```json|```/g,'').trim();
-    data = JSON.parse(clean);
+    data = JSON.parse(raw.replace(/```json|```/g,'').trim());
   } catch(e) {
-    resultArea.style.display='block';
-    resultArea.innerHTML='<div style="padding:14px;background:var(--card);border-radius:14px;font-size:13px;color:var(--ink);line-height:1.7">'+esc(raw)+'</div>';
+    if (resultArea) {
+      resultArea.style.display = 'block';
+      resultArea.innerHTML = '<div style="padding:14px;background:var(--card);border-radius:14px;font-size:13px;color:var(--ink);line-height:1.7">' + esc(raw) + '</div>';
+    }
     return;
   }
+  _snRenderResult(data, date, type, saveToLife);
+}
 
-  // ── 渲染结果 ──
+function _snRenderResult(data, date, type, saveToLife) {
+  var resultArea = document.getElementById('snResult');
+  if (!resultArea) return;
+  if (!data) { resultArea.style.display='none'; return; }
+
   var typeColors = {work:'#1A3A6B', life:'#1A6B3A', study:'#6B3A1A'};
   var typeBg     = {work:'#EBF3FF', life:'#EBF9EE', study:'#FFF4EB'};
-  var color = typeColors[type]||'#1A3A6B';
-  var bg    = typeBg[type]||'#EBF3FF';
+  var color = typeColors[type] || '#1A3A6B';
+  var bg    = typeBg[type] || '#EBF3FF';
 
   var html = '<div style="background:var(--card);border-radius:18px;overflow:hidden;border:1px solid var(--border)">';
 
-  // 标题栏
   html += '<div style="background:'+color+';color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px">'
     + '<div style="font-size:24px">'+(data.mood||'📋')+'</div>'
     + '<div><div style="font-size:15px;font-weight:700">'+(data.title||'智能分析结果')+'</div>'
     + '<div style="font-size:11px;opacity:.8">'+date+' · AI分析</div></div></div>';
 
-  // 总结
   html += '<div style="padding:14px 16px;border-bottom:1px solid var(--border)">'
     + '<div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:6px">'+t('summaryKey')+'</div>'
     + '<div style="font-size:13px;color:var(--ink);line-height:1.7">'+esc(data.summary||'')+'</div></div>';
 
-  // 要点
-  if(data.keyPoints&&data.keyPoints.length) {
+  if (data.keyPoints && data.keyPoints.length) {
     html += '<div style="padding:14px 16px;border-bottom:1px solid var(--border)">'
       + '<div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:8px">'+t('keyPoints')+'</div>'
-      + data.keyPoints.map(function(p){ return '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px"><div style="width:6px;height:6px;border-radius:50%;background:'+color+';flex-shrink:0;margin-top:5px"></div><div style="font-size:13px;color:var(--ink);line-height:1.6">'+esc(p)+'</div></div>'; }).join('')
-      + '</div>';
+      + data.keyPoints.map(function(p){ return '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px"><div style="width:6px;height:6px;border-radius:50%;background:'+color+';flex-shrink:0;margin-top:5px"></div><div style="font-size:13px;color:var(--ink);line-height:1.6">'+esc(p)+'</div></div>'; }).join('') + '</div>';
   }
 
-  // 待办/行动项
-  if(data.actionItems&&data.actionItems.length) {
+  if (data.actionItems && data.actionItems.length) {
     html += '<div style="padding:14px 16px;border-bottom:1px solid var(--border)">'
       + '<div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:8px">'+t('actionList')+'</div>'
-      + data.actionItems.map(function(a,i){ return '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px"><div style="width:18px;height:18px;border-radius:5px;border:1.5px solid var(--border);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--ink4)">'+(i+1)+'</div><div style="font-size:13px;color:var(--ink);line-height:1.6">'+esc(a)+'</div></div>'; }).join('')
-      + '</div>';
+      + data.actionItems.map(function(a,i){ return '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px"><div style="width:18px;height:18px;border-radius:5px;border:1.5px solid var(--border);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--ink4)">'+(i+1)+'</div><div style="font-size:13px;color:var(--ink);line-height:1.6">'+esc(a)+'</div></div>'; }).join('') + '</div>';
   }
 
-  // 风险/注意
-  if(data.risks&&data.risks.length) {
+  if (data.risks && data.risks.length) {
     html += '<div style="padding:14px 16px;border-bottom:1px solid var(--border)">'
       + '<div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:8px">'+t('notesWarning')+'</div>'
-      + data.risks.map(function(r){ return '<div style="padding:7px 10px;background:#FFF8E1;border-radius:8px;font-size:12px;color:#9C6A00;margin-bottom:5px">'+esc(r)+'</div>'; }).join('')
-      + '</div>';
+      + data.risks.map(function(r){ return '<div style="padding:7px 10px;background:#FFF8E1;border-radius:8px;font-size:12px;color:#9C6A00;margin-bottom:5px">'+esc(r)+'</div>'; }).join('') + '</div>';
   }
 
-  // AI建议
-  if(data.advice) {
+  if (data.advice) {
     html += '<div style="padding:14px 16px;border-bottom:1px solid var(--border)">'
       + '<div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:6px">'+t('aiSuggest')+'</div>'
       + '<div style="background:'+bg+';border-radius:10px;padding:10px 12px;font-size:13px;color:'+color+';line-height:1.7;border-left:3px solid '+color+'">'+esc(data.advice)+'</div></div>';
   }
 
-  // 操作按钮
   html += '<div style="display:flex;gap:8px;padding:12px 14px">'
-    + '<button onclick="_snSaveResult(\''+esc(date)+'\',\''+esc(data.title||'笔记')+'\',\''+esc(data.summary||'')+'\','+saveToLife+')" style="flex:1;padding:11px;border-radius:12px;background:var(--blue2);color:#fff;font-size:13px;font-weight:700;border:none;cursor:pointer;-webkit-appearance:none">&#128190; 保存到轨迹</button>'
+    + '<button onclick="_snSaveResult(\''+esc(date)+'\',\''+esc(data.title||'笔记')+'\',\''+esc(data.summary||'')+'\','+saveToLife+')" style="flex:1;padding:11px;border-radius:12px;background:var(--blue2);color:#fff;font-size:13px;font-weight:700;border:none;cursor:pointer;-webkit-appearance:none">💾 保存到轨迹</button>'
     + '<button onclick="_snCopyResult(\''+esc(JSON.stringify(data)).replace(/'/g,"\\'")+'\',\''+type+'\')" style="flex:1;padding:11px;border-radius:12px;background:var(--bg);color:var(--ink);font-size:13px;font-weight:600;border:1.5px solid var(--border);cursor:pointer;-webkit-appearance:none">'+t('copyReport')+'</button>'
     + '</div></div>';
 
   resultArea.innerHTML = html;
-  resultArea.style.display='block';
+  resultArea.style.display = 'block';
   resultArea.scrollIntoView({behavior:'smooth', block:'start'});
 
-  // 自动保存到轨迹
-  if(saveToLife) {
-    var category = type==='work' ? 'work' : 'life';
+  if (saveToLife) {
+    var category = type === 'work' ? 'work' : 'life';
     setTimeout(function(){ _snSaveResult(date, data.title||'AI笔记', data.summary||'', false, category, data); }, 500);
   }
 }
