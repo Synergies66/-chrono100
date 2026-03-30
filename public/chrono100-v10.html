@@ -408,7 +408,7 @@ input,textarea,select{font-size:16px !important}
 .msg-date{text-align:center;font-size:9px;color:var(--ink3);margin:4px 0 2px;font-weight:500}
 .msg{display:flex;gap:6px;max-width:85%}
 .msg.me{flex-direction:row-reverse;align-self:flex-end}
-.msg-av-xs{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#B8D0F0,#8AAEE0);flex-shrink:0;font-size:13px;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.msg-av-xs{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#B8D0F0,#8AAEE0);flex-shrink:0;font-size:13px;display:flex;align-items:center;justify-content:center;margin-top:2px;overflow:hidden}
 .bubble{padding:9px 13px;border-radius:16px 16px 16px 4px}
 .bubble.them{background:var(--card);box-shadow:0 1px 6px rgba(28,46,88,.07)}
 .bubble.me{background:var(--blue2);color:#fff;border-radius:16px 16px 4px 16px}
@@ -1046,13 +1046,17 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
         </div>
       </div>
 
-      <!-- 今日故事 + K1980 合并一行 -->
+      <!-- 天气 + K1980 合并一行 -->
       <div style="margin:10px 16px 0;display:flex;gap:10px;align-items:stretch;min-height:88px">
-        <!-- 今日故事（有记录时显示） -->
-        <div class="summary-card" id="summaryCard" style="flex:1;min-width:0;margin:0;display:none">
-          <div class="summary-inner" style="height:100%;box-sizing:border-box">
-            <div class="summary-tag" data-i18n-key="todayStory">⭐ 今日故事</div>
-            <div class="summary-text" id="summaryText"></div>
+        <!-- 天气卡片（常驻显示） -->
+        <div id="weatherCard" style="flex:1;min-width:0;background:rgba(255,255,255,.85);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:20px;box-shadow:0 8px 32px rgba(74,159,212,.14),0 2px 8px rgba(74,159,212,.08);border:1.5px solid rgba(255,255,255,.95);padding:14px 16px;display:flex;flex-direction:column;justify-content:center;cursor:pointer" onclick="loadWeather(true)">
+          <div style="font-size:9px;font-weight:700;color:var(--blue);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px" id="weatherLocation">📍 获取位置中…</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div id="weatherIcon" style="font-size:32px;line-height:1">⏳</div>
+            <div>
+              <div id="weatherTemp" style="font-size:22px;font-weight:700;color:var(--ink);line-height:1">--°C</div>
+              <div id="weatherDesc" style="font-size:11px;color:var(--ink3);margin-top:3px">加载中…</div>
+            </div>
           </div>
         </div>
         <!-- K1980 海外资讯 — 横向布局，固定宽度 -->
@@ -4457,6 +4461,8 @@ async function enterApp() {
   setTimeout(function() {
     try { loadTodayActivity(); } catch(e) {}
     try { loadMomentsFromDB(); } catch(e) {}
+    // 天气：先读缓存，再异步刷新
+    try { if (!loadWeatherFromCache()) loadWeather(); else setTimeout(loadWeather, 3000); } catch(e) {}
     try { uploadMyLocation(); } catch(e) {}
     try { showReunion(); } catch(e) {}
     try { setupNotifications(); } catch(e) {}
@@ -4466,6 +4472,8 @@ async function enterApp() {
     try { initPushNotifications(); } catch(e) {}
     // Restore profile from DB (for Google/email users)
     try { restoreProfileFromDB(); } catch(e) {}
+    try { refreshBadge(); } catch(e) {}
+    try { hookRealtimeBadge(); } catch(e) {}
   }, 600);
 }
 
@@ -4825,21 +4833,28 @@ function gotoPage(name) {
     }
   }
   if (name === 'life') {
-    // 只有首次或超过60秒才重新查数据库，避免切Tab反复请求
     var now = Date.now();
     var lastLoad = window._lastMomentsLoad || 0;
     if (!_momentsCache.length || now - lastLoad > 60000) {
       window._lastMomentsLoad = now;
       setTimeout(loadMomentsFromDB, 100);
     }
-    // 今日动态：30秒内不重复查
     var lastToday = window._lastTodayLoad || 0;
     if (now - lastToday > 30000) {
       window._lastTodayLoad = now;
       setTimeout(loadTodayActivity, 150);
     }
+    // 天气刷新（超过10分钟才重新请求）
+    if (!_weatherLoaded || now - (window._lastWeatherLoad||0) > 600000) {
+      window._lastWeatherLoad = now;
+      setTimeout(loadWeather, 200);
+    }
   }
-  if (name === 'chat') setTimeout(loadRealContacts, 100);
+  if (name === 'chat') {
+    setTimeout(loadRealContacts, 100);
+    // 打开聊天页 → 清除角标
+    markAllRead();
+  }
   // Show feed FAB only on feed page
 }
 
@@ -5294,6 +5309,8 @@ function saveRelationMeta(memberId, meta) {
 async function openChat(idx) {
   if (_activeArchive) { toast('📚 档案模式下不支持聊天，请切换回主账户'); return; }
   activeChatIdx = idx;
+  // 打开聊天 → 清除角标
+  try { markAllRead(); } catch(e) {}
   var c = CHATS[idx];
   var crAv = document.getElementById('crAvatar');
   if (crAv) {
@@ -5360,6 +5377,14 @@ async function loadMessages(roomId) {
       return Object.assign({}, m, { content: plain });
     });
     data = await Promise.all(decryptAll);
+
+    // 过滤自己删除的消息（软删除）
+    try {
+      var hiddenMsgs = JSON.parse(localStorage.getItem('c100_hidden_msgs') || '[]');
+      if (hiddenMsgs.length) {
+        data = data.filter(function(m) { return hiddenMsgs.indexOf(String(m.id)) < 0; });
+      }
+    } catch(e) {}
 
     data.forEach(function(m) {
       var isMe = m.sender_id === myUid;
@@ -5430,13 +5455,41 @@ function buildMsgHTML(m, isMe) {
   var senderLabel = (!isMe && window._isGroupChat && m.sender_name)
     ? '<div style="font-size:10px;color:var(--ink3);margin-bottom:2px;font-weight:600">' + esc(m.sender_name) + '</div>'
     : '';
+
+  // 头像：优先用真实照片，降级用emoji
+  var avHtml = '';
+  if (isMe) {
+    // 自己的消息 — 用当前头像
+    if (userAvatarUrl) {
+      avHtml = '<div class="msg-av-xs" style="background:none;overflow:hidden;flex-shrink:0">'
+        + '<img src="'+esc(userAvatarUrl)+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.parentNode.textContent=\''+(userEmoji||'😊')+'\'">'
+        + '</div>';
+    } else {
+      avHtml = '<div class="msg-av-xs">'+(userEmoji||'😊')+'</div>';
+    }
+  } else {
+    // 对方消息 — 从 CHATS 里找头像
+    var chat = (CHATS||[]).find(function(c){ return c.memberId === m.sender_id; });
+    var theirAvatar = chat && chat.avatarUrl;
+    var theirEmoji = (chat && chat.e) || m.sender_emoji || '😊';
+    if (theirAvatar) {
+      avHtml = '<div class="msg-av-xs" style="background:none;overflow:hidden;flex-shrink:0">'
+        + '<img src="'+esc(theirAvatar)+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.parentNode.textContent=\''+theirEmoji+'\'">'
+        + '</div>';
+    } else {
+      avHtml = '<div class="msg-av-xs">'+theirEmoji+'</div>';
+    }
+  }
+
   return '<div class="msg ' + (isMe ? 'me' : '') + '">'
-    + (isMe ? '' : '<div class="msg-av-xs">' + (m.sender_emoji || '😊') + '</div>')
+    + (isMe ? '' : avHtml)
     + '<div class="bubble ' + (isMe ? 'me' : 'them') + '"' + lp + '>'
     + senderLabel
     + renderMessageContent(m.content, isMe)
     + '<div class="bubble-time">' + fmtTime(m.created_at) + '</div>'
-    + '</div></div>';
+    + '</div>'
+    + (isMe ? avHtml : '')
+    + '</div>';
 }
 
 // ── Long-press delete ────────────────────────────────────────────
@@ -5457,7 +5510,7 @@ function showMsgMenu(msgId) {
     '<div style="width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:20px 18px calc(40px + env(safe-area-inset-bottom))">'
     + '<div style="width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 18px"></div>'
     + '<div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:18px;text-align:center">消息操作</div>'
-    + '<button onclick="deleteMessage(\'' + msgId + '\')" style="width:100%;padding:15px;border-radius:14px;background:#FFF0F0;color:#DC4545;font-size:15px;font-weight:700;cursor:pointer;border:1.5px solid #FFCECE;font-family:inherit;margin-bottom:10px">🗑 删除这条消息（双方）</button>'
+    + '<button onclick="deleteMessage(\'' + msgId + '\')" style="width:100%;padding:15px;border-radius:14px;background:#FFF0F0;color:#DC4545;font-size:15px;font-weight:700;cursor:pointer;border:1.5px solid #FFCECE;font-family:inherit;margin-bottom:10px">🗑 删除这条消息（仅自己）</button>'
     + '<button onclick="document.getElementById(\'msgMenuOv\').remove()" style="width:100%;padding:14px;border-radius:14px;background:transparent;color:var(--ink3);font-size:14px;cursor:pointer;border:1.5px solid var(--border);font-family:inherit">取消</button>'
     + '</div>';
   ov.addEventListener('click', function(e) { if (e.target === ov) ov.remove(); });
@@ -5469,8 +5522,27 @@ async function deleteMessage(msgId) {
   if (!msgId) return;
   var client = sb(); if (!client) { toast('连接失败'); return; }
   try {
-    var res = await client.from('messages').delete().eq('id', msgId);
-    if (res.error) { toast('❌ 删除失败：' + res.error.message); return; }
+    var uid = await getUid();
+    // 软删除：只标记自己不看，不影响对方
+    // 先尝试 hidden_from 软删除
+    var res = await client.from('messages')
+      .update({ hidden_from: uid })
+      .eq('id', msgId);
+    if (res.error) {
+      // fallback：如果是自己发的，才真正删除
+      var res2 = await client.from('messages')
+        .delete().eq('id', msgId).eq('sender_id', uid);
+      if (res2.error) {
+        // 最后方案：仅从UI隐藏（不影响数据库）
+        // 记录到localStorage
+        try {
+          var hidden = JSON.parse(localStorage.getItem('c100_hidden_msgs') || '[]');
+          if (hidden.indexOf(msgId) < 0) hidden.push(msgId);
+          localStorage.setItem('c100_hidden_msgs', JSON.stringify(hidden));
+        } catch(e) {}
+      }
+    }
+    // 从界面移除
     var bubble = document.getElementById('msgrow_' + msgId);
     var target = bubble ? (bubble.closest('.msg') || bubble.parentElement) : null;
     if (target) {
@@ -5478,7 +5550,7 @@ async function deleteMessage(msgId) {
       target.style.opacity = '0'; target.style.transform = 'scale(.95)';
       setTimeout(function() { if (target.parentNode) target.remove(); }, 220);
     }
-    toast('🗑 已删除');
+    toast('🗑 已删除（仅自己）');
   } catch(e) { toast('❌ 删除出错：' + (e.message || '')); }
 }
 
@@ -5552,52 +5624,19 @@ var CHAT_EMOJIS=['😊','❤️','😂','👍','🙏','😍','🥰','😘','🤗
   '🍜','🍣','🍕','☕','🧋','🍦','🌺','🌻','🐱','🐶'];
 
 function showChatAttachSheet() {
-  var ex = document.getElementById('chatAttachSheet'); if (ex) { ex.remove(); return; }
-  var sheet = document.createElement('div');
-  sheet.id = 'chatAttachSheet';
-  sheet.style.cssText = 'position:fixed;inset:0;z-index:9850;display:flex;flex-direction:column;justify-content:flex-end';
+  // 直接打开照片图库，不弹窗
+  setTimeout(function() {
+    var inp = document.getElementById('chatImgInput');
+    if (inp) { inp.value = ''; inp.click(); }
+  }, 80);
+}
 
-  // backdrop
-  var bd = document.createElement('div');
-  bd.style.cssText = 'flex:1;background:rgba(18,24,52,.35)';
-  bd.onclick = function(){ sheet.remove(); };
-
-  // panel
-  var panel = document.createElement('div');
-  panel.style.cssText = 'background:var(--card);border-radius:22px 22px 0 0;padding:16px 20px calc(env(safe-area-inset-bottom,0px)+20px)';
-
-  // handle
-  panel.innerHTML = '<div style="width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 18px"></div>';
-
-  // three buttons
-  var items = [
-    { ico:'🖼', label:'图片', color:'var(--blue-lt)', id:'chatImgInput' },
-    { ico:'📷', label:'拍照', color:'#E8F5E9',       id:'chatCamInput' },
-    { ico:'📁', label:'文件', color:'#FFF3E0',       id:'chatFileInput' },
-  ];
-  var grid = document.createElement('div');
-  grid.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:4px';
-
-  items.forEach(function(item) {
-    var btn = document.createElement('div');
-    btn.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer';
-    btn.innerHTML = '<div style="width:62px;height:62px;border-radius:18px;background:'+item.color+';display:flex;align-items:center;justify-content:center;font-size:28px">'+item.ico+'</div>'
-      + '<span style="font-size:12px;color:var(--ink2);font-weight:600">'+item.label+'</span>';
-    btn.onclick = function() {
-      sheet.remove();
-      // Small delay so iOS registers the tap before opening picker
-      setTimeout(function() {
-        var inp = document.getElementById(item.id);
-        if (inp) { inp.value = ''; inp.click(); }
-      }, 80);
-    };
-    grid.appendChild(btn);
-  });
-
-  panel.appendChild(grid);
-  sheet.appendChild(bd);
-  sheet.appendChild(panel);
-  document.body.appendChild(sheet);
+function openChatFileDirectly() {
+  // 直接打开文件夹，不弹窗
+  setTimeout(function() {
+    var inp = document.getElementById('chatFileInput');
+    if (inp) { inp.value = ''; inp.click(); }
+  }, 80);
 }
 
 function toggleChatMediaPanel(){
@@ -6037,15 +6076,26 @@ function switchChatTab(tab) {
 }
 
 // ── CONTACTS LIST ──────────────────────────────────────────────
+function _avatarImgError(img) {
+  if (!img) return;
+  var div = document.createElement('div');
+  div.style.cssText = 'width:46px;height:46px;border-radius:50%;background:var(--blue-lt);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0';
+  div.textContent = userEmoji || '😊';
+  if (img.parentNode) img.parentNode.replaceChild(div, img);
+}
+
 function buildContactsList() {
   var el = document.getElementById('contactsList');
   if (!el) return;
+
+  var html = '';
+
   if (!CHATS || CHATS.length === 0) {
-    el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--ink3);font-size:13px">暂无联系人<br><span style="font-size:11px">点击右上角 ＋ 添加家人或好友</span></div>';
+    html += '<div style="text-align:center;padding:30px;color:var(--ink3);font-size:13px">暂无联系人<br><span style="font-size:11px">点击右上角 ＋ 添加家人或好友</span></div>';
+    el.innerHTML = html;
     return;
   }
-  // Group by first letter / relation
-  var html = '';
+
   // Search bar
   html += '<div style="padding:10px 16px 4px">'
     + '<div style="position:relative">'
@@ -6054,7 +6104,6 @@ function buildContactsList() {
     + ' style="width:100%;padding:9px 14px 9px 36px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);font-size:14px;color:var(--ink);font-family:inherit;box-sizing:border-box" />'
     + '</div></div>';
 
-  // Sort contacts alphabetically
   var sorted = CHATS.slice().sort(function(a, b) { return a.n.localeCompare(b.n, 'zh'); });
 
   sorted.forEach(function(c) {
@@ -6074,6 +6123,30 @@ function buildContactsList() {
   });
 
   el.innerHTML = html;
+}
+
+// 从联系人页面触发头像上传
+function triggerAvatarUploadFromContacts() {
+  // 用专用的隐藏 input，避免和 meBigAv 里的 input 冲突
+  var inp = document.getElementById('avatarInputContacts');
+  if (!inp) {
+    inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = 'image/jpeg,image/png,image/webp,image/gif,image/heic';
+    inp.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0;pointer-events:none';
+    inp.id = 'avatarInputContacts';
+    document.body.appendChild(inp);
+  }
+  inp.onchange = function() {
+    var f = this.files && this.files[0];
+    if (!f) return;
+    uploadAvatar(f).then(function() {
+      // 成功后刷新联系人列表里的头像
+      setTimeout(buildContactsList, 500);
+    });
+  };
+  inp.value = '';
+  setTimeout(function() { inp.click(); }, 50);
 }
 
 function filterContacts(q) {
@@ -6179,7 +6252,7 @@ function renderFeedPage() {
       + imgHtml
       + '<div class="moment-foot">'
       + '<div class="moment-action" onclick="likeMoment(\''+m.id+'\',this)">♡ '+m.likes+'</div>'
-      + '<div class="moment-action" onclick="commentMoment(\''+m.id+'\')">💬 '+m.cmts+'</div>'
+      + '<div class="moment-action" data-cmtbtn="'+m.id+'" onclick="commentMoment(\''+m.id+'\')">💬 '+m.cmts+'</div>'
       + '<div class="moment-action" style="margin-left:auto" onclick="shareMoment(\''+m.id+'\',\'\')">↗ '+t('shareLabel')+'</div>'
       + '</div>'
       + '<div id="feedCmts_'+esc(m.id)+'" style="border-top:1px solid var(--border);padding:0 13px 4px;display:none"></div>'
@@ -6428,7 +6501,7 @@ function buildMomentsFeed() {
         + imgHtml
         + '<div class="moment-foot">'
         + '<div class="moment-action" onclick="likeMoment(\'' + m.id + '\',this)">♡ ' + m.likes + '</div>'
-        + '<div class="moment-action" onclick="commentMoment(\'' + m.id + '\')">💬 ' + m.cmts + '</div>'
+        + '<div class="moment-action" data-cmtbtn="'+m.id+'" onclick="commentMoment(\'' + m.id + '\')">💬 ' + m.cmts + '</div>'
         + '<div class="moment-action" style="margin-left:auto" onclick="shareMoment(\'' + m.id + '\',\'\')">↗ '+t('shareLabel')+'</div>'
         + '</div>'
         // 内联评论区
@@ -6456,6 +6529,13 @@ async function _loadInlineComments(momentId) {
       .order('created_at', {ascending: true})
       .limit(20);
     var cmts = res.data || [];
+    var count = cmts.length;
+
+    // 更新评论数 — 用 data-cmtbtn 精准找到按钮
+    document.querySelectorAll('[data-cmtbtn="'+momentId+'"]').forEach(function(btn) {
+      btn.innerHTML = '💬 ' + count;
+    });
+
     if (!cmts.length) { el.style.display = 'none'; return; }
     el.style.display = 'block';
     el.innerHTML = cmts.map(function(c) {
@@ -6581,24 +6661,46 @@ async function likeMoment(id, el) {
   if (!el) return;
   // 防重复点赞（用 data-liked 标记）
   if (el.dataset.liked === '1') {
-    toast('已经点过赞了');
+    toast('已经点过赞了 ❤️');
     return;
   }
   el.dataset.liked = '1';
-  // 从 MOMENTS_DATA 里取正确的 likes 数量，避免 textContent 解析错误
+
+  // 立即更新 UI（乐观更新）
   var m = (MOMENTS_DATA || []).filter(function(x){ return x.id === id; })[0];
-  var cur = m ? (m.likes || 0) : parseInt(el.textContent.replace(/\D/g,'')) || 0;
+  var cur = m ? (m.likes || 0) : parseInt((el.textContent||'').replace(/\D/g,'')) || 0;
   var next = cur + 1;
-  // 立即更新 UI
-  el.innerHTML = '♥ ' + next;
-  el.style.color = '#e05';
+  el.innerHTML = '❤️ ' + next;
+  el.style.color = 'var(--red)';
   el.style.fontWeight = '600';
-  // 更新缓存
   if (m) m.likes = next;
-  // 写数据库（不刷新整个 feed）
+
+  // 写数据库
   var cl = sb();
   if (!cl) return;
-  try { await cl.from('moments').update({ likes: next }).eq('id', id); } catch(e) {}
+  try {
+    var uid = await getUid();
+    // 方案1：先试 moment_likes 表（独立点赞记录，避免 RLS）
+    var likeRes = await cl.from('moment_likes').upsert({
+      moment_id: id,
+      user_id: uid
+    }, { onConflict: 'moment_id,user_id', ignoreDuplicates: true });
+
+    if (!likeRes.error) {
+      // 重新查实际点赞总数
+      var countRes = await cl.from('moment_likes').select('id', { count: 'exact', head: true }).eq('moment_id', id);
+      var realCount = countRes.count || next;
+      el.innerHTML = '❤️ ' + realCount;
+      if (m) m.likes = realCount;
+      // 同步更新 moments 表的 likes 字段
+      await cl.from('moments').update({ likes: realCount }).eq('id', id);
+    } else {
+      // 方案2：直接更新 moments.likes（fallback）
+      await cl.from('moments').update({ likes: next }).eq('id', id);
+    }
+  } catch(e) {
+    console.warn('likeMoment error:', e);
+  }
 }
 async function shareMoment(id, txt) {
   var text = txt || '来自 CHRONO100 的家人动态';
@@ -8159,6 +8261,122 @@ setInterval(function(){ try { refreshChatPreviews(); } catch(e) {} }, 12000);
 // ============================================================
 // TODAY ACTIVITY
 // ============================================================
+// ═══════════════════════════════════
+// 🌤 天气模块 WEATHER WIDGET
+// 使用 Open-Meteo 免费API，无需 key
+// ═══════════════════════════════════
+var _weatherLoaded = false;
+var _weatherCoords = null;
+
+var WMO_CODES = {
+  0:'☀️ 晴天', 1:'🌤 基本晴', 2:'⛅ 多云', 3:'☁️ 阴天',
+  45:'🌫 雾', 48:'🌫 冻雾',
+  51:'🌦 小毛雨', 53:'🌦 毛雨', 55:'🌧 大毛雨',
+  61:'🌧 小雨', 63:'🌧 中雨', 65:'🌧 大雨',
+  71:'🌨 小雪', 73:'🌨 中雪', 75:'❄️ 大雪',
+  80:'🌦 阵雨', 81:'🌧 中阵雨', 82:'⛈ 大阵雨',
+  95:'⛈ 雷暴', 96:'⛈ 雷暴夹雹', 99:'⛈ 强雷暴'
+};
+
+async function loadWeather(force) {
+  if (_weatherLoaded && !force) return;
+  var locEl = document.getElementById('weatherLocation');
+  var iconEl = document.getElementById('weatherIcon');
+  var tempEl = document.getElementById('weatherTemp');
+  var descEl = document.getElementById('weatherDesc');
+  if (!locEl) return;
+
+  // 先用缓存的坐标
+  var lat, lon, cityName;
+  try {
+    var cached = JSON.parse(localStorage.getItem('c100_weather_pos') || 'null');
+    if (cached && (Date.now() - (cached.t||0) < 3600000)) {
+      lat = cached.lat; lon = cached.lon; cityName = cached.city;
+    }
+  } catch(e) {}
+
+  // 没有缓存则请求定位
+  if (!lat && navigator.geolocation) {
+    try {
+      var pos = await new Promise(function(res, rej) {
+        navigator.geolocation.getCurrentPosition(res, rej, { timeout: 5000 });
+      });
+      lat = pos.coords.latitude.toFixed(4);
+      lon = pos.coords.longitude.toFixed(4);
+    } catch(e) {
+      // 定位失败用基督城默认坐标
+      lat = -43.5321; lon = 172.6362; cityName = '基督城';
+    }
+  } else if (!lat) {
+    lat = -43.5321; lon = 172.6362; cityName = '基督城';
+  }
+
+  // 反向地理编码获取城市名
+  if (!cityName) {
+    try {
+      var geoRes = await fetch('https://nominatim.openstreetmap.org/reverse?lat='+lat+'&lon='+lon+'&format=json&accept-language=zh');
+      var geoData = await geoRes.json();
+      var addr = geoData.address || {};
+      cityName = addr.city || addr.town || addr.suburb || addr.county || addr.state || '当前位置';
+      try { localStorage.setItem('c100_weather_pos', JSON.stringify({lat,lon,city:cityName,t:Date.now()})); } catch(e) {}
+    } catch(e) { cityName = '当前位置'; }
+  }
+
+  // 查天气
+  try {
+    var url = 'https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon
+      + '&current=temperature_2m,weathercode,windspeed_10m'
+      + '&daily=temperature_2m_max,temperature_2m_min'
+      + '&timezone=auto&forecast_days=1';
+    var wRes = await fetch(url);
+    var wData = await wRes.json();
+    var cur = wData.current || {};
+    var daily = wData.daily || {};
+    var temp = Math.round(cur.temperature_2m || 0);
+    var code = cur.weathercode || 0;
+    var info = WMO_CODES[code] || '🌡 未知';
+    var icon = info.split(' ')[0];
+    var desc = info.split(' ').slice(1).join(' ');
+    var maxT = daily.temperature_2m_max ? Math.round(daily.temperature_2m_max[0]) : '';
+    var minT = daily.temperature_2m_min ? Math.round(daily.temperature_2m_min[0]) : '';
+
+    if (locEl) locEl.textContent = '📍 ' + cityName;
+    if (iconEl) iconEl.textContent = icon;
+    if (tempEl) tempEl.textContent = temp + '°C';
+    if (descEl) descEl.textContent = desc + (maxT ? '  ↑'+maxT+'° ↓'+minT+'°' : '');
+    _weatherLoaded = true;
+
+    // 缓存天气结果 10分钟
+    try { localStorage.setItem('c100_weather_cache', JSON.stringify({temp,code,cityName,maxT,minT,t:Date.now()})); } catch(e) {}
+  } catch(e) {
+    if (locEl) locEl.textContent = '📍 ' + (cityName || '天气');
+    if (iconEl) iconEl.textContent = '🌡';
+    if (tempEl) tempEl.textContent = '--°C';
+    if (descEl) descEl.textContent = '点击刷新';
+  }
+}
+
+// 尝试读缓存天气（立即显示，避免等待）
+function loadWeatherFromCache() {
+  try {
+    var c = JSON.parse(localStorage.getItem('c100_weather_cache') || 'null');
+    if (!c || Date.now() - c.t > 600000) return false;
+    var info = WMO_CODES[c.code] || '🌡 天气';
+    var icon = info.split(' ')[0];
+    var desc = info.split(' ').slice(1).join(' ');
+    var locEl = document.getElementById('weatherLocation');
+    var iconEl = document.getElementById('weatherIcon');
+    var tempEl = document.getElementById('weatherTemp');
+    var descEl = document.getElementById('weatherDesc');
+    if (locEl) locEl.textContent = '📍 ' + c.cityName;
+    if (iconEl) iconEl.textContent = icon;
+    if (tempEl) tempEl.textContent = c.temp + '°C';
+    if (descEl) descEl.textContent = desc + (c.maxT ? '  ↑'+c.maxT+'° ↓'+c.minT+'°' : '');
+    _weatherLoaded = true;
+    return true;
+  } catch(e) { return false; }
+}
+
 async function loadTodayActivity() {
   var client = sb();
   updateGreeting();
@@ -9618,19 +9836,31 @@ function triggerAvatarUpload() {
 
 async function uploadAvatar(file) {
   if (!file) return;
-  var client = sb();
-  var uploadUid = await getUid();
   toast('📷 上传头像中…');
   try {
-    var ext = (file.name.split('.').pop()||'jpg').toLowerCase();
-    var path = 'avatars/' + uploadUid + '/avatar.' + ext;
-    var up = await client.storage.from('moments').upload(path, file, {contentType: file.type, upsert: true});
-    if (up.error) { toast('上传失败，请重试'); console.warn('avatar upload error:', up.error); return; }
+    // 先压缩图片（iOS 拍照文件很大）
+    var compressedFile = await compressImageForAvatar(file);
+    var client = sb();
+    var uploadUid = await getUid();
+    if (!client || !uploadUid) { toast('❌ 未登录'); return; }
+
+    var ext = 'jpg'; // 统一用 jpg
+    var path = 'avatars/' + uploadUid + '/avatar.jpg';
+    var up = await client.storage.from('moments').upload(path, compressedFile, {
+      contentType: 'image/jpeg',
+      upsert: true,
+      cacheControl: '3600'
+    });
+    if (up.error) {
+      console.warn('avatar upload error:', up.error);
+      toast('❌ 上传失败: ' + (up.error.message || '请检查网络'));
+      return;
+    }
     var pub = client.storage.from('moments').getPublicUrl(path);
-    var baseUrl = pub.data.publicUrl;
+    var baseUrl = pub.data.publicUrl.split('?')[0];
     userAvatarUrl = baseUrl + '?t=' + Date.now();
     localStorage.setItem('c100_avatar', userAvatarUrl);
-    // 同步保存到 profiles 表（存不带时间戳的稳定URL）
+    // 同步到 profiles 表
     try {
       await client.from('profiles').upsert({
         id: uploadUid,
@@ -9638,10 +9868,42 @@ async function uploadAvatar(file) {
         display_name: userName || '用户',
         emoji: userEmoji || '😊'
       }, { onConflict: 'id' });
-    } catch(e2) { console.warn('avatar profile sync error:', e2); }
+    } catch(e2) { console.warn('avatar profile sync:', e2); }
+    // 刷新所有头像显示
     updateMePage();
-    toast('✅ 头像已更新');
-  } catch(e) { toast('上传失败'); console.warn('uploadAvatar error:', e); }
+    buildContactsList();
+    toast('✅ 头像已更新！');
+  } catch(e) {
+    console.warn('uploadAvatar error:', e);
+    toast('❌ 上传出错: ' + (e.message || '请重试'));
+  }
+}
+
+// 压缩图片到适合头像的尺寸（200x200，质量0.85）
+function compressImageForAvatar(file) {
+  return new Promise(function(resolve) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var img = new Image();
+      img.onload = function() {
+        var canvas = document.createElement('canvas');
+        var size = 400; // 400px 足够头像使用
+        var w = img.width, h = img.height;
+        var scale = Math.min(size/w, size/h, 1);
+        canvas.width = Math.round(w * scale);
+        canvas.height = Math.round(h * scale);
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(function(blob) {
+          resolve(blob || file);
+        }, 'image/jpeg', 0.85);
+      };
+      img.onerror = function() { resolve(file); };
+      img.src = e.target.result;
+    };
+    reader.onerror = function() { resolve(file); };
+    reader.readAsDataURL(file);
+  });
 }
 
 // ── Edit profile ──
@@ -10630,6 +10892,103 @@ function _waitOS(cb) {
 }
 
 // 初始化：登录后绑定用户ID到OneSignal
+// ═══════════════════════════════════════════
+// 📱 APP BADGE 角标系统
+// 主屏幕图标上显示未读消息数量
+// ═══════════════════════════════════════════
+
+var _badgeCount = 0;
+
+// 设置角标数字
+function setAppBadge(count) {
+  _badgeCount = Math.max(0, count);
+  try {
+    if ('setAppBadge' in navigator) {
+      if (_badgeCount > 0) {
+        navigator.setAppBadge(_badgeCount).catch(function(){});
+      } else {
+        navigator.clearAppBadge().catch(function(){});
+      }
+    }
+  } catch(e) {}
+  // 同时更新 Tab 栏角标
+  updateTabBadges();
+}
+
+// 清除角标
+function clearAppBadge() {
+  setAppBadge(0);
+}
+
+// 更新底部 Tab 角标（聊天 Tab 上的小红点数字）
+function updateTabBadges() {
+  var b = document.getElementById('chatBadge');
+  if (!b) return;
+  if (_badgeCount > 0) {
+    b.textContent = _badgeCount > 99 ? '99+' : String(_badgeCount);
+    b.style.display = 'block';
+  } else {
+    b.style.display = 'none';
+  }
+}
+
+// 查询未读消息数量（从 Supabase 查未读）
+async function fetchUnreadCount() {
+  try {
+    var client = sb();
+    if (!client) return 0;
+    var uid = await getUid();
+    if (!uid) return 0;
+    // 查询所有聊天室里，对方发的、我还没读的消息
+    var lastSeen = parseInt(localStorage.getItem('c100_last_seen') || '0');
+    var res = await client
+      .from('messages')
+      .select('id', { count: 'exact', head: true })
+      .neq('sender_id', uid)
+      .gt('created_at', new Date(lastSeen || Date.now() - 86400000).toISOString());
+    var count = res.count || 0;
+    return count;
+  } catch(e) {
+    return 0;
+  }
+}
+
+// 刷新角标（登录后、收到新消息时调用）
+async function refreshBadge() {
+  var count = await fetchUnreadCount();
+  setAppBadge(count);
+}
+
+// 用户打开 App 时清除角标 + 记录已读时间
+function markAllRead() {
+  try { localStorage.setItem('c100_last_seen', String(Date.now())); } catch(e) {}
+  clearAppBadge();
+}
+
+// ─── 监听实时新消息 → 自动更新角标 ───
+function hookRealtimeBadge() {
+  try {
+    var client = sb();
+    if (!client) return;
+    getUid().then(function(uid) {
+      if (!uid) return;
+      client.channel('badge-channel')
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: 'sender_id=neq.' + uid
+        }, function(payload) {
+          // 只有 App 不在前台聊天时才加角标
+          if (document.visibilityState === 'hidden' || curPage !== 'chat') {
+            setAppBadge(_badgeCount + 1);
+          }
+        })
+        .subscribe();
+    });
+  } catch(e) {}
+}
+
 async function initOneSignal() {
   try {
     var uid = await getUid();
@@ -13136,30 +13495,26 @@ async function _doGeneratePDF() {
 
 // ══════════════════════════════════════════════════════════════
 // 问题6: exportLifePDF — 生成人生轨迹档案 PDF
-// 技术：动态创建打印页面 → window.print() → 浏览器PDF导出
-// 兼容：iOS Safari / Android Chrome / Desktop 全平台
+// 使用 HTML 打印窗口，完美支持中文字符，无乱码
 // ══════════════════════════════════════════════════════════════
 async function exportLifePDF(moments_override, filter_ctx) {
-  toast('📄 正在生成人生档案...');
+  var moments = (moments_override || _momentsCache || []).slice().reverse();
+  if (!moments.length) { toast('没有记录可导出'); return; }
 
-  var moments = moments_override && moments_override.length ? moments_override
-    : (window._allYearsMomentsCache || window._allMomentsCache || window._momentsCache || []);
-  if (!moments.length) moments = window._trajMomentsCache || [];
-  if (!moments.length) { toast('❌ 暂无记录数据'); return; }
-
-  var locmode = (filter_ctx && filter_ctx.locmode) || 'city';
-  var tplLabels = {general:'人生轨迹档案', visa:'签证行程证明', work:'工作履历档案', family:'家庭历史记录'};
-  var docTitle = (filter_ctx && tplLabels[filter_ctx.tpl]) ? tplLabels[filter_ctx.tpl] : '人生轨迹档案';
+  toast('📄 正在生成档案...');
 
   var uid = await getUid();
   var name = userName || localStorage.getItem('c100_name') || '用户';
-  var emoji = userEmoji || '😊';
   var phone = localStorage.getItem('c100_phone') || '';
   var email = userEmail || localStorage.getItem('c100_email') || '';
   var today = new Date();
   var todayStr = today.getFullYear() + '年' + (today.getMonth()+1) + '月' + today.getDate() + '日';
 
-  // 反向地理编码缓存
+  var filter = filter_ctx || {};
+  var locmode = filter.locationDetail || 'city';
+  var docTitle = filter.title || '人生轨迹档案';
+
+  // 反向地理编码
   var _cityCache = {};
   async function getCityName(lat, lng) {
     if (!lat || !lng) return '';
@@ -13175,13 +13530,25 @@ async function exportLifePDF(moments_override, filter_ctx) {
     } catch(e) { return ''; }
   }
 
-  // 为有GPS的记录获取城市名（批量，避免太多请求）
+  function getLocDisplay(m) {
+    if (locmode === 'hidden') return '';
+    if (locmode === 'city') {
+      if (m._cityName) return '🏙 ' + m._cityName;
+      if (m.place_name && m.place_name !== '含位置') return m.place_name;
+      if (m.lat) return '📍 GPS';
+      return '';
+    }
+    if (m.place_name && m.place_name !== '含位置') return m.place_name;
+    if (m.lat && m.lng) return '📍 ' + parseFloat(m.lat).toFixed(4) + ', ' + parseFloat(m.lng).toFixed(4);
+    return '';
+  }
+
+  // 批量获取城市名
   if (locmode === 'city') {
     toast('📍 正在获取城市信息...');
     var gpsItems = moments.filter(function(m){ return m.lat && m.lng && !m._cityName; }).slice(0, 100);
     for (var i = 0; i < gpsItems.length; i++) {
-      var city = await getCityName(gpsItems[i].lat, gpsItems[i].lng);
-      gpsItems[i]._cityName = city;
+      gpsItems[i]._cityName = await getCityName(gpsItems[i].lat, gpsItems[i].lng);
     }
   }
 
@@ -13206,196 +13573,105 @@ async function exportLifePDF(moments_override, filter_ctx) {
   moments.forEach(function(m){ if(m.place_name&&m.place_name!=='含位置') places[m.place_name]=(places[m.place_name]||0)+1; });
   var topPlaces = Object.keys(places).sort(function(a,b){ return places[b]-places[a]; }).slice(0,5);
 
-  // 位置显示函数
-  function getLocDisplay(m) {
-    if (locmode === 'hidden') return '';
-    if (locmode === 'city') {
-      if (m._cityName) return '🏙 ' + m._cityName;
-      if (m.place_name && m.place_name !== '含位置') return m.place_name;
-      if (m.lat) return '📍 GPS';
-      return '';
-    }
-    // coords
-    if (m.place_name && m.place_name !== '含位置') return m.place_name;
-    if (m.lat && m.lng) return '📍 ' + parseFloat(m.lat).toFixed(4) + ', ' + parseFloat(m.lng).toFixed(4);
-    return '';
-  }
-
-  var yearSections = years.map(function(yr) {
-    var yMoments = byYear[yr];
-    var rows = yMoments.slice(0,50).map(function(m) {
-      var d = new Date(m.taken_at||m.created_at);
-      var dateStr = (d.getMonth()+1)+'月'+d.getDate()+'日';
-      var timeStr = d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
-      var loc = getLocDisplay(m);
-      var with_ = m.with_people ? '👥 '+m.with_people : '';
-      var hasPhoto = (m.photo_url || m.image_urls) ? '📷' : '';
-      return '<tr><td style="color:#666;white-space:nowrap;padding:5px 8px;font-size:11px">'+dateStr+' '+timeStr+'</td>'
-        + '<td style="padding:5px 8px;font-size:12px;font-weight:500">'+escPDF(m.title||'记录')+'</td>'
-        + '<td style="padding:5px 8px;font-size:11px;color:#555">'+escPDF(loc)+'</td>'
-        + '<td style="padding:5px 8px;font-size:11px;color:#555">'+escPDF(with_)+'</td>'
-        + '<td style="padding:5px 8px;font-size:11px;text-align:center">'+hasPhoto+'</td></tr>';
-    }).join('');
-    var more = yMoments.length > 50 ? '<tr><td colspan="5" style="text-align:center;color:#999;font-size:11px;padding:8px">…还有 '+(yMoments.length-50)+' 条记录</td></tr>' : '';
-    return '<div class="year-section" style="margin-bottom:28px;page-break-inside:avoid">'
-      + '<div style="background:#1A3A6B;color:#fff;padding:10px 14px;border-radius:8px;font-size:14px;font-weight:700;margin-bottom:8px">'+yr+' 年&nbsp;&nbsp;<span style="font-weight:400;font-size:12px;opacity:.8">共 '+yMoments.length+' 条记录</span></div>'
-      + '<table style="width:100%;border-collapse:collapse;background:#fff">'
-      + '<thead><tr style="background:#F0F5FF">'
-      + '<th style="padding:6px 8px;font-size:10px;text-align:left;font-weight:600;color:#1A3A6B;border-bottom:1.5px solid #C8D8F0">时间</th>'
-      + '<th style="padding:6px 8px;font-size:10px;text-align:left;font-weight:600;color:#1A3A6B;border-bottom:1.5px solid #C8D8F0">记录内容</th>'
-      + (locmode !== 'hidden' ? '<th style="padding:6px 8px;font-size:10px;text-align:left;font-weight:600;color:#1A3A6B;border-bottom:1.5px solid #C8D8F0">地点</th>' : '')
-      + '<th style="padding:6px 8px;font-size:10px;text-align:left;font-weight:600;color:#1A3A6B;border-bottom:1.5px solid #C8D8F0">同行</th>'
-      + '<th style="padding:6px 8px;font-size:10px;text-align:center;font-weight:600;color:#1A3A6B;border-bottom:1.5px solid #C8D8F0">照片</th>'
-      + '</tr></thead>'
-      + '<tbody>' + rows + more + '</tbody></table></div>';
-  }).join('');
-
   var topPlaceHTML = topPlaces.length
-    ? topPlaces.map(function(p){ return '<span style="display:inline-block;padding:3px 10px;background:#EBF3FF;border-radius:99px;font-size:11px;color:#1A3A6B;margin:3px">'+escPDF(p)+' ×'+places[p]+'</span>'; }).join('')
+    ? topPlaces.map(function(p){ return '<span style="display:inline-block;padding:3px 10px;background:#EBF3FF;border-radius:99px;font-size:11px;color:#1A3A6B;margin:2px">'+escPDF(p)+' ×'+places[p]+'</span>'; }).join('')
     : '<span style="color:#999;font-size:11px">暂无地点记录</span>';
 
-  // ── 用 jsPDF 直接生成真正的 PDF 文件 ──
-  toast('📄 正在生成 PDF...');
-
-  // 动态加载 jsPDF
-  async function loadJsPDF() {
-    if (window.jspdf && window.jspdf.jsPDF) return window.jspdf.jsPDF;
-    return new Promise(function(resolve, reject) {
-      var s = document.createElement('script');
-      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-      s.onload = function() { resolve(window.jspdf.jsPDF); };
-      s.onerror = reject;
-      document.head.appendChild(s);
-    });
-  }
-
-  var JsPDF;
-  try { JsPDF = await loadJsPDF(); }
-  catch(e) { toast('❌ PDF库加载失败，请检查网络'); return; }
-
-  var doc = new JsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-  var pageW = 210, pageH = 297, margin = 14, lineH = 6;
-  var y = 0;
-
-  function checkPage(need) {
-    if (y + need > pageH - 16) { doc.addPage(); y = 14; }
-  }
-
-  // ── 封面 ──
-  doc.setFillColor(26, 58, 107);
-  doc.rect(0, 0, pageW, 55, 'F');
-  doc.setTextColor(255,255,255);
-  doc.setFontSize(10); doc.setFont('helvetica','normal');
-  doc.text('CHRONO100 · ' + docTitle, margin, 16);
-  doc.setFontSize(20); doc.setFont('helvetica','bold');
-  doc.text(name, margin, 30);
-  doc.setFontSize(9); doc.setFont('helvetica','normal');
-  var contactLine = (phone ? phone + '  ' : '') + (email || '');
-  if (contactLine) doc.text(contactLine, margin, 39);
-  doc.setFontSize(8);
-  doc.text('生成日期：' + todayStr + '  |  记录跨度：' + firstDate.getFullYear() + ' — ' + lastDate.getFullYear(), margin, 47);
-  y = 64;
-
-  // ── 统计栏 ──
-  doc.setTextColor(26,58,107);
-  doc.setFontSize(9); doc.setFont('helvetica','bold');
-  var stats = [
-    { v: moments.length, l: '总记录数' },
-    { v: totalDays,      l: '记录天数' },
-    { v: photoCount,     l: '照片记录' },
-    { v: gpsCount,       l: 'GPS定位' }
-  ];
-  var boxW = (pageW - margin*2) / 4;
-  stats.forEach(function(s, i) {
-    var bx = margin + i * boxW;
-    doc.setFillColor(240,245,255);
-    doc.roundedRect(bx, y, boxW-2, 14, 2, 2, 'F');
-    doc.setFontSize(13); doc.setFont('helvetica','bold'); doc.setTextColor(26,58,107);
-    doc.text(String(s.v), bx + boxW/2 - 1, y+8, {align:'center'});
-    doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(100,100,100);
-    doc.text(s.l, bx + boxW/2 - 1, y+12.5, {align:'center'});
-  });
-  y += 20;
-
-  // ── 真实性声明 ──
-  doc.setFillColor(248,251,255);
-  doc.setDrawColor(200,216,240);
-  doc.roundedRect(margin, y, pageW-margin*2, 14, 2, 2, 'FD');
-  doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(26,58,107);
-  doc.text('数据真实性声明', margin+3, y+5);
-  doc.setFont('helvetica','normal'); doc.setTextColor(80,80,80);
-  doc.text('本档案由 CHRONO100 基于真实记录生成，时间戳与GPS坐标均由设备自动采集，未经人工修改。ID：'+uid.slice(0,12)+'…', margin+3, y+10);
-  y += 20;
-
-  // ── 按年输出记录 ──
-  years.forEach(function(yr) {
-    checkPage(20);
-    // 年份标题
-    doc.setFillColor(26,58,107);
-    doc.rect(margin, y, pageW-margin*2, 9, 'F');
-    doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
-    doc.text(yr + ' 年  共 ' + byYear[yr].length + ' 条记录', margin+3, y+6.5);
-    y += 12;
-
-    // 表头
-    checkPage(8);
-    doc.setFillColor(240,245,255);
-    doc.rect(margin, y, pageW-margin*2, 7, 'F');
-    doc.setFontSize(7.5); doc.setFont('helvetica','bold'); doc.setTextColor(26,58,107);
-    doc.text('时间',     margin+2,   y+5);
-    doc.text('记录内容', margin+28,  y+5);
-    doc.text('地点',     margin+100, y+5);
-    doc.text('同行',     margin+143, y+5);
-    y += 8;
-
-    byYear[yr].slice(0, 80).forEach(function(m) {
-      checkPage(7);
+  // 生成年份内容
+  var yearHTML = years.map(function(yr) {
+    var rows = byYear[yr].slice(0,80).map(function(m, idx) {
       var d = new Date(m.taken_at||m.created_at);
-      var dateStr = (d.getMonth()+1)+'/'+ d.getDate()+' '
-        + d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
-      var locStr = getLocDisplay(m).replace(/📍|🏙/g,'').trim();
-      var withStr = (m.with_people||'').slice(0,10);
-      var titleStr = (m.title||'记录').slice(0,28);
+      var dateStr = (d.getMonth()+1)+'月'+d.getDate()+'日 '+
+        String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+      var loc = escPDF(getLocDisplay(m));
+      var title = escPDF((m.title||'记录').slice(0,40));
+      var withP = escPDF((m.with_people||'').slice(0,12));
+      var photo = (m.photo_url||m.image_urls) ? '📷' : '';
+      var bg = idx%2===0 ? '#F8FBFF' : '#fff';
+      return '<tr style="background:'+bg+'">'
+        +'<td style="padding:5px 8px;color:#666;white-space:nowrap;font-size:11px">'+dateStr+'</td>'
+        +'<td style="padding:5px 8px;font-size:12px;font-weight:600;color:#18203E">'+title+'</td>'
+        +(locmode!=='hidden'?'<td style="padding:5px 8px;font-size:11px;color:#555">'+loc+'</td>':'')
+        +'<td style="padding:5px 8px;font-size:11px;color:#555">'+withP+'</td>'
+        +'<td style="padding:5px 8px;text-align:center;font-size:13px">'+photo+'</td>'
+        +'</tr>';
+    }).join('');
+    var more = byYear[yr].length>80 ? '<tr><td colspan="5" style="text-align:center;color:#999;font-size:11px;padding:6px">…还有 '+(byYear[yr].length-80)+' 条记录</td></tr>' : '';
+    return '<div style="margin-bottom:24px;page-break-inside:avoid">'
+      +'<div style="background:#1A3A6B;color:#fff;padding:9px 14px;border-radius:6px;font-size:14px;font-weight:700;margin-bottom:6px">'
+      +yr+' 年 <span style="font-weight:400;font-size:12px;opacity:.8">共 '+byYear[yr].length+' 条记录</span></div>'
+      +'<table style="width:100%;border-collapse:collapse;border:1px solid #C8D8F0;border-radius:4px;overflow:hidden">'
+      +'<thead><tr style="background:#EEF5FF">'
+      +'<th style="padding:6px 8px;font-size:10px;color:#1A3A6B;text-align:left;border-bottom:1.5px solid #C8D8F0">时间</th>'
+      +'<th style="padding:6px 8px;font-size:10px;color:#1A3A6B;text-align:left;border-bottom:1.5px solid #C8D8F0">记录内容</th>'
+      +(locmode!=='hidden'?'<th style="padding:6px 8px;font-size:10px;color:#1A3A6B;text-align:left;border-bottom:1.5px solid #C8D8F0">地点</th>':'')
+      +'<th style="padding:6px 8px;font-size:10px;color:#1A3A6B;text-align:left;border-bottom:1.5px solid #C8D8F0">同行</th>'
+      +'<th style="padding:6px 8px;font-size:10px;color:#1A3A6B;text-align:center;border-bottom:1.5px solid #C8D8F0">照片</th>'
+      +'</tr></thead><tbody>'+rows+more+'</tbody></table></div>';
+  }).join('');
 
-      // 隔行底色
-      if (byYear[yr].indexOf(m) % 2 === 0) {
-        doc.setFillColor(250,252,255);
-        doc.rect(margin, y-1, pageW-margin*2, 6.5, 'F');
-      }
-      doc.setDrawColor(220,228,240);
-      doc.line(margin, y+5.5, pageW-margin, y+5.5);
+  // HTML 模板（完整中文支持）
+  var html = '<!DOCTYPE html><html lang="zh-CN"><head>'
+    +'<meta charset="UTF-8">'
+    +'<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">'
+    +'<title>'+escPDF(docTitle)+'</title>'
+    +'<style>'
+    +'*{margin:0;padding:0;box-sizing:border-box}'
+    +'body{font-family:"Noto Serif SC","PingFang SC","Microsoft YaHei",sans-serif;color:#18203E;background:#fff;font-size:12px;line-height:1.6}'
+    +'.cover{background:#1A3A6B;color:#fff;padding:32px 28px 28px;margin-bottom:24px}'
+    +'.cover h1{font-size:22px;font-weight:700;margin-bottom:6px}'
+    +'.stats-row{display:flex;gap:10px;margin-bottom:24px}'
+    +'.stat-box{flex:1;background:#EEF5FF;border-radius:8px;padding:12px;text-align:center}'
+    +'.stat-box .num{font-size:20px;font-weight:700;color:#1A3A6B}'
+    +'.stat-box .lbl{font-size:10px;color:#6E769E;margin-top:3px}'
+    +'@media print{.no-print{display:none!important}@page{margin:14mm 12mm;size:A4}.cover{-webkit-print-color-adjust:exact;print-color-adjust:exact}}'
+    +'</style></head><body>'
+    +'<div class="no-print" style="position:fixed;top:0;left:0;right:0;background:#1A3A6B;color:#fff;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;z-index:100">'
+    +'<span style="font-size:13px;font-weight:600">CHRONO100 · 点「打印」→「存储为PDF」</span>'
+    +'<button onclick="window.print()" style="padding:7px 18px;background:#fff;color:#1A3A6B;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer">🖨 打印/存PDF</button>'
+    +'</div>'
+    +'<div style="padding:52px 0 20px">'
+    +'<div class="cover"><h1>'+escPDF(name)+'</h1>'
+    +'<div style="font-size:12px;opacity:.75;margin-top:4px">'+escPDF(email)+(phone?' · '+escPDF(phone):'')+'</div>'
+    +'<div style="font-size:12px;opacity:.75;margin-top:4px">生成日期：'+escPDF(todayStr)+'  |  记录跨度：'+firstDate.getFullYear()+' — '+lastDate.getFullYear()+'</div></div>'
+    +'<div style="padding:0 20px">'
+    +'<div class="stats-row">'
+    +'<div class="stat-box"><div class="num">'+moments.length+'</div><div class="lbl">总记录数</div></div>'
+    +'<div class="stat-box"><div class="num">'+totalDays+'</div><div class="lbl">记录天数</div></div>'
+    +'<div class="stat-box"><div class="num">'+photoCount+'</div><div class="lbl">照片记录</div></div>'
+    +'<div class="stat-box"><div class="num">'+gpsCount+'</div><div class="lbl">GPS定位</div></div>'
+    +'</div>'
+    +(topPlaces.length ? '<div style="margin-bottom:20px"><div style="font-size:11px;font-weight:700;color:#1A3A6B;margin-bottom:8px">📍 常去地点</div>'+topPlaceHTML+'</div>' : '')
+    + yearHTML
+    +'<div style="margin-top:24px;padding-top:12px;border-top:1px solid #C8D8F0;text-align:center;font-size:10px;color:#aaa">CHRONO100 · chrono100.com</div>'
+    +'</div></div></body></html>';
 
-      doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(80,80,80);
-      doc.text(dateStr,  margin+2,   y+4);
-      doc.setTextColor(30,30,30); doc.setFont('helvetica','bold');
-      doc.text(titleStr, margin+28,  y+4);
-      doc.setFont('helvetica','normal'); doc.setTextColor(80,80,80);
-      doc.text(locStr.slice(0,22),  margin+100, y+4);
-      doc.text(withStr,  margin+143, y+4);
-      y += 6.5;
-    });
-    if (byYear[yr].length > 80) {
-      checkPage(7);
-      doc.setFontSize(7); doc.setTextColor(150,150,150);
-      doc.text('…还有 '+(byYear[yr].length-80)+' 条记录未显示', margin+3, y+4);
-      y += 7;
+  // 用 base64 data URI 避免 iOS Safari 乱码
+  try {
+    var encoder = new TextEncoder();
+    var bytes = encoder.encode(html);
+    var binary = '';
+    bytes.forEach(function(b){ binary += String.fromCharCode(b); });
+    var encoded = 'data:text/html;charset=utf-8;base64,' + btoa(binary);
+    var w = window.open(encoded, '_blank');
+    if (!w) {
+      var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      var blobUrl = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = 'CHRONO100_'+escPDF(name)+'.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(blobUrl); }, 30000);
+      toast('✅ 已下载，用浏览器打开后打印存为PDF');
+    } else {
+      toast('✅ 已生成，请在新窗口点「打印」→「存储为PDF」');
     }
-    y += 4;
-  });
-
-  // ── 页脚 ──
-  var totalPages = doc.getNumberOfPages();
-  for (var p = 1; p <= totalPages; p++) {
-    doc.setPage(p);
-    doc.setFontSize(7); doc.setTextColor(180,180,180);
-    doc.text('CHRONO100 · chrono100.com · 本档案为个人隐私文件，请妥善保管', pageW/2, pageH-6, {align:'center'});
-    doc.text(p + ' / ' + totalPages, pageW-margin, pageH-6, {align:'right'});
+  } catch(e) {
+    var encoded2 = 'data:text/html;charset=utf-8,' + encodeURIComponent(html);
+    window.location.href = encoded2;
   }
-
-  // ── 保存文件 ──
-  var fileName = 'CHRONO100_' + docTitle + '_' + (name||'用户') + '.pdf';
-  doc.save(fileName);
-  toast('✅ PDF 已生成，请在下载文件夹查看');
 }
 
 function escPDF(str) {
@@ -13592,6 +13868,13 @@ checkWechatCallback();
 loadProfileFromStorage();
 applyDarkMode();
 loadSavedTheme();
+
+// App 重新进入前台时刷新角标
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'visible') {
+    try { refreshBadge(); } catch(e) {}
+  }
+});
 // Migrate old anon_ UID to proper UUID format
 (function(){
   try {
@@ -14097,10 +14380,16 @@ async function commentMoment(id) {
       sendBtn.textContent = '发送'; sendBtn.disabled = false;
       toast('✅ 评论已发布');
       ov.remove();
-      // 刷新卡片内联评论
+      // 立刻刷新内联评论（会同时更新评论数角标）
       _loadInlineComments(id);
-      // 刷新朋友圈计数
-      setTimeout(function(){ try{ loadRealMoments_feed(); }catch(e){} }, 800);
+      // 同步更新 moments.cmts（后台静默）
+      try {
+        var r = await cl.from('messages').select('id', { count: 'exact', head: true }).eq('room_id', 'cmt_' + id);
+        var realCmtCount = r.count || 0;
+        await cl.from('moments').update({ cmts: realCmtCount }).eq('id', id);
+        var cachedM = (MOMENTS_DATA||[]).find(function(x){ return x.id===id; });
+        if (cachedM) cachedM.cmts = realCmtCount;
+      } catch(e) {}
     } catch(e) { toast('发送失败'); sendBtn.textContent='发送'; sendBtn.disabled=false; }
   };
 
