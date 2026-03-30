@@ -21,10 +21,10 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{
-  --bg:#ECF0F8;--card:#fff;--blue:#2D5FA8;--blue2:#3D72D4;
-  --blue-lt:#E5EDF8;--blue-soft:#C5D8EF;--ink:#18203E;--ink2:#38436A;--ink3:#6E769E;--ink4:#A8B2CC;
-  --border:#DDE2EF;--green:#27AE72;--red:#DC4545;--gold:#B8860B;
-  --sh:0 2px 16px rgba(28,46,88,.09);
+  --bg:#E3EFF9;--card:#EEF5FD;--blue:#2D5FA8;--blue2:#3D72D4;
+  --blue-lt:#DDEAF8;--blue-soft:#B8D0EF;--ink:#18203E;--ink2:#38436A;--ink3:#6E769E;--ink4:#A8B2CC;
+  --border:#C8DCEF;--green:#27AE72;--red:#DC4545;--gold:#B8860B;
+  --sh:0 2px 16px rgba(28,46,88,.07);
   --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);
   /* ── Unified font scale ── */
   --f-xs:10px;   /* badges, timestamps, captions */
@@ -88,7 +88,7 @@ input,textarea,select{font-size:16px !important}
 .pb{height:calc(62px + var(--sb) + 8px)}
 
 /* Bottom tabs */
-.bottom-tabs{flex-shrink:0;height:calc(68px + var(--sb));padding-bottom:calc(var(--sb) + 4px);background:var(--card);border-top:1px solid var(--border);display:flex;z-index:100}
+.bottom-tabs{flex-shrink:0;height:calc(80px + var(--sb));padding-bottom:calc(var(--sb) + 14px);background:var(--card);border-top:1px solid var(--border);display:flex;z-index:100}
 .tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding-top:6px;cursor:pointer;border:none;background:transparent;position:relative}
 .tab-btn:active{opacity:.5}
 .tab-icon{font-size:22px;transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
@@ -278,7 +278,7 @@ input,textarea,select{font-size:16px !important}
 /* E2E notice */
 .cr-e2e{flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:4px;padding:5px;background:rgba(39,174,114,.05);border-top:1px solid rgba(39,174,114,.1);font-size:9px;color:var(--green);font-weight:500}
 /* Input bar */
-.cr-bar{flex-shrink:0;padding:6px 12px 10px;background:rgba(255,255,255,.97);border-top:1px solid var(--border);display:flex;gap:7px;align-items:flex-end}
+.cr-bar{flex-shrink:0;padding:10px 12px calc(28px + var(--sb));background:rgba(255,255,255,.97);border-top:1px solid var(--border);display:flex;gap:7px;align-items:flex-end}
 .cr-plus{width:34px;height:34px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;color:var(--ink3)}
 .cr-input-wrap{flex:1;background:var(--bg);border-radius:20px;display:flex;align-items:center;padding:8px 12px;gap:6px}
 .cr-input{flex:1;font-size:16px;color:var(--ink);resize:none;max-height:76px;background:transparent;font-family:inherit}
@@ -629,6 +629,10 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
 .lng-btn.active{background:var(--blue2);color:#fff;border-color:var(--blue2)}
 .ltab{flex:1;padding:9px 4px;border-radius:9px;border:none;background:transparent;color:var(--ink3);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
 .ltab.active{background:var(--blue2);color:#fff}
+/* font-opt new */
+.font-opt-sample{font-weight:700;color:var(--ink);line-height:1}
+.font-opt-label{font-size:10px;color:var(--ink3)}
+.font-opt.active .font-opt-sample,.font-opt.active .font-opt-label{color:#fff}
 .font-opt{padding:12px 6px;border-radius:13px;border:1.5px solid var(--border);text-align:center;cursor:pointer;background:transparent;transition:all .15s}
 .font-opt.active{background:var(--blue-lt);border-color:var(--blue2);color:var(--blue2)}
 .vis-btn{padding:6px 12px;border-radius:99px;border:1.5px solid var(--border);background:var(--card);color:var(--ink3);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
@@ -711,7 +715,7 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
       <button onclick="switchLoginTab('phone')" id="ltab-phone" class="ltab active" data-i18n-key="tabPhone">📱 手机</button>
       <button onclick="switchLoginTab('email')" id="ltab-email" class="ltab" data-i18n-key="tabEmail">✉️ 邮箱</button>
     </div>
-    <div style="text-align:center;font-size:11px;color:var(--ink3);margin-bottom:14px;padding:7px 12px;background:var(--bg);border-radius:9px;border:1px solid var(--border)">🔒 请登录或注册账号，不支持访客模式</div>
+    <div style="text-align:center;font-size:11px;color:var(--ink3);margin-bottom:14px;padding:7px 12px;background:var(--bg);border-radius:9px;border:1px solid var(--border)" id="loginNotice">🔒 请登录或注册账号，不支持访客模式</div>
 
     <!-- Phone tab -->
     <div id="lpanel-phone">
@@ -1849,6 +1853,11 @@ var I18N = {
   zh: {
     tagline:'时间 · 关系 · 记忆<br>记录你与家人之间最珍贵的时光',
     loginTitle:'登录 CHRONO100',
+    fontPreviewText:'你好，这是字体预览效果',
+    fontPreviewSub:'家人平安 · 人生轨迹 · 记录美好',
+    fontSmall:'小',fontMedSmall:'较小',fontNormal:'标准',fontMedLarge:'较大',fontLarge:'大',
+    loginHint:'家人安全 · 人生轨迹 · 私密聊天',
+    loginNotice:'🔒 请登录或注册账号，不支持访客模式',
     tabPhone:'📱 手机',
     lbl_phone:'手机号',
     btnSendOtp:'发送验证码',
@@ -2155,6 +2164,11 @@ var I18N = {
   en: {
     tagline:'Time · Family · Memory<br>Capture precious moments with your loved ones',
     loginTitle:'Sign in to CHRONO100',
+    fontPreviewText:'Hello, this is a font preview',
+    fontPreviewSub:'Family Safety · Life Journey · Record Moments',
+    fontSmall:'Small',fontMedSmall:'S-Med',fontNormal:'Normal',fontMedLarge:'L-Med',fontLarge:'Large',
+    loginHint:'Family Safety · Life Journey · Private Chat',
+    loginNotice:'🔒 Login or sign up required — no guest access',
     tabPhone:'📱 Phone',
     lbl_phone:'Phone number',
     btnSendOtp:'Send OTP',
@@ -2461,6 +2475,11 @@ var I18N = {
   'zh-tw': {
     tagline:'時間 · 關係 · 記憶<br>記錄你與家人之間最珍貴的時光',
     loginTitle:'登入 CHRONO100',
+    fontPreviewText:'你好，這是字體預覽效果',
+    fontPreviewSub:'家人平安 · 人生軌跡 · 記錄美好',
+    fontSmall:'小',fontMedSmall:'較小',fontNormal:'標準',fontMedLarge:'較大',fontLarge:'大',
+    loginHint:'家人安全 · 人生軌跡 · 私密聊天',
+    loginNotice:'🔒 請登入或註冊帳號，不支援訪客模式',
     tabPhone:'📱 手機',
     lbl_phone:'手機號碼',
     btnSendOtp:'發送驗證碼',
@@ -2767,6 +2786,11 @@ var I18N = {
   ja: {
     tagline:'時間 · 絆 · 記憶<br>家族との大切な瞬間を記録しよう',
     loginTitle:'CHRONO100 にログイン',
+    fontPreviewText:'こんにちは、フォントプレビュー',
+    fontPreviewSub:'家族の安全 · 人生の記録 · 大切な瞬間',
+    fontSmall:'小',fontMedSmall:'小中',fontNormal:'標準',fontMedLarge:'中大',fontLarge:'大',
+    loginHint:'家族の安全 · 人生の記録 · プライベートチャット',
+    loginNotice:'🔒 ログインまたは登録が必要です（ゲスト不可）',
     tabPhone:'📱 電話',
     lbl_phone:'電話番号',
     btnSendOtp:'認証コードを送信',
@@ -3073,6 +3097,11 @@ var I18N = {
   ko: {
     tagline:'시간 · 관계 · 기억<br>가족과의 소중한 순간을 기록하세요',
     loginTitle:'CHRONO100 로그인',
+    fontPreviewText:'안녕하세요, 글꼴 미리보기',
+    fontPreviewSub:'가족 안전 · 인생 기록 · 소중한 순간',
+    fontSmall:'작음',fontMedSmall:'조금작음',fontNormal:'보통',fontMedLarge:'조금큼',fontLarge:'큼',
+    loginHint:'가족 안전 · 인생 기록 · 비밀 채팅',
+    loginNotice:'🔒 로그인 또는 회원가입이 필요합니다 (게스트 불가)',
     tabPhone:'📱 전화',
     lbl_phone:'전화번호',
     btnSendOtp:'인증코드 전송',
@@ -3379,6 +3408,11 @@ var I18N = {
   es: {
     tagline:'Tiempo · Familia · Memoria<br>Captura los momentos más preciados con tu familia',
     loginTitle:'Iniciar sesión en CHRONO100',
+    fontPreviewText:'Hola, vista previa de fuente',
+    fontPreviewSub:'Seguridad · Trayectoria vital · Momentos',
+    fontSmall:'Peq',fontMedSmall:'Med-Peq',fontNormal:'Normal',fontMedLarge:'Med-Grd',fontLarge:'Grande',
+    loginHint:'Seguridad familiar · Registro de vida · Chat privado',
+    loginNotice:'🔒 Inicia sesión o regístrate — sin acceso de invitado',
     tabPhone:'📱 Teléfono',
     lbl_phone:'Número de teléfono',
     btnSendOtp:'Enviar OTP',
@@ -3715,7 +3749,7 @@ function applyI18n() {
 
   // 2. Login page elements (innerHTML for tagline with <br>)
   var idMap = {
-    loginTagline: L.tagline, loginTitle: L.loginTitle, loginHint: L.loginHint,
+    loginTagline: L.tagline, loginTitle: L.loginTitle, loginHint: L.loginHint, loginNotice: L.loginNotice,
     'lbl-phone': L.lbl_phone, 'lbl-otp': L.lbl_otp,
     'lbl-email': L.lbl_email, 'lbl-password': L.lbl_password,
   };
@@ -5467,21 +5501,20 @@ function buildMomentsFeed() {
     feed.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--ink3)"><div style="font-size:40px;margin-bottom:12px">📸</div><div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px">'+t('noMoments2')+'</div><div style="font-size:12px;line-height:1.7">添加记录时开启「同时发布到朋友圈」</div></div>';
     return;
   }
+  window._momentPhotoMap = {};
   feed.innerHTML = '<div style="padding:14px 14px 4px;font-size:15px;font-weight:700;color:var(--ink)">'+t('familyFeed')+'</div>'
     + MOMENTS_DATA.map(function(m) {
-      // Photo HTML
       var imgHtml = '';
       if (m.imageUrls && m.imageUrls.length > 1) {
+        window._momentPhotoMap[m.id] = m.imageUrls.slice(0,9);
         var cols = m.imageUrls.length >= 3 ? 'cols3' : 'cols2';
-        var _allUrls = JSON.stringify(m.imageUrls.slice(0,9)).replace(/'/g,"\'");
         imgHtml = '<div class="moment-img-grid-real ' + cols + '">' + m.imageUrls.slice(0,9).map(function(u,ui) {
-          return '<img src="' + esc(u) + '" loading="lazy" style="cursor:pointer" onclick="event.stopPropagation();openPhotoViewer(' + _allUrls + ',' + ui + ')" onerror="this.parentNode.removeChild(this)">';
+          return '<img src="' + esc(u) + '" loading="lazy" style="cursor:pointer" onclick="event.stopPropagation();_openMomentPhoto(\'' + esc(m.id) + '\',' + ui + ')" onerror="this.parentNode.removeChild(this)">';
         }).join('') + '</div>';
       } else if (m.photoUrl) {
-        var _su = JSON.stringify([m.photoUrl]).replace(/'/g,"\'");
-        imgHtml = '<img class="moment-real-img" src="' + esc(m.photoUrl) + '" loading="lazy" style="cursor:pointer" onclick="event.stopPropagation();openPhotoViewer(' + _su + ',0)" onerror="this.style.display=\'none\'">';
+        window._momentPhotoMap[m.id] = [m.photoUrl];
+        imgHtml = '<img class="moment-real-img" src="' + esc(m.photoUrl) + '" loading="lazy" style="cursor:pointer" onclick="event.stopPropagation();_openMomentPhoto(\'' + esc(m.id) + '\',0)" onerror="this.style.display=\'none\'">';
       }
-      // With-people tag
       var withHtml = m.withPeople
         ? '<div style="font-size:11px;color:var(--ink3);padding:0 13px 8px">👥 ' + esc(m.withPeople) + '</div>'
         : '';
@@ -5492,10 +5525,53 @@ function buildMomentsFeed() {
         + (m.txt ? '<div class="moment-text">' + esc(m.txt) + '</div>' : '')
         + withHtml
         + imgHtml
-        + '<div class="moment-foot"><div class="moment-action" onclick="likeMoment(\'' + m.id + '\',this)">♡ ' + m.likes + '</div>'
-        + '<div class="moment-action">💬 ' + m.cmts + '</div>'
-        + '<div class="moment-action" style="margin-left:auto" onclick="shareMoment(\'' + m.id + '\',\'\')" >↗ '+t('shareLabel')+'</div></div></div>';
+        + '<div class="moment-foot">'
+        + '<div class="moment-action" onclick="likeMoment(\'' + m.id + '\',this)">♡ ' + m.likes + '</div>'
+        + '<div class="moment-action" onclick="commentMoment(\'' + m.id + '\')">💬 ' + m.cmts + '</div>'
+        + '<div class="moment-action" style="margin-left:auto" onclick="shareMoment(\'' + m.id + '\',\'\')">↗ '+t('shareLabel')+'</div>'
+        + '</div>'
+        // 内联评论区
+        + '<div id="inlineCmts_' + esc(m.id) + '" style="border-top:1px solid var(--border);padding:0 13px 4px;display:none"></div>'
+        + '</div>';
     }).join('');
+
+  // 加载各帖子评论（不依赖 cmts 计数，全部加载）
+  MOMENTS_DATA.forEach(function(m) {
+    _loadInlineComments(m.id);
+  });
+}
+
+// 内联评论：直接显示在帖子下方
+async function _loadInlineComments(momentId) {
+  var el = document.getElementById('inlineCmts_' + momentId);
+  if (!el) return;
+  var cl = sb(); if (!cl) return;
+  try {
+    var res = await cl.from('messages')
+      .select('sender_name,sender_emoji,content,created_at')
+      .eq('room_id', 'cmt_' + momentId)
+      .order('created_at', {ascending: true})
+      .limit(20);
+    var cmts = res.data || [];
+    if (!cmts.length) { el.style.display = 'none'; return; }
+    el.style.display = 'block';
+    el.innerHTML = cmts.map(function(c) {
+      return '<div style="display:flex;align-items:flex-start;gap:7px;padding:7px 0;border-bottom:1px solid var(--border)">'
+        + '<span style="font-size:18px;flex-shrink:0">' + (c.sender_emoji||'😊') + '</span>'
+        + '<div style="flex:1;min-width:0">'
+        + '<span style="font-size:12px;font-weight:600;color:var(--blue2)">' + esc(c.sender_name||'匿名') + '</span>'
+        + '<span style="font-size:12px;color:var(--ink2);margin-left:6px">' + esc(c.content) + '</span>'
+        + '<div style="font-size:10px;color:var(--ink4);margin-top:2px">' + fmtAgo(c.created_at) + '</div>'
+        + '</div></div>';
+    }).join('')
+    + '<div style="padding:8px 0;font-size:12px;color:var(--blue2);cursor:pointer" onclick="commentMoment(\'' + esc(momentId) + '\')">写评论…</div>';
+  } catch(e) {}
+}
+
+function _openMomentPhoto(momentId, idx) {
+  var urls = window._momentPhotoMap && window._momentPhotoMap[momentId];
+  if (!urls || !urls.length) return;
+  openPhotoViewer(urls, idx || 0);
 }
 
 async function momentMenu(id) {
@@ -5599,12 +5675,27 @@ function openPhotoViewer(urls, startIdx) {
   render();
 }
 async function likeMoment(id, el) {
-  if (!el || el.dataset.liked === '1') return;
+  if (!el) return;
+  // 防重复点赞（用 data-liked 标记）
+  if (el.dataset.liked === '1') {
+    toast('已经点过赞了');
+    return;
+  }
   el.dataset.liked = '1';
-  var cur = parseInt(el.textContent.replace(/[^0-9]/g,'')) || 0;
-  el.textContent = '♥ ' + (cur + 1); el.style.color = '#e05';
-  var cl = sb(); if (!cl) return;
-  try { await cl.from('moments').update({ likes: cur + 1 }).eq('id', id); } catch(e) {}
+  // 从 MOMENTS_DATA 里取正确的 likes 数量，避免 textContent 解析错误
+  var m = (MOMENTS_DATA || []).filter(function(x){ return x.id === id; })[0];
+  var cur = m ? (m.likes || 0) : parseInt(el.textContent.replace(/\D/g,'')) || 0;
+  var next = cur + 1;
+  // 立即更新 UI
+  el.innerHTML = '♥ ' + next;
+  el.style.color = '#e05';
+  el.style.fontWeight = '600';
+  // 更新缓存
+  if (m) m.likes = next;
+  // 写数据库（不刷新整个 feed）
+  var cl = sb();
+  if (!cl) return;
+  try { await cl.from('moments').update({ likes: next }).eq('id', id); } catch(e) {}
 }
 async function shareMoment(id, txt) {
   var text = txt || '来自 CHRONO100 的家人动态';
@@ -6814,6 +6905,7 @@ async function reportSafe() {
 // CIRCLE PAGE
 // ============================================================
 function buildGrandpaBattery() {}
+
 
 function loadCirclePage() {
   // Force location upload when opening safety page
@@ -8923,12 +9015,15 @@ function toggleSetting(key, el) {
 function openFontPicker() {
   var saved = parseInt(localStorage.getItem('c100_font') || '16');
   document.querySelectorAll('.font-opt').forEach(function(el) {
-    var size = parseInt(el.getAttribute('data-size'));
-    el.classList.toggle('active', size === saved);
+    el.classList.toggle('active', parseInt(el.getAttribute('data-size')) === saved);
   });
-  // Update preview text size
   var preview = document.getElementById('fontSampleText');
-  if (preview) preview.style.fontSize = saved + 'px';
+  if (preview) {
+    preview.style.fontSize = saved + 'px';
+    // 预览文字跟随当前语言
+    var L = I18N[_lang] || I18N.zh;
+    preview.innerHTML = (L.fontPreviewText || '你好，这是字体预览 Hello Preview') + '<br><span style="opacity:.6;font-size:.9em">' + (L.fontPreviewSub || '家人平安 · CHRONO100 · 안녕하세요') + '</span>';
+  }
   document.getElementById('fontPickerOv').classList.add('open');
 }
 
@@ -8936,38 +9031,48 @@ function closeFontPicker() {
   document.getElementById('fontPickerOv').classList.remove('open');
 }
 
-function pickFont(size, label) {
-  // Update active state
+function pickFont(size) {
   document.querySelectorAll('.font-opt').forEach(function(el) {
     el.classList.toggle('active', parseInt(el.getAttribute('data-size')) === size);
   });
-  // Update preview
+  // 实时预览
   var preview = document.getElementById('fontSampleText');
   if (preview) preview.style.fontSize = size + 'px';
-  // Apply globally
   applyFontSize(size);
-  // Save
-  try { localStorage.setItem('c100_font', size); } catch(e) {}
+  // 更新设置页当前字号标签
+  var L = I18N[_lang] || I18N.zh;
+  var labelMap = { 13: L.fontSmall||'小', 15: L.fontMedSmall||'较小', 16: L.fontNormal||'标准', 18: L.fontMedLarge||'较大', 20: L.fontLarge||'大' };
   var lbl = document.getElementById('currentFontLabel');
-  if (lbl) lbl.textContent = label;
-  setTimeout(closeFontPicker, 400);
-  toast('🔤 字体已设为 ' + label);
+  if (lbl) lbl.textContent = labelMap[size] || '标准';
+  setTimeout(closeFontPicker, 350);
+  toast('🔤 ' + (labelMap[size] || size + 'px'));
 }
 
 function applyFontSize(size) {
-  // Set CSS variable — all rem/em based sizes scale with this
-  document.documentElement.style.setProperty('--base-font', size + 'px');
-  // Also set body font-size so relative units work
-  document.body.style.fontSize = size + 'px';
+  var scale = size / 16;
+  var app   = document.getElementById('app');
+  var login = document.getElementById('login');
+  if (app)   app.style.zoom = scale;
+  if (login) login.style.zoom = scale;
+  var r = document.documentElement;
+  r.style.setProperty('--f-xs',   Math.round(10 * scale) + 'px');
+  r.style.setProperty('--f-sm',   Math.round(11 * scale) + 'px');
+  r.style.setProperty('--f-base', Math.round(13 * scale) + 'px');
+  r.style.setProperty('--f-md',   Math.round(14 * scale) + 'px');
+  r.style.setProperty('--f-lg',   Math.round(16 * scale) + 'px');
+  r.style.setProperty('--f-xl',   Math.round(20 * scale) + 'px');
+  r.style.setProperty('--f-2xl',  Math.round(24 * scale) + 'px');
+  try { localStorage.setItem('c100_font', size); } catch(e) {}
 }
 
-// Apply saved font on load
+// 启动时恢复字体大小
 (function() {
   var saved = parseInt(localStorage.getItem('c100_font') || '16');
-  if (saved !== 16) applyFontSize(saved);
-  var fontLabels = { 12:'小', 14:'较小', 16:'标准', 18:'较大', 20:'大' };
-  var lbl = document.getElementById('currentFontLabel');
-  if (lbl) lbl.textContent = fontLabels[saved] || '标准';
+  applyFontSize(saved);
+  // label 在 applyI18n 后由语言决定，这里只更新激活态
+  document.querySelectorAll('.font-opt').forEach(function(el) {
+    el.classList.toggle('active', parseInt(el.getAttribute('data-size')) === saved);
+  });
 })();
 
 function openLangPicker() {
@@ -12594,46 +12699,174 @@ async function commentMoment(id) {
   ov.id = 'commentOv';
   ov.style.cssText = 'position:fixed;inset:0;z-index:9800;background:rgba(18,24,52,.4);display:flex;align-items:flex-end;justify-content:center';
   var sheet = document.createElement('div');
-  sheet.style.cssText = 'width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:16px 18px 36px';
+  sheet.style.cssText = 'width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:16px 18px 36px;max-height:80vh;overflow-y:auto;display:flex;flex-direction:column';
+
+  // Handle
   var handle = document.createElement('div');
-  handle.style.cssText = 'width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 14px';
+  handle.style.cssText = 'width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 14px;flex-shrink:0';
+
+  // Title
   var title = document.createElement('div');
-  title.style.cssText = 'font-size:15px;font-weight:700;color:var(--ink);margin-bottom:12px';
-  title.textContent = '💬 写评论';
+  title.style.cssText = 'font-size:15px;font-weight:700;color:var(--ink);margin-bottom:12px;flex-shrink:0';
+  title.textContent = '💬 评论';
+
+  // Comment list area
+  var cmtList = document.createElement('div');
+  cmtList.id = 'cmtList_' + id;
+  cmtList.style.cssText = 'flex:1;margin-bottom:12px;min-height:40px';
+  cmtList.innerHTML = '<div style="font-size:12px;color:var(--ink3);text-align:center;padding:10px">加载评论中…</div>';
+
+  // Input area
   var ta = document.createElement('textarea');
   ta.placeholder = '写下你的评论…';
-  ta.rows = 3;
-  ta.style.cssText = 'width:100%;border:1.5px solid var(--border);border-radius:12px;padding:12px;font-size:16px;font-family:inherit;resize:none;background:var(--bg);color:var(--ink);box-sizing:border-box;display:block;margin-bottom:10px';
+  ta.rows = 2;
+  ta.style.cssText = 'width:100%;border:1.5px solid var(--border);border-radius:12px;padding:12px;font-size:16px;font-family:inherit;resize:none;background:var(--bg);color:var(--ink);box-sizing:border-box;display:block;margin-bottom:10px;flex-shrink:0';
+
   var row = document.createElement('div');
-  row.style.cssText = 'display:flex;gap:8px';
+  row.style.cssText = 'display:flex;gap:8px;flex-shrink:0';
   var cancelBtn = document.createElement('button');
-  cancelBtn.style.cssText = 'flex:1;padding:12px;border-radius:12px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:14px;cursor:pointer';
-  cancelBtn.textContent = '取消';
+  cancelBtn.style.cssText = 'flex:1;padding:12px;border-radius:12px;border:1.5px solid var(--border);background:transparent;color:var(--ink3);font-size:14px;cursor:pointer;font-family:inherit';
+  cancelBtn.textContent = '关闭';
   cancelBtn.onclick = function() { ov.remove(); };
   var sendBtn = document.createElement('button');
-  sendBtn.style.cssText = 'flex:2;padding:12px;border-radius:12px;border:none;background:var(--blue2);color:#fff;font-size:14px;font-weight:700;cursor:pointer';
+  sendBtn.style.cssText = 'flex:2;padding:12px;border-radius:12px;border:none;background:var(--blue2);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit';
   sendBtn.textContent = '发送';
+
   sendBtn.onclick = async function() {
     var text = ta.value.trim();
     if (!text) { toast('请输入评论内容'); return; }
-    ov.remove();
-    var cl = sb(); if (!cl) { toast('连接失败'); return; }
+    sendBtn.textContent = '发送中…'; sendBtn.disabled = true;
+    var cl = sb();
+    if (!cl) { toast('连接失败'); sendBtn.textContent='发送'; sendBtn.disabled=false; return; }
     try {
-      var cur = 0;
+      var uid = await getUid();
+      var roomId = 'cmt_' + id;
+      // 存评论到 messages 表
+      await cl.from('messages').insert({
+        sender_id: uid,
+        sender_name: userName || '我',
+        sender_emoji: userEmoji || '😊',
+        room_id: roomId,
+        content: text
+      });
+      // 更新评论数
       var r = await cl.from('moments').select('cmts').eq('id',id).maybeSingle();
-      if (r && r.data) cur = r.data.cmts || 0;
-      await cl.from('moments').update({cmts: cur + 1}).eq('id', id);
-      toast('💬 评论已发送');
-      setTimeout(function() { try { loadRealMoments_feed(); } catch(e) {} }, 500);
-    } catch(e) { toast('评论失败'); }
+      var cur = (r && r.data && r.data.cmts) || 0;
+      await cl.from('moments').update({ cmts: cur + 1 }).eq('id', id);
+      ta.value = '';
+      sendBtn.textContent = '发送'; sendBtn.disabled = false;
+      toast('✅ 评论已发布');
+      ov.remove();
+      // 刷新卡片内联评论
+      _loadInlineComments(id);
+      // 刷新朋友圈计数
+      setTimeout(function(){ try{ loadRealMoments_feed(); }catch(e){} }, 800);
+    } catch(e) { toast('发送失败'); sendBtn.textContent='发送'; sendBtn.disabled=false; }
   };
+
   row.appendChild(cancelBtn); row.appendChild(sendBtn);
-  sheet.appendChild(handle); sheet.appendChild(title); sheet.appendChild(ta); sheet.appendChild(row);
+  sheet.appendChild(handle); sheet.appendChild(title);
+  sheet.appendChild(cmtList); sheet.appendChild(ta); sheet.appendChild(row);
   ov.appendChild(sheet);
   ov.addEventListener('click', function(e) { if (e.target === ov) ov.remove(); });
   document.body.appendChild(ov);
   setTimeout(function() { ta.focus(); }, 100);
+
+  // 加载已有评论
+  _loadComments(id, cmtList);
 }
+
+async function _loadComments(momentId, listEl) {
+  if (!listEl) listEl = document.getElementById('cmtList_' + momentId);
+  if (!listEl) return;
+  var cl = sb();
+  if (!cl) { listEl.innerHTML = '<div style="font-size:12px;color:var(--ink3);text-align:center;padding:8px">未连接</div>'; return; }
+  try {
+    var roomId = 'cmt_' + momentId;
+    var res = await cl.from('messages')
+      .select('id,sender_name,sender_emoji,content,created_at')
+      .eq('room_id', roomId)
+      .order('created_at', {ascending: true})
+      .limit(50);
+    var cmts = res.data || [];
+    if (!cmts.length) {
+      listEl.innerHTML = '<div style="font-size:12px;color:var(--ink3);text-align:center;padding:10px">暂无评论，来说第一句吧</div>';
+      return;
+    }
+    listEl.innerHTML = cmts.map(function(c) {
+      return '<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">'
+        + '<div style="font-size:20px;flex-shrink:0">' + (c.sender_emoji||'😊') + '</div>'
+        + '<div style="flex:1;min-width:0">'
+        + '<div style="font-size:12px;font-weight:600;color:var(--ink)">' + esc(c.sender_name||'匿名') + '</div>'
+        + '<div style="font-size:13px;color:var(--ink2);margin-top:2px;line-height:1.5">' + esc(c.content) + '</div>'
+        + '<div style="font-size:10px;color:var(--ink4);margin-top:3px">' + fmtAgo(c.created_at) + '</div>'
+        + '</div></div>';
+    }).join('');
+  } catch(e) {
+    listEl.innerHTML = '<div style="font-size:12px;color:var(--ink3);text-align:center;padding:8px">加载失败</div>';
+  }
+}
+
+// ============================================================
+// 右滑关闭手势 — 适用于聊天室、所有 overlay sheet、详情页
+// ============================================================
+(function() {
+  var _sx = 0, _sy = 0, _swipeTarget = null, _swiping = false;
+  var THRESHOLD = 80;   // 触发关闭的最小右滑距离 px
+  var MAX_Y = 60;       // 允许的最大纵向偏移 px（防止上下滑误触）
+  var EDGE = 40;        // 必须从左边缘 40px 内开始才算边缘滑（聊天室）
+
+  function getSwipeTarget(el) {
+    // 聊天室：从左边缘开始右滑
+    var chatRoom = document.getElementById('chatRoom');
+    if (chatRoom && chatRoom.classList.contains('open')) return { el: chatRoom, close: closeChatRoom };
+    // 各类 overlay sheet（底部弹出的）
+    var overlays = [
+      { id:'editProfileOv',  fn: closeEditProfile },
+      { id:'addContactOv',   fn: closeAddContact },
+      { id:'relationOv',     fn: closeRelationOv },
+      { id:'addEventOv',     fn: function(){ document.getElementById('addEventOv').classList.remove('open'); } },
+      { id:'langPickerOv',   fn: function(){ try{closeLangPicker();}catch(e){} } },
+      { id:'fontPickerOv',   fn: function(){ try{closeFontPicker();}catch(e){} } },
+      { id:'apiKeyOv',       fn: function(){ try{closeApiKeySheet();}catch(e){} } },
+      { id:'dbSetupOv',      fn: function(){ document.getElementById('dbSetupOv').classList.remove('open'); } },
+    ];
+    for (var i = 0; i < overlays.length; i++) {
+      var ov = document.getElementById(overlays[i].id);
+      if (ov && ov.classList.contains('open')) return { el: ov, close: overlays[i].fn };
+    }
+    // 全屏动态 overlay（固定定位非 .overlay 类）
+    var fullscreens = ['albumOv','foldersOv','lifeArchiveOv','smartNotesOv','searchOv','archiveSwitcherOv'];
+    for (var j = 0; j < fullscreens.length; j++) {
+      var fs = document.getElementById(fullscreens[j]);
+      if (fs && fs.style.display !== 'none' && document.body.contains(fs)) return { el: fs, close: function(_fs){ return function(){ _fs.remove(); }; }(fs) };
+    }
+    return null;
+  }
+
+  document.addEventListener('touchstart', function(e) {
+    var t = e.touches[0];
+    _sx = t.clientX; _sy = t.clientY; _swiping = false;
+    _swipeTarget = getSwipeTarget(e.target);
+  }, { passive: true });
+
+  document.addEventListener('touchmove', function(e) {
+    if (!_swipeTarget) return;
+    var t = e.touches[0];
+    var dx = t.clientX - _sx;
+    var dy = Math.abs(t.clientY - _sy);
+    if (dx > 10 && dy < MAX_Y) _swiping = true;
+  }, { passive: true });
+
+  document.addEventListener('touchend', function(e) {
+    if (!_swipeTarget || !_swiping) return;
+    var dx = e.changedTouches[0].clientX - _sx;
+    if (dx >= THRESHOLD) {
+      try { _swipeTarget.close(); } catch(err) {}
+    }
+    _swipeTarget = null; _swiping = false;
+  }, { passive: true });
+})();
 
 // visualViewport keyboard handler — prevents page jump on any input focus
 (function() {
@@ -13068,19 +13301,37 @@ create policy "all_access" on reunions
 <div class="overlay" id="fontPickerOv" onclick="if(event.target===this)closeFontPicker()">
   <div class="sheet" style="padding-bottom:24px">
     <div class="sheet-handle"><div class="sheet-bar"></div></div>
-    <div style="font-size:17px;font-weight:700;color:var(--ink);padding:4px 18px 16px">🔤 字体大小</div>
-    <div style="padding:0 14px">
-      <div id="fontSampleText" style="text-align:center;padding:16px;background:var(--bg);border-radius:14px;color:var(--ink);margin-bottom:16px;line-height:1.7;border:1px solid var(--border)">
+    <div style="font-size:17px;font-weight:700;color:var(--ink);padding:4px 18px 14px">🔤 <span data-i18n-key="sFont">字体大小</span></div>
+    <div style="padding:0 16px">
+      <!-- 实时预览区 -->
+      <div id="fontSampleText" style="text-align:center;padding:18px 14px;background:var(--bg);border-radius:14px;color:var(--ink);margin-bottom:16px;line-height:1.8;border:1px solid var(--border);font-size:16px">
         你好，这是字体预览效果<br>
-        <span style="color:var(--ink3);font-size:.85em">Hello, this is a font preview</span>
+        <span style="opacity:.6;font-size:.9em">家人平安 · CHRONO100 · Hello</span>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">
-        <div onclick="pickFont(12,'小')" class="font-opt" data-size="12"><div style="font-size:12px;font-weight:600">小</div><div style="font-size:10px;color:var(--ink3)">12</div></div>
-        <div onclick="pickFont(14,'较小')" class="font-opt" data-size="14"><div style="font-size:14px;font-weight:600">较小</div><div style="font-size:10px;color:var(--ink3)">14</div></div>
-        <div onclick="pickFont(16,'标准')" class="font-opt active" data-size="16"><div style="font-size:16px;font-weight:600">标准</div><div style="font-size:10px;color:var(--ink3)">16</div></div>
-        <div onclick="pickFont(18,'较大')" class="font-opt" data-size="18"><div style="font-size:18px;font-weight:600">较大</div><div style="font-size:10px;color:var(--ink3)">18</div></div>
-        <div onclick="pickFont(20,'大')" class="font-opt" data-size="20"><div style="font-size:20px;font-weight:600">大</div><div style="font-size:10px;color:var(--ink3)">20</div></div>
+      <!-- 5档字号选择 -->
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <div onclick="pickFont(13)" class="font-opt" data-size="13">
+          <div class="font-opt-sample" style="font-size:13px">文Aa</div>
+          <div class="font-opt-label" data-i18n-key="fontSmall">小</div>
+        </div>
+        <div onclick="pickFont(15)" class="font-opt" data-size="15">
+          <div class="font-opt-sample" style="font-size:15px">文Aa</div>
+          <div class="font-opt-label" data-i18n-key="fontMedSmall">较小</div>
+        </div>
+        <div onclick="pickFont(16)" class="font-opt active" data-size="16">
+          <div class="font-opt-sample" style="font-size:16px">文Aa</div>
+          <div class="font-opt-label" data-i18n-key="fontNormal">标准</div>
+        </div>
+        <div onclick="pickFont(18)" class="font-opt" data-size="18">
+          <div class="font-opt-sample" style="font-size:18px">文Aa</div>
+          <div class="font-opt-label" data-i18n-key="fontMedLarge">较大</div>
+        </div>
+        <div onclick="pickFont(20)" class="font-opt" data-size="20">
+          <div class="font-opt-sample" style="font-size:20px">文Aa</div>
+          <div class="font-opt-label" data-i18n-key="fontLarge">大</div>
+        </div>
       </div>
+      <div style="font-size:11px;color:var(--ink4);text-align:center">调整后全局生效，所有语言同步缩放</div>
     </div>
   </div>
 </div>
