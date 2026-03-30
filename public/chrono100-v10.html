@@ -1051,20 +1051,38 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
         </div>
         <div style="width:34px;height:34px;border-radius:50%;background:var(--blue2);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;flex-shrink:0" onclick="chatPlusBtn()" title="添加">＋</div>
       </div>
-      <!-- Tabs: 私信 / 朋友圈 — 固定顶部 -->
+      <!-- Tabs: 联系人 / 私信 / 动态 — 固定顶部 -->
       <div class="chat-page-fixed" style="display:flex;background:var(--card);border-bottom:1px solid var(--border)">
-        <button class="chat-tab on" id="ctab-dm" onclick="switchChatTab('dm')" data-i18n-key="tabDM">私信</button>
-        <button class="chat-tab" id="ctab-moments" onclick="switchChatTab('moments')" data-i18n-key="tabMoments">朋友圈</button>
+        <button class="chat-tab on" id="ctab-contacts" onclick="switchChatTab('contacts')">联系人</button>
+        <button class="chat-tab" id="ctab-dm" onclick="switchChatTab('dm')" data-i18n-key="tabDM">私信</button>
+        <button class="chat-tab" id="ctab-moments" onclick="switchChatTab('moments')">动态</button>
+      </div>
+      <!-- Contacts panel — 独立滚动 -->
+      <div id="chat-panel-contacts" style="overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0">
+        <div id="contactsList"></div>
+        <div class="pb"></div>
       </div>
       <!-- DM list — 独立滚动 -->
-      <div id="chat-panel-dm" style="overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0">
-        
-        <div class="section-title" style="padding-top:10px" data-i18n-key="privateSpace">私密空间</div>
+      <div id="chat-panel-dm" style="display:none;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0">
+        <div style="padding:10px 16px 4px">
+          <div style="position:relative">
+            <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none">🔍</span>
+            <input id="dmSearchInput" placeholder="搜索私信…" oninput="filterDmList(this.value)"
+              style="width:100%;padding:9px 14px 9px 36px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);font-size:14px;color:var(--ink);font-family:inherit;box-sizing:border-box" />
+          </div>
+        </div>
         <div class="chat-list" id="chatList"></div>
         <div class="pb"></div>
       </div>
       <!-- Moments feed — 独立滚动 -->
       <div id="chat-panel-moments" style="display:none;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0">
+        <div style="padding:10px 16px 4px">
+          <div style="position:relative">
+            <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none">🔍</span>
+            <input id="momentsSearchInput" placeholder="搜索动态…" oninput="filterMomentsFeed(this.value)"
+              style="width:100%;padding:9px 14px 9px 36px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);font-size:14px;color:var(--ink);font-family:inherit;box-sizing:border-box" />
+          </div>
+        </div>
         <div id="momentsFeed"></div>
         <div class="pb"></div>
       </div>
@@ -4571,7 +4589,222 @@ async function loadRealContacts() {
     }
   } catch(e) { console.warn('loadRealContacts error:', e); }
   buildChatList();
+  buildContactsList();
   refreshChatPreviews();
+  loadGroups();
+}
+
+// ============================================================
+// GROUP CHAT
+// ============================================================
+window.GROUPS = [];
+
+async function loadGroups() {
+  var client = sb(); if (!client) return;
+  var uid = await getUid(); if (!uid) return;
+  try {
+    var res = await client.from('groups')
+      .select('*')
+      .contains('members', JSON.stringify([uid]))
+      .order('created_at', {ascending: false});
+    window.GROUPS = (res.data || []).map(function(g) {
+      return Object.assign({}, g, { preview: '群聊', time: '', unread: 0 });
+    });
+    await refreshGroupPreviews();
+    buildChatList();
+  } catch(e) { console.warn('loadGroups error:', e); }
+}
+
+async function refreshGroupPreviews() {
+  var client = sb(); if (!client || !GROUPS.length) return;
+  var myUid = await getUid();
+  var lastRead = {};
+  try { lastRead = JSON.parse(localStorage.getItem('c100_last_read')||'{}'); } catch(e) {}
+  await Promise.all(GROUPS.map(async function(g) {
+    try {
+      var roomId = 'group_' + g.id;
+      var r = await client.from('messages').select('content,created_at,sender_id').eq('room_id', roomId).order('created_at',{ascending:false}).limit(5);
+      if (r.data && r.data[0]) {
+        var last = r.data[0];
+        g.preview = (last.content||'').slice(0,26) || '群消息';
+        g.time = fmtTime(last.created_at);
+        g._lastTs = new Date(last.created_at).getTime();
+        var lrTs = lastRead[roomId] || 0;
+        g.unread = r.data.filter(function(m){ return m.sender_id !== myUid && new Date(m.created_at).getTime() > lrTs; }).length;
+      }
+    } catch(e) {}
+  }));
+}
+
+// ── Create Group Sheet ──
+async function showCreateGroupSheet() {
+  if (!CHATS || CHATS.length === 0) { toast('请先添加联系人才能建群'); return; }
+  var ex = document.getElementById('createGroupOv'); if (ex) ex.remove();
+  var ov = document.createElement('div');
+  ov.id = 'createGroupOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9800;background:rgba(18,24,52,.4);display:flex;align-items:flex-end;justify-content:center';
+
+  var memberItems = CHATS.map(function(c) {
+    return '<div class="gm-item" data-name="' + c.n.toLowerCase() + '" data-id="' + c.memberId + '" onclick="toggleGroupMember(this)"'
+      + ' style="display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none">'
+      + '<div class="gm-check" style="width:24px;height:24px;border-radius:50%;border:2px solid var(--border);background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:all .15s"></div>'
+      + '<span style="font-size:22px;flex-shrink:0">' + c.e + '</span>'
+      + '<span style="font-size:15px;font-weight:600;color:var(--ink);flex:1">' + c.n + '</span>'
+      + '<input type="hidden" class="gm-val" value="' + c.memberId + '">'
+      + '</div>';
+  }).join('');
+
+  ov.innerHTML =
+    '<div style="width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:20px 18px calc(36px + env(safe-area-inset-bottom));max-height:88vh;display:flex;flex-direction:column">'
+    + '<div style="width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 16px;flex-shrink:0"></div>'
+    + '<div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:16px;flex-shrink:0">👨‍👩‍👧 发起群聊</div>'
+    // Group name
+    + '<div style="font-size:12px;color:var(--ink3);margin-bottom:6px;flex-shrink:0">群聊名称</div>'
+    + '<input id="groupNameInput" placeholder="给群聊起个名字…" style="width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);font-size:15px;color:var(--ink);font-family:inherit;margin-bottom:16px;box-sizing:border-box;flex-shrink:0" />'
+    // Member header with search
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-shrink:0">'
+    + '<div style="font-size:12px;color:var(--ink3)">选择成员（可多选）</div>'
+    + '<div id="gmSelectedCount" style="font-size:12px;color:var(--blue2);font-weight:600"></div>'
+    + '</div>'
+    + '<div style="position:relative;margin-bottom:10px;flex-shrink:0">'
+    + '<span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none">🔍</span>'
+    + '<input id="gmSearchInput" placeholder="搜索好友…" oninput="filterGroupMembers(this.value)"'
+    + ' style="width:100%;padding:10px 14px 10px 38px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);font-size:14px;color:var(--ink);font-family:inherit;box-sizing:border-box" />'
+    + '</div>'
+    // Member list (scrollable)
+    + '<div id="groupMemberList" style="overflow-y:auto;flex:1;min-height:0">' + memberItems + '</div>'
+    // Buttons
+    + '<div style="flex-shrink:0;margin-top:14px">'
+    + '<button onclick="doCreateGroup()" style="width:100%;padding:15px;border-radius:14px;background:var(--blue2);color:#fff;font-size:15px;font-weight:700;cursor:pointer;border:none;font-family:inherit;margin-bottom:10px">建群</button>'
+    + '<button onclick="document.getElementById(\'createGroupOv\').remove()" style="width:100%;padding:13px;border-radius:14px;background:transparent;color:var(--ink3);font-size:14px;cursor:pointer;border:1.5px solid var(--border);font-family:inherit">取消</button>'
+    + '</div>'
+    + '</div>';
+
+  ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
+  document.body.appendChild(ov);
+  setTimeout(function(){ var inp = document.getElementById('groupNameInput'); if(inp) inp.focus(); }, 200);
+}
+
+function toggleGroupMember(el) {
+  var isSelected = el.getAttribute('data-selected') === '1';
+  var check = el.querySelector('.gm-check');
+  if (isSelected) {
+    el.setAttribute('data-selected', '0');
+    el.style.background = '';
+    check.style.background = 'var(--bg)';
+    check.style.borderColor = 'var(--border)';
+    check.textContent = '';
+  } else {
+    el.setAttribute('data-selected', '1');
+    el.style.background = 'var(--blue-lt)';
+    check.style.background = 'var(--blue2)';
+    check.style.borderColor = 'var(--blue2)';
+    check.textContent = '✅';
+    check.style.fontSize = '13px';
+  }
+  // Update selected count
+  var total = document.querySelectorAll('#groupMemberList .gm-item[data-selected="1"]').length;
+  var cnt = document.getElementById('gmSelectedCount');
+  if (cnt) cnt.textContent = total > 0 ? '已选 ' + total + ' 人' : '';
+}
+
+function filterGroupMembers(q) {
+  var kw = (q || '').toLowerCase().trim();
+  document.querySelectorAll('#groupMemberList .gm-item').forEach(function(el) {
+    var name = el.getAttribute('data-name') || '';
+    el.style.display = (!kw || name.indexOf(kw) >= 0) ? '' : 'none';
+  });
+}
+
+async function doCreateGroup() {
+  var nameEl = document.getElementById('groupNameInput');
+  var name = (nameEl ? nameEl.value.trim() : '');
+  if (!name) { toast('请输入群聊名称'); return; }
+  var selected = document.querySelectorAll('#groupMemberList .gm-item[data-selected="1"]');
+  if (selected.length === 0) { toast('请至少选择一名成员'); return; }
+  var memberIds = [];
+  selected.forEach(function(el){ memberIds.push(el.getAttribute('data-id')); });
+  var myUid = await getUid();
+  if (!myUid) { toast('请先登录'); return; }
+  memberIds.push(myUid);
+  var client = sb(); if (!client) { toast('连接失败'); return; }
+  toast('创建群聊中…');
+  try {
+    var res = await client.from('groups').insert({
+      name: name, emoji: '👨‍👩‍👧', created_by: myUid,
+      members: memberIds, created_at: new Date().toISOString()
+    }).select().single();
+    if (res.error) { toast('❌ 建群失败：' + res.error.message); return; }
+    var ov = document.getElementById('createGroupOv'); if (ov) ov.remove();
+    toast('✅ 群聊「' + name + '」创建成功！');
+    await loadGroups();
+    setTimeout(function(){ openGroupChat(res.data.id); }, 400);
+  } catch(e) { toast('❌ 建群出错：' + (e.message||'')); }
+}
+
+// ── Open Group Chat ──
+var currentGroupId = null;
+var _isGroupChat = false;
+
+async function openGroupChat(groupId) {
+  var g = (window.GROUPS || []).find(function(x){ return x.id === groupId; });
+  if (!g) { toast('群聊不存在'); return; }
+  _isGroupChat = true;
+  currentGroupId = groupId;
+  var roomId = 'group_' + groupId;
+  currentRoomId = roomId;
+  document.getElementById('crAvatar').innerHTML = g.emoji || '👨‍👩‍👧';
+  document.getElementById('crName').textContent = g.name;
+  var st = document.getElementById('crStatus');
+  if (st) st.textContent = (g.members||[]).length + '人';
+  document.getElementById('chatRoom').classList.add('open');
+  if (curPage !== 'chat') gotoPage('chat');
+  var box = document.getElementById('crMessages');
+  if (box) box.innerHTML = '';
+  subscribeRoom(roomId);
+  loadMessages(roomId);
+}
+
+// ── Group Long Press (rename / leave) ──
+var _gpt = null;
+function groupTouchStart(e, gid){ _gpt = setTimeout(function(){ groupLongPress(null, gid); }, 600); }
+function groupTouchEnd(){ clearTimeout(_gpt); _gpt = null; }
+function groupLongPress(e, gid) {
+  if (e) e.preventDefault();
+  if (_gpt) { clearTimeout(_gpt); _gpt = null; }
+  var g = (window.GROUPS||[]).find(function(x){ return x.id === gid; });
+  if (!g) return;
+  var ex = document.getElementById('groupCtxMenu'); if (ex) ex.remove();
+  var menu = document.createElement('div');
+  menu.id = 'groupCtxMenu';
+  menu.style.cssText = 'position:fixed;inset:0;z-index:9800;background:rgba(18,24,52,.4);display:flex;align-items:flex-end;justify-content:center';
+  menu.innerHTML = '<div style="width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:20px 18px calc(36px + env(safe-area-inset-bottom))">'
+    + '<div style="width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 14px"></div>'
+    + '<div style="font-size:15px;font-weight:700;margin-bottom:14px">' + (g.emoji||'👨‍👩‍👧') + ' ' + g.name + '</div>'
+    + '<button onclick="leaveGroup(\'' + gid + '\')" style="width:100%;padding:13px;border-radius:12px;background:#FFF0F0;color:#DC4545;font-size:14px;font-weight:600;cursor:pointer;border:1.5px solid #FFCECE;font-family:inherit;margin-bottom:8px">退出群聊</button>'
+    + '<button onclick="document.getElementById(\'groupCtxMenu\').remove()" style="width:100%;padding:13px;border-radius:12px;background:transparent;color:var(--ink3);font-size:14px;cursor:pointer;border:1.5px solid var(--border);font-family:inherit">取消</button>'
+    + '</div>';
+  menu.addEventListener('click', function(ev){ if(ev.target===menu) menu.remove(); });
+  document.body.appendChild(menu);
+}
+
+async function leaveGroup(gid) {
+  var menuEl = document.getElementById('groupCtxMenu'); if (menuEl) menuEl.remove();
+  var client = sb(); if (!client) return;
+  var myUid = await getUid(); if (!myUid) return;
+  var g = (window.GROUPS||[]).find(function(x){ return x.id === gid; });
+  if (!g) return;
+  var newMembers = (g.members||[]).filter(function(id){ return id !== myUid; });
+  try {
+    if (newMembers.length === 0) {
+      await client.from('groups').delete().eq('id', gid);
+    } else {
+      await client.from('groups').update({ members: newMembers }).eq('id', gid);
+    }
+    window.GROUPS = GROUPS.filter(function(x){ return x.id !== gid; });
+    buildChatList();
+    toast('已退出群聊');
+  } catch(e) { toast('退出失败'); }
 }
 
 async function refreshChatPreviews() {
@@ -4619,22 +4852,42 @@ async function refreshChatPreviews() {
 function buildChatList() {
   var list = document.getElementById('chatList');
   if (!list) return;
+  var html = '';
+
+  // ── DMs ──
   if (!CHATS || CHATS.length === 0) {
-    list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--ink3);font-size:13px">' + t('noContacts') + '<br><span style="font-size:11px">' + t('addFamilyHint') + '</span></div>';
-    return;
+    html += '<div style="text-align:center;padding:24px 16px;color:var(--ink3);font-size:13px">' + t('noContacts') + '<br><span style="font-size:11px">' + t('addFamilyHint') + '</span></div>';
+  } else {
+    var _pins={}; try{_pins=JSON.parse(localStorage.getItem('c100_pinned')||'{}');}catch(e){}
+    html += CHATS.map(function(c, i) {
+      var ip=!!_pins[c.memberId];
+      return '<div class="chat-row" onclick="openChat(' + i + ')" oncontextmenu="chatLongPress(event,' + i + ')" ontouchstart="chatTouchStart(event,' + i + ')" ontouchend="chatTouchEnd()">'
+        + '<div class="chat-av">' + c.e + (c.on ? '<div class="chat-av-dot"></div>' : '') + '</div>'
+        + '<div style="flex:1;min-width:0"><div class="chat-name">' + (ip ? '📌 ' : '') + c.n + '</div>'
+        + '<div class="chat-preview">' + (c.preview||t('noMsgs')) + '</div></div>'
+        + '<div style="text-align:right;flex-shrink:0">'
+        + (c.time ? '<div class="chat-time">' + c.time + '</div>' : '')
+        + (c.unread ? '<div class="chat-badge">' + c.unread + '</div>' : '')
+        + '</div></div>';
+    }).join('');
   }
-  var _pins={}; try{_pins=JSON.parse(localStorage.getItem('c100_pinned')||'{}');}catch(e){}
-  list.innerHTML = CHATS.map(function(c, i) {
-    var ip=!!_pins[c.memberId];
-    return '<div class="chat-row" onclick="openChat(' + i + ')" oncontextmenu="chatLongPress(event,' + i + ')" ontouchstart="chatTouchStart(event,' + i + ')" ontouchend="chatTouchEnd()">'
-      + '<div class="chat-av">' + c.e + (c.on ? '<div class="chat-av-dot"></div>' : '') + '</div>'
-      + '<div style="flex:1;min-width:0"><div class="chat-name">' + (ip ? '📌 ' : '') + c.n + '</div>'
-      + '<div class="chat-preview">' + (c.preview||t('noMsgs')) + '</div></div>'
-      + '<div style="text-align:right;flex-shrink:0">'
-      + (c.time ? '<div class="chat-time">' + c.time + '</div>' : '')
-      + (c.unread ? '<div class="chat-badge">' + c.unread + '</div>' : '')
-      + '</div></div>';
-  }).join('');
+
+  // ── Groups ──
+  if (window.GROUPS && GROUPS.length > 0) {
+    html += '<div class="section-title" style="margin-top:8px">群聊</div>';
+    html += GROUPS.map(function(g, i) {
+      return '<div class="chat-row" onclick="openGroupChat(\'' + g.id + '\')" oncontextmenu="groupLongPress(event,\'' + g.id + '\')" ontouchstart="groupTouchStart(event,\'' + g.id + '\')" ontouchend="chatTouchEnd()">'
+        + '<div class="chat-av" style="font-size:22px">' + (g.emoji||'👨‍👩‍👧') + '</div>'
+        + '<div style="flex:1;min-width:0"><div class="chat-name">' + g.name + '</div>'
+        + '<div class="chat-preview">' + (g.preview||'群聊') + ' · ' + (g.members||[]).length + '人</div></div>'
+        + '<div style="text-align:right;flex-shrink:0">'
+        + (g.time ? '<div class="chat-time">' + g.time + '</div>' : '')
+        + (g.unread ? '<div class="chat-badge">' + g.unread + '</div>' : '')
+        + '</div></div>';
+    }).join('');
+  }
+
+  list.innerHTML = html;
 }
 var _cpt=null;
 function chatTouchStart(e,i){_cpt=setTimeout(function(){chatLongPress(null,i);},600);}
@@ -4715,6 +4968,7 @@ async function openChat(idx) {
   document.getElementById('chatRoom').classList.add('open');
   if (curPage !== 'chat') gotoPage('chat');
   renderMessages([]);
+  _isGroupChat = false; currentGroupId = null;
   var myUid = await getUid();
   var theirUid = c.memberId || '';
   currentRoomId = buildDirectRoomId(myUid, theirUid) || buildLegacyDirectRoomId(myUid, theirUid, c.memberId || c.n);
@@ -4741,12 +4995,16 @@ async function loadMessages(roomId) {
   var client = sb();
   if (!client) return;
   try {
-    var myUid = await getUid(); // fix: use getUid not getRealUserId
-    var theirUid = ((CHATS[activeChatIdx] || {}).memberId) || '';
-    var legacyRoomId = buildLegacyDirectRoomId(myUid, theirUid, (CHATS[activeChatIdx]||{}).n);
+    var myUid = await getUid();
     var query = client.from('messages').select('*');
-    if (roomId && legacyRoomId && legacyRoomId !== roomId) query = query.in('room_id', [roomId, legacyRoomId]);
-    else query = query.eq('room_id', roomId);
+    if (_isGroupChat) {
+      query = query.eq('room_id', roomId);
+    } else {
+      var theirUid = ((CHATS[activeChatIdx] || {}).memberId) || '';
+      var legacyRoomId = buildLegacyDirectRoomId(myUid, theirUid, (CHATS[activeChatIdx]||{}).n);
+      if (roomId && legacyRoomId && legacyRoomId !== roomId) query = query.in('room_id', [roomId, legacyRoomId]);
+      else query = query.eq('room_id', roomId);
+    }
     var res = await query.order('created_at', {ascending:true}).limit(100);
     var data = res.data || [];
     var box = document.getElementById('crMessages');
@@ -4774,7 +5032,6 @@ function subscribeRoom(roomId) {
   var client = sb();
   if (!client || !roomId) return;
   if (realtimeSub) { try { client.removeChannel(realtimeSub); } catch(e) {} }
-  // Use postgres_changes instead of broadcast — works even when sender is offline
   realtimeSub = client.channel('room_db:' + roomId)
     .on('postgres_changes', {
       event: 'INSERT', schema: 'public', table: 'messages',
@@ -4809,43 +5066,42 @@ function subscribeRoom(roomId) {
       if (!chatRoomOpen) return;
       var empty = box.querySelector('.msg-empty');
       if (empty) empty.remove();
-      var mWithContent = Object.assign({}, m, { content: plainContent });
-      var isMe2 = m.sender_id === myUid;
-      box.insertAdjacentHTML('beforeend', buildMsgHTML(mWithContent, isMe2));
+      var mFull = Object.assign({}, m, { content: plainContent });
+      box.insertAdjacentHTML('beforeend', buildMsgHTML(mFull, false));
       box.scrollTop = box.scrollHeight;
     }).subscribe();
 }
 
-// ── Message long-press delete (all messages, both sides) ────────
-var _lpTimer = null;
-var _lpMoved = false;
-
+// ── Message builder ─────────────────────────────────────────────
 function buildMsgHTML(m, isMe) {
   var msgId = m.id || '';
   var lp = msgId
-    ? ' id="msgrow_'+msgId+'"'
-      + ' onmousedown="lpStart(\''+msgId+'\')"'
+    ? ' id="msgrow_' + msgId + '"'
+      + ' onmousedown="lpStart(\'' + msgId + '\')"'
       + ' onmouseup="lpCancel()" onmouseleave="lpCancel()"'
-      + ' ontouchstart="lpStart(\''+msgId+'\')" ontouchmove="lpCancel()" ontouchend="lpCancel()"'
-      + ' oncontextmenu="event.preventDefault();lpCancel();showMsgMenu(\''+msgId+'\')"'
-      + ' style="user-select:none;-webkit-user-select:none"'
+      + ' ontouchstart="lpStart(\'' + msgId + '\')" ontouchmove="lpCancel()" ontouchend="lpCancel()"'
+      + ' oncontextmenu="event.preventDefault();lpCancel();showMsgMenu(\'' + msgId + '\')"'
+      + ' style="user-select:none;-webkit-user-select:none;cursor:pointer"'
+    : '';
+  var senderLabel = (!isMe && window._isGroupChat && m.sender_name)
+    ? '<div style="font-size:10px;color:var(--ink3);margin-bottom:2px;font-weight:600">' + esc(m.sender_name) + '</div>'
     : '';
   return '<div class="msg ' + (isMe ? 'me' : '') + '">'
-    + (isMe ? '' : '<div class="msg-av-xs">' + (m.sender_emoji||'😊') + '</div>')
+    + (isMe ? '' : '<div class="msg-av-xs">' + (m.sender_emoji || '😊') + '</div>')
     + '<div class="bubble ' + (isMe ? 'me' : 'them') + '"' + lp + '>'
+    + senderLabel
     + renderMessageContent(m.content, isMe)
     + '<div class="bubble-time">' + fmtTime(m.created_at) + '</div>'
     + '</div></div>';
 }
 
+// ── Long-press delete ────────────────────────────────────────────
+var _lpTimer = null;
 function lpStart(msgId) {
-  _lpMoved = false;
   lpCancel();
   _lpTimer = setTimeout(function() { showMsgMenu(msgId); }, 600);
 }
-function lpCancel() {
-  clearTimeout(_lpTimer); _lpTimer = null;
-}
+function lpCancel() { clearTimeout(_lpTimer); _lpTimer = null; }
 
 function showMsgMenu(msgId) {
   lpCancel();
@@ -4857,10 +5113,10 @@ function showMsgMenu(msgId) {
     '<div style="width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:20px 18px calc(40px + env(safe-area-inset-bottom))">'
     + '<div style="width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 18px"></div>'
     + '<div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:18px;text-align:center">消息操作</div>'
-    + '<button onclick="deleteMessage(\''+msgId+'\')" style="width:100%;padding:15px;border-radius:14px;background:#FFF0F0;color:#DC4545;font-size:15px;font-weight:700;cursor:pointer;border:1.5px solid #FFCECE;font-family:inherit;margin-bottom:10px">🗑 删除这条消息（双方）</button>'
+    + '<button onclick="deleteMessage(\'' + msgId + '\')" style="width:100%;padding:15px;border-radius:14px;background:#FFF0F0;color:#DC4545;font-size:15px;font-weight:700;cursor:pointer;border:1.5px solid #FFCECE;font-family:inherit;margin-bottom:10px">🗑 删除这条消息（双方）</button>'
     + '<button onclick="document.getElementById(\'msgMenuOv\').remove()" style="width:100%;padding:14px;border-radius:14px;background:transparent;color:var(--ink3);font-size:14px;cursor:pointer;border:1.5px solid var(--border);font-family:inherit">取消</button>'
     + '</div>';
-  ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
+  ov.addEventListener('click', function(e) { if (e.target === ov) ov.remove(); });
   document.body.appendChild(ov);
 }
 
@@ -4871,34 +5127,31 @@ async function deleteMessage(msgId) {
   try {
     var res = await client.from('messages').delete().eq('id', msgId);
     if (res.error) { toast('❌ 删除失败：' + res.error.message); return; }
-    // Remove from DOM — bubble is inside msgrow, find by id on bubble
     var bubble = document.getElementById('msgrow_' + msgId);
-    var row = bubble ? bubble.closest('.msg') || bubble.parentElement : null;
-    var target = row || bubble;
+    var target = bubble ? (bubble.closest('.msg') || bubble.parentElement) : null;
     if (target) {
       target.style.transition = 'opacity .2s,transform .2s';
       target.style.opacity = '0'; target.style.transform = 'scale(.95)';
-      setTimeout(function(){ if(target.parentNode) target.remove(); }, 220);
+      setTimeout(function() { if (target.parentNode) target.remove(); }, 220);
     }
     toast('🗑 已删除');
-  } catch(e) { toast('❌ 删除出错：' + (e.message||'')); }
+  } catch(e) { toast('❌ 删除出错：' + (e.message || '')); }
 }
 
 function closeChatRoom() {
   closeChatPanels();
   document.getElementById('chatRoom').classList.remove('open');
-  // Mark room as read
+  _isGroupChat = false; currentGroupId = null;
   if (currentRoomId) {
     try {
-      var lr = JSON.parse(localStorage.getItem('c100_last_read')||'{}');
+      var lr = JSON.parse(localStorage.getItem('c100_last_read') || '{}');
       lr[currentRoomId] = Date.now();
       localStorage.setItem('c100_last_read', JSON.stringify(lr));
     } catch(e) {}
-    // Clear unread for this chat
     if (CHATS[activeChatIdx]) CHATS[activeChatIdx].unread = 0;
-    var total = CHATS.reduce(function(s,c){ return s+(c.unread||0); }, 0);
+    var total = CHATS.reduce(function(s, c) { return s + (c.unread || 0); }, 0);
     var badge = document.getElementById('chatBadge');
-    if (badge) { badge.style.display = total > 0 ? '' : 'none'; if(total>0) badge.textContent = total; }
+    if (badge) { badge.style.display = total > 0 ? '' : 'none'; if (total > 0) badge.textContent = total; }
     buildChatList();
   }
 }
@@ -5338,26 +5591,108 @@ async function sendMsgContent(txt){
 
 // ── CHAT TABS ──
 function chatPlusBtn() {
-  var momentsPanel = document.getElementById('chat-panel-moments');
-  if (momentsPanel && momentsPanel.style.display !== 'none') {
-    openMomentComposer();
-  } else {
-    openAddContact();
-  }
+  var activeTab = document.querySelector('.chat-tab.on');
+  var tab = activeTab ? activeTab.id.replace('ctab-', '') : 'contacts';
+  if (tab === 'moments') { openMomentComposer(); return; }
+  // Show action sheet: add contact or create group
+  var ex = document.getElementById('chatPlusMenu'); if (ex) ex.remove();
+  var ov = document.createElement('div');
+  ov.id = 'chatPlusMenu';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9800;background:rgba(18,24,52,.4);display:flex;align-items:flex-end;justify-content:center';
+  ov.innerHTML =
+    '<div style="width:100%;max-width:520px;background:var(--card);border-radius:22px 22px 0 0;padding:20px 18px calc(36px + env(safe-area-inset-bottom))">'
+    + '<div style="width:36px;height:4px;border-radius:3px;background:var(--border);margin:0 auto 18px"></div>'
+    + '<button onclick="document.getElementById(\'chatPlusMenu\').remove();openAddContact()" style="width:100%;padding:15px;border-radius:14px;background:var(--bg);color:var(--ink);font-size:15px;font-weight:600;cursor:pointer;border:none;font-family:inherit;margin-bottom:10px;text-align:left">👤 添加联系人</button>'
+    + '<button onclick="document.getElementById(\'chatPlusMenu\').remove();showCreateGroupSheet()" style="width:100%;padding:15px;border-radius:14px;background:var(--bg);color:var(--ink);font-size:15px;font-weight:600;cursor:pointer;border:none;font-family:inherit;margin-bottom:10px;text-align:left">👨‍👩‍👧 发起群聊</button>'
+    + '<button onclick="document.getElementById(\'chatPlusMenu\').remove()" style="width:100%;padding:14px;border-radius:14px;background:transparent;color:var(--ink3);font-size:14px;cursor:pointer;border:1.5px solid var(--border);font-family:inherit">取消</button>'
+    + '</div>';
+  ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
+  document.body.appendChild(ov);
 }
 
 function switchChatTab(tab) {
   document.querySelectorAll('.chat-tab').forEach(function(t) {
     t.classList.toggle('on', t.id === 'ctab-' + tab);
   });
+  document.getElementById('chat-panel-contacts').style.display = tab === 'contacts' ? '' : 'none';
   document.getElementById('chat-panel-dm').style.display = tab === 'dm' ? '' : 'none';
   document.getElementById('chat-panel-moments').style.display = tab === 'moments' ? '' : 'none';
   var fab = document.getElementById('momentsFab');
   if (fab) fab.style.display = tab === 'moments' ? 'flex' : 'none';
   if (tab === 'moments') loadRealMoments_feed();
+  if (tab === 'contacts') buildContactsList();
 }
 
-// ── MOMENTS FEED ──
+// ── CONTACTS LIST ──────────────────────────────────────────────
+function buildContactsList() {
+  var el = document.getElementById('contactsList');
+  if (!el) return;
+  if (!CHATS || CHATS.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--ink3);font-size:13px">暂无联系人<br><span style="font-size:11px">点击右上角 ＋ 添加家人或好友</span></div>';
+    return;
+  }
+  // Group by first letter / relation
+  var html = '';
+  // Search bar
+  html += '<div style="padding:10px 16px 4px">'
+    + '<div style="position:relative">'
+    + '<span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none">🔍</span>'
+    + '<input id="contactsSearch" placeholder="搜索联系人…" oninput="filterContacts(this.value)"'
+    + ' style="width:100%;padding:9px 14px 9px 36px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);font-size:14px;color:var(--ink);font-family:inherit;box-sizing:border-box" />'
+    + '</div></div>';
+
+  // Sort contacts alphabetically
+  var sorted = CHATS.slice().sort(function(a, b) { return a.n.localeCompare(b.n, 'zh'); });
+
+  sorted.forEach(function(c) {
+    html += '<div class="contact-row" data-name="' + c.n.toLowerCase() + '" onclick="openChatByMemberId(\'' + c.memberId + '\')"'
+      + ' style="display:flex;align-items:center;gap:14px;padding:13px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s"'
+      + ' onmouseover="this.style.background=\'var(--blue-lt)\'" onmouseout="this.style.background=\'\'">'
+      + '<div style="width:46px;height:46px;border-radius:50%;background:var(--blue-lt);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0">' + c.e + '</div>'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-size:15px;font-weight:700;color:var(--ink)">' + c.n + '</div>'
+      + '<div style="font-size:12px;color:var(--ink3);margin-top:2px">' + (c.relation === 'family' ? '👨‍👩‍👧 家人' : '👤 好友') + (c.on ? ' · 🟢 在线' : '') + '</div>'
+      + '</div>'
+      + '<div style="font-size:20px;color:var(--ink4)">›</div>'
+      + '</div>';
+  });
+
+  el.innerHTML = html;
+}
+
+function filterContacts(q) {
+  var kw = (q || '').toLowerCase().trim();
+  document.querySelectorAll('#contactsList .contact-row').forEach(function(row) {
+    var name = row.getAttribute('data-name') || '';
+    row.style.display = (!kw || name.indexOf(kw) >= 0) ? '' : 'none';
+  });
+}
+
+function filterDmList(q) {
+  var kw = (q || '').toLowerCase().trim();
+  document.querySelectorAll('#chatList .chat-row').forEach(function(row) {
+    var name = (row.querySelector('.chat-name') || {}).textContent || '';
+    var preview = (row.querySelector('.chat-preview') || {}).textContent || '';
+    var match = !kw || name.toLowerCase().indexOf(kw) >= 0 || preview.toLowerCase().indexOf(kw) >= 0;
+    row.style.display = match ? '' : 'none';
+  });
+}
+
+function filterMomentsFeed(q) {
+  var kw = (q || '').toLowerCase().trim();
+  document.querySelectorAll('#momentsFeed .moment-card, #momentsFeed [data-moment]').forEach(function(card) {
+    var text = card.textContent || '';
+    card.style.display = (!kw || text.toLowerCase().indexOf(kw) >= 0) ? '' : 'none';
+  });
+}
+
+function openChatByMemberId(memberId) {
+  var idx = CHATS.findIndex(function(c) { return c.memberId === memberId; });
+  if (idx >= 0) {
+    switchChatTab('dm');
+    setTimeout(function(){ openChat(idx); }, 100);
+  }
+}
 var MOMENTS_DATA = [];
 var momentImgFiles = [];
 var momentLocTag = null;
@@ -5559,8 +5894,7 @@ function buildMomentsFeed() {
     return;
   }
   window._momentPhotoMap = {};
-  feed.innerHTML = '<div style="padding:14px 14px 4px;font-size:15px;font-weight:700;color:var(--ink)">'+t('familyFeed')+'</div>'
-    + MOMENTS_DATA.map(function(m) {
+  feed.innerHTML = MOMENTS_DATA.map(function(m) {
       var imgHtml = '';
       if (m.imageUrls && m.imageUrls.length > 1) {
         window._momentPhotoMap[m.id] = m.imageUrls.slice(0,9);
