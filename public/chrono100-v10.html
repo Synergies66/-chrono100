@@ -1046,6 +1046,24 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
         </div>
       </div>
 
+      <!-- ✨ AI 每日感知卡 -->
+      <div id="aiInsightCard" style="margin:10px 16px 0;display:none">
+        <div style="background:linear-gradient(135deg,rgba(13,18,30,0.92),rgba(18,24,42,0.88));border-radius:20px;border:0.5px solid rgba(56,189,248,0.18);padding:14px 16px;backdrop-filter:blur(12px);position:relative;overflow:hidden">
+          <!-- ambient glow -->
+          <div style="position:absolute;top:-30px;right:-30px;width:100px;height:100px;border-radius:50%;background:rgba(56,189,248,0.06);pointer-events:none"></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+            <div style="width:24px;height:24px;border-radius:8px;background:linear-gradient(135deg,rgba(56,189,248,0.2),rgba(34,211,238,0.1));border:0.5px solid rgba(56,189,248,0.3);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">✨</div>
+            <div style="font-size:9px;font-weight:600;color:rgba(56,189,248,0.9);letter-spacing:0.12em">AI 今日感知</div>
+            <div style="margin-left:auto;font-size:9px;color:rgba(255,255,255,0.25)" id="aiInsightTime"></div>
+          </div>
+          <div id="aiInsightText" style="font-size:13px;color:rgba(238,242,255,0.85);line-height:1.85;font-family:'DM Serif Display',Georgia,serif;font-style:italic"></div>
+          <div style="margin-top:10px;padding-top:8px;border-top:0.5px solid rgba(255,255,255,0.07);display:flex;align-items:center;gap:8px">
+            <div id="aiInsightTags" style="display:flex;gap:5px;flex:1;flex-wrap:wrap"></div>
+            <div onclick="openAIInsightFull()" style="font-size:10px;color:rgba(56,189,248,0.7);cursor:pointer;flex-shrink:0;white-space:nowrap">深度分析 ›</div>
+          </div>
+        </div>
+      </div>
+
       <!-- 天气 + K1980 合并一行 -->
       <div style="margin:10px 16px 0;display:flex;gap:10px;align-items:stretch;min-height:88px">
         <!-- 天气卡片（常驻显示） -->
@@ -1326,11 +1344,11 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
         <div class="settings-section" style="margin-bottom:4px">
           <div class="settings-section-title" data-i18n-key="sArchiveTitle">&#129504; 智能分析</div>
           <div class="settings-list">
-            <div class="settings-row" onclick="openSmartNotes()" style="align-items:flex-start;padding:14px">
-              <div class="settings-ico" style="background:linear-gradient(135deg,#FFF0E8,#FFE0CC);margin-top:2px">&#129504;</div>
+            <div class="settings-row" onclick="window.location.href='ai.html'" style="align-items:flex-start;padding:14px">
+              <div class="settings-ico" style="background:linear-gradient(135deg,#0D1A2E,#0090CC);margin-top:2px">✨</div>
               <div class="settings-row-body">
-                <div class="settings-row-label" data-i18n-key="sSmartNotes">AI 智能笔记分析</div>
-                <div class="settings-row-sub" data-i18n-key="sSmartNotesDesc">上传会议纪要/日记 · AI生成结构化总结和建议</div>
+                <div class="settings-row-label" data-i18n-key="sSmartNotes">AI 智能分析</div>
+                <div class="settings-row-sub" data-i18n-key="sSmartNotesDesc">照片 · 会议 · 学习 · 工作 — 即时判断建议</div>
               </div>
               <div class="settings-arr">&#8250;</div>
             </div>
@@ -10787,25 +10805,178 @@ function renderTrajList(){
 // Open full detail overlay for a single moment
 async function openMomentDetail(mid) {
   if (!mid) return;
-  // Search all caches
   var all = (window._trajMomentsCache||[]).concat(window._allMomentsCache||[]).concat(window._momentsCache||[]);
   var m = all.filter(function(x){ return x.id === mid; })[0];
-  if (m) {
-    _showDetailOverlay('&#128203; 记录详情', [m], new Date(m.taken_at).toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'long'}));
-    return;
+  if (!m) {
+    try {
+      var cl = sb(); if(!cl){ toast('连接失败'); return; }
+      var res = await cl.from('moments').select('*').eq('id', mid).single();
+      if (!res.data){ toast('记录不存在'); return; }
+      m = res.data;
+    } catch(e){ toast('加载失败'); return; }
   }
-  // Fetch from DB if not in cache
-  toast('加载中...');
-  try {
-    var cl = sb(); if(!cl) { toast('连接失败'); return; }
-    var res = await cl.from('moments').select('*').eq('id', mid).single();
-    if (res.data) {
-      _showDetailOverlay('&#128203; 记录详情', [res.data], new Date(res.data.taken_at).toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'long'}));
-    } else {
-      toast('记录不存在');
-    }
-  } catch(e) { toast('加载失败'); }
+  _showImmersiveDetail(m, all);
 }
+
+function _showImmersiveDetail(m, allMoments) {
+  var ex = document.getElementById('momentDetailOv'); if(ex) ex.remove();
+  var ov = document.createElement('div');
+  ov.id = 'momentDetailOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:800;display:flex;flex-direction:column;background:#070A12;overflow-y:auto;-webkit-overflow-scrolling:touch;animation:slideInUp .3s cubic-bezier(.16,1,.3,1)';
+
+  var d = new Date(m.taken_at || m.created_at);
+  var dateStr = d.getFullYear() + '年' + (d.getMonth()+1) + '月' + d.getDate() + '日';
+  var weekdays = ['周日','周一','周二','周三','周四','周五','周六'];
+  var timeStr = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+  var dayPart = d.getHours() < 6 ? 'midnight' : d.getHours() < 12 ? 'morning' : d.getHours() < 18 ? 'afternoon' : 'night';
+  var sceneHTML = _buildSceneIllustration(dayPart, m);
+  var imageUrls = [];
+  try { if(m.image_urls) imageUrls = JSON.parse(m.image_urls); } catch(e){}
+  if (m.photo_url && !imageUrls.includes(m.photo_url)) imageUrls.unshift(m.photo_url);
+  var photosHTML = imageUrls.length ? '<div style="display:flex;gap:8px;margin-top:4px">'
+    + imageUrls.slice(0,3).map(function(u,i){
+      return '<div style="flex:1;height:100px;border-radius:14px;overflow:hidden;cursor:pointer" onclick="_openPhotoFull(\''+esc(u)+'\')">'
+        +'<img src="'+esc(u)+'" style="width:100%;height:100%;object-fit:cover" loading="lazy"></div>';
+    }).join('') + '</div>' : '';
+
+  // Map mini
+  var mapHTML = (m.lat && m.lng) ? '<div style="height:68px;background:rgba(56,189,248,0.05);border-radius:12px;border:0.5px solid rgba(56,189,248,0.15);display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer" onclick="_openMapLocation('+m.lat+','+m.lng+')">'
+    +'<span style="font-size:20px">📍</span>'
+    +'<div><div style="font-size:12px;font-weight:500;color:rgba(238,242,255,0.85)">'+(m.place_name||'查看位置')+'</div>'
+    +'<div style="font-size:10px;color:rgba(238,242,255,0.4);margin-top:2px">'+parseFloat(m.lat).toFixed(4)+'° S · '+parseFloat(m.lng).toFixed(4)+'° E</div></div>'
+    +'</div>' : '';
+
+  // Prev/next
+  var idx = allMoments.indexOf(m);
+  var prevM = idx > 0 ? allMoments[idx-1] : null;
+  var nextM = idx < allMoments.length-1 ? allMoments[idx+1] : null;
+  var navHTML = '<div style="display:flex;gap:8px">'
+    +(prevM?'<div style="flex:1;padding:9px 12px;border-radius:12px;background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);cursor:pointer;font-size:10px;color:rgba(238,242,255,0.5)" onclick="_navDetail(\''+prevM.id+'\')">← '
+      +esc((prevM.title||'前一条').slice(0,14))+'</div>':'<div style="flex:1"></div>')
+    +(nextM?'<div style="flex:1;padding:9px 12px;border-radius:12px;background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);cursor:pointer;font-size:10px;color:rgba(238,242,255,0.5);text-align:right" onclick="_navDetail(\''+nextM.id+'\')">'+esc((nextM.title||'后一条').slice(0,14))+' →</div>':'<div style="flex:1"></div>')
+    +'</div>';
+
+  ov.innerHTML = '<style>@keyframes slideInUp{from{transform:translateY(100%)}to{transform:translateY(0)}}</style>'
+    // Hero scene
+    + '<div style="position:relative;height:300px;flex-shrink:0;overflow:hidden">' + sceneHTML
+    + '<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,10,18,0.3) 0%,transparent 40%,transparent 55%,rgba(7,10,18,0.97) 100%)"></div>'
+    // Back button
+    + '<div onclick="document.getElementById(\'momentDetailOv\').remove()" style="position:absolute;top:calc(env(safe-area-inset-top,0px)+12px);left:14px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.1);border:0.5px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;cursor:pointer;z-index:5">←</div>'
+    // Date badge
+    + '<div style="position:absolute;top:calc(env(safe-area-inset-top,0px)+14px);left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.1);border:0.5px solid rgba(255,255,255,0.15);border-radius:20px;padding:4px 12px;z-index:5;white-space:nowrap">'
+    + '<span style="font-size:8px;color:rgba(255,255,255,0.7);letter-spacing:0.1em">'+dateStr+' '+weekdays[d.getDay()]+'</span></div>'
+    // Bottom of hero
+    + '<div style="position:absolute;bottom:0;left:0;right:0;padding:14px 16px 20px;z-index:5">'
+    + (m.emoji ? '<div style="font-size:28px;margin-bottom:6px">'+m.emoji+'</div>' : '')
+    + '<div style="font-size:18px;font-weight:500;color:#fff;line-height:1.35;letter-spacing:-0.01em">'+esc(m.title||'今日记录')+'</div>'
+    + '<div style="display:flex;align-items:center;gap:5px;margin-top:5px">'
+    + '<span style="font-size:9px;color:rgba(255,255,255,0.45)">'+timeStr+'</span>'
+    + (m.place_name ? '<span style="font-size:9px;color:rgba(255,255,255,0.25)">·</span><span style="font-size:9px;color:rgba(255,255,255,0.45)">'+esc(m.place_name)+'</span>' : '')
+    + (m.with_people ? '<span style="font-size:9px;color:rgba(255,255,255,0.25)">·</span><span style="font-size:9px;color:rgba(255,255,255,0.45)">和 '+esc(m.with_people)+'</span>' : '')
+    + '</div></div></div>'
+    // Scroll body
+    + '<div style="flex:1;padding:14px 16px calc(32px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px">'
+    // Quote
+    + (m.title ? '<div style="padding:12px 14px;border-left:2.5px solid rgba(251,191,36,0.6);background:rgba(251,191,36,0.05);border-radius:0 12px 12px 0">'
+      + '<div style="font-size:13px;color:rgba(238,242,255,0.85);line-height:1.8;font-family:Georgia,serif;font-style:italic">'+esc(m.title)+'</div>'
+      + '<div style="font-size:8px;color:rgba(238,242,255,0.3);margin-top:4px;letter-spacing:0.1em">你当时写下的</div>'
+      + '</div>' : '')
+    // Moment timeline
+    + '<div style="background:rgba(255,255,255,0.04);border-radius:16px;padding:13px 14px;border:0.5px solid rgba(255,255,255,0.07)">'
+    + '<div style="font-size:8px;font-weight:600;color:rgba(238,242,255,0.3);letter-spacing:0.15em;margin-bottom:9px">那一刻</div>'
+    + '<div style="display:flex;flex-direction:column;gap:8px">'
+    + '<div style="display:flex;gap:9px;align-items:center"><div style="width:26px;height:26px;border-radius:8px;background:rgba(56,189,248,0.1);display:flex;align-items:center;justify-content:center;font-size:12px">🕐</div><div><div style="font-size:11px;font-weight:500;color:rgba(238,242,255,0.85)">'+timeStr+'</div><div style="font-size:9px;color:rgba(238,242,255,0.4);margin-top:1px">'+dateStr+' '+weekdays[d.getDay()]+'</div></div></div>'
+    + (m.place_name ? '<div style="display:flex;gap:9px;align-items:center"><div style="width:26px;height:26px;border-radius:8px;background:rgba(251,191,36,0.1);display:flex;align-items:center;justify-content:center;font-size:12px">📍</div><div><div style="font-size:11px;font-weight:500;color:rgba(238,242,255,0.85)">'+esc(m.place_name)+'</div><div style="font-size:9px;color:rgba(238,242,255,0.4);margin-top:1px">记录地点</div></div></div>' : '')
+    + (imageUrls.length ? '<div style="display:flex;gap:9px;align-items:center"><div style="width:26px;height:26px;border-radius:8px;background:rgba(52,211,153,0.1);display:flex;align-items:center;justify-content:center;font-size:12px">📷</div><div><div style="font-size:11px;font-weight:500;color:rgba(238,242,255,0.85)">'+imageUrls.length+' 张照片</div><div style="font-size:9px;color:rgba(238,242,255,0.4);margin-top:1px">点击查看大图</div></div></div>' : '')
+    + '</div></div>'
+    // Photos
+    + (photosHTML ? '<div><div style="font-size:8px;font-weight:600;color:rgba(238,242,255,0.3);letter-spacing:0.15em;margin-bottom:7px">照片</div>'+photosHTML+'</div>' : '')
+    // Map
+    + (mapHTML ? '<div><div style="font-size:8px;font-weight:600;color:rgba(238,242,255,0.3);letter-spacing:0.15em;margin-bottom:7px">发生在这里</div>'+mapHTML+'</div>' : '')
+    // Prev/Next
+    + '<div><div style="font-size:8px;font-weight:600;color:rgba(238,242,255,0.3);letter-spacing:0.15em;margin-bottom:7px">前后记录</div>'+navHTML+'</div>'
+    // Actions
+    + '<div style="display:flex;gap:7px">'
+    + '<div style="flex:1;padding:11px;border-radius:13px;background:linear-gradient(135deg,#0284C7,#38BDF8);color:#fff;font-size:11px;font-weight:600;text-align:center;cursor:pointer" onclick="openAIInsightFull()">AI 深度分析</div>'
+    + '<div style="flex:1;padding:11px;border-radius:13px;background:rgba(255,255,255,0.05);color:rgba(238,242,255,0.7);font-size:11px;font-weight:600;text-align:center;cursor:pointer;border:0.5px solid rgba(255,255,255,0.08)" onclick="exportLifePDF()">存入档案</div>'
+    + '</div>'
+    + '</div>';
+
+  document.body.appendChild(ov);
+}
+
+// Scene illustration based on time of day
+function _buildSceneIllustration(dayPart, m) {
+  var scenes = {
+    midnight: '<div style="position:absolute;inset:0;background:linear-gradient(180deg,#060810,#0A1020,#0D1528)"></div>'
+      + '<div style="position:absolute;top:12%;left:72%;width:18px;height:18px;border-radius:50%;background:#F5EED4;opacity:0.85"></div>'
+      + '<div style="position:absolute;top:11%;left:74%;width:14px;height:14px;border-radius:50%;background:#0A1020"></div>'
+      + _stars(12) + _buildings('night') + _road(),
+    morning: '<div style="position:absolute;inset:0;background:linear-gradient(180deg,#1A2A5A,#2D4A80,#E8742A,#F5B040,#EBF3F8)"></div>'
+      + _stars(4) + _buildings('morning') + _road(),
+    afternoon: '<div style="position:absolute;inset:0;background:linear-gradient(180deg,#1A6BB5,#2A8AD4,#4AABE8,#B8D8F0)"></div>'
+      + '<div style="position:absolute;top:18%;left:70%;width:50px;height:50px;border-radius:50%;background:#FFFDE7;opacity:0.9"></div>'
+      + _buildings('day') + _road(),
+    night: '<div style="position:absolute;inset:0;background:linear-gradient(180deg,#080E1A,#0D1830,#1A2840)"></div>'
+      + '<div style="position:absolute;top:25%;left:5%;width:160px;height:60px;border-radius:50%;background:rgba(232,116,42,0.12)"></div>'
+      + _stars(8) + _trafficLight() + _buildings('night') + _road(),
+  };
+  return scenes[dayPart] || scenes.night;
+}
+
+function _stars(n) {
+  var html = '';
+  var positions = [[12,18],[8,65],[16,42],[20,80],[10,55],[14,30],[7,72],[18,88],[5,25],[22,50],[9,68],[15,38]];
+  for(var i=0;i<Math.min(n,positions.length);i++){
+    html += '<div style="position:absolute;top:'+positions[i][0]+'%;left:'+positions[i][1]+'%;width:'+((i%2)+1)+'px;height:'+((i%2)+1)+'px;border-radius:50%;background:#fff;opacity:'+(0.3+i*0.05)+'"></div>';
+  }
+  return html;
+}
+
+function _buildings(time) {
+  var col = time==='day'?'#0C2A4A':time==='morning'?'#1A1030':'#0C1A28';
+  return '<div style="position:absolute;bottom:28px;left:0;display:flex;align-items:flex-end;gap:2px">'
+    +'<div style="width:30px;height:72px;background:'+col+';border-radius:1px 1px 0 0"></div>'
+    +'<div style="width:22px;height:50px;background:'+col+';border-radius:1px 1px 0 0"></div>'
+    +'<div style="width:36px;height:88px;background:'+col+';border-radius:1px 1px 0 0"></div>'
+    +'<div style="width:18px;height:42px;background:'+col+';border-radius:1px 1px 0 0"></div>'
+    +'</div>'
+    +'<div style="position:absolute;bottom:28px;right:0;display:flex;align-items:flex-end;gap:2px">'
+    +'<div style="width:24px;height:55px;background:'+col+';border-radius:1px 1px 0 0"></div>'
+    +'<div style="width:32px;height:76px;background:'+col+';border-radius:1px 1px 0 0"></div>'
+    +'<div style="width:20px;height:44px;background:'+col+';border-radius:1px 1px 0 0"></div>'
+    +'</div>';
+}
+
+function _road() {
+  return '<div style="position:absolute;bottom:0;left:0;right:0;height:28px;background:#111820"></div>'
+    +'<div style="position:absolute;bottom:12px;left:20%;right:20%;border-top:1.5px dashed rgba(255,255,255,0.15)"></div>';
+}
+
+function _trafficLight() {
+  return '<div style="position:absolute;bottom:28px;left:58%;width:4px;height:50px;background:#1a2030;border-radius:2px"></div>'
+    +'<div style="position:absolute;bottom:76px;left:57%;width:8px;height:18px;background:#1a2030;border-radius:2px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:2px">'
+    +'<div style="width:5px;height:5px;border-radius:50%;background:rgba(220,40,40,0.95)"></div>'
+    +'<div style="width:5px;height:5px;border-radius:50%;background:rgba(255,180,0,0.2)"></div>'
+    +'<div style="width:5px;height:5px;border-radius:50%;background:rgba(40,180,60,0.2)"></div>'
+    +'</div>';
+}
+
+function _navDetail(mid) {
+  var ex = document.getElementById('momentDetailOv'); if(ex) ex.remove();
+  openMomentDetail(mid);
+}
+
+function _openPhotoFull(url) {
+  openPhotoViewer([url], 0);
+}
+
+function _openMapLocation(lat, lng) {
+  var url = 'https://maps.google.com/?q='+lat+','+lng;
+  window.open(url, '_blank');
+}
+
+
 async function deleteTrajItem(id, el) {
   if (!id) return;
   showConfirm(t('confirmDelete'), function() {
@@ -12583,7 +12754,144 @@ var _origRenderTodayList = renderTodayList;
 renderTodayList = function() {
   _origRenderTodayList.apply(this, arguments);
   try { buildDailySummary(); } catch(e) {}
+  try { generateAIInsight(); } catch(e) {}
 };
+
+// ════════════════════════════════════════
+// ✨ AI 每日感知卡 — 首页核心差异化功能
+// 把今日数据转化为有温度的个人洞察
+// ════════════════════════════════════════
+async function generateAIInsight() {
+  var card = document.getElementById('aiInsightCard');
+  var textEl = document.getElementById('aiInsightText');
+  var tagsEl = document.getElementById('aiInsightTags');
+  var timeEl = document.getElementById('aiInsightTime');
+  if (!card || !textEl) return;
+
+  var items = window._todayItemsCache || [];
+  if (!items.length) { card.style.display = 'none'; return; }
+
+  // Check cache (regenerate at most once per hour)
+  var cacheKey = 'c100_ai_insight_' + new Date().toDateString();
+  try {
+    var cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+    if (cached && cached.text) {
+      card.style.display = 'block';
+      typewriterEffect(textEl, cached.text, 20);
+      if (tagsEl && cached.tags) renderInsightTags(tagsEl, cached.tags);
+      if (timeEl) timeEl.textContent = cached.generatedAt || '';
+      return;
+    }
+  } catch(e) {}
+
+  // Build context for AI
+  var ctx = buildInsightContext(items);
+  if (!ctx) return;
+
+  card.style.display = 'block';
+  textEl.textContent = '正在感知今天的你…';
+  textEl.style.opacity = '0.4';
+
+  var prompt = '你是一位有温度、有洞察力的生活记录助手。请根据以下今日记录数据，用2-3句话生成一段有温度、有洞察的今日感知。\n\n'
+    + '要求：\n'
+    + '1. 不要列举数字，要像老朋友说话，有情感温度\n'
+    + '2. 找出今天最值得被记住的一个点，放大它\n'
+    + '3. 如果有家人/朋友，一定要提到\n'
+    + '4. 结尾给一句有力量的话\n'
+    + '5. 总长度控制在60-80字\n\n'
+    + '今日数据：\n' + ctx + '\n\n'
+    + '同时输出3个情绪/场景标签（每个3-5字），格式：\n'
+    + 'JSON: {"text":"感知文字","tags":["标签1","标签2","标签3"]}';
+
+  try {
+    var res = await fetch('https://flerfkkbzrnxreszxmcd.supabase.co/functions/v1/ai-proxy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': 'sb_publishable_9ipOnX_DwgqDi1-z8Im4qA_EeAs7MEn' },
+      body: JSON.stringify({ prompt: prompt, max_tokens: 300 })
+    });
+    if (!res.ok) throw new Error('API error');
+    var data = await res.json();
+    var raw = (data.text || '').replace(/```json\n?/g,'').replace(/```/g,'').trim();
+    var parsed;
+    try {
+      var s = raw.indexOf('{'), en = raw.lastIndexOf('}');
+      parsed = JSON.parse(s >= 0 && en > s ? raw.slice(s, en+1) : raw);
+    } catch(e) { parsed = { text: raw, tags: [] }; }
+
+    var insightText = parsed.text || raw;
+    var tags = parsed.tags || [];
+    var now = new Date();
+    var generatedAt = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ' 生成';
+
+    textEl.style.opacity = '1';
+    typewriterEffect(textEl, insightText, 18);
+    if (tagsEl) renderInsightTags(tagsEl, tags);
+    if (timeEl) timeEl.textContent = generatedAt;
+
+    // Cache for 1 hour
+    try { localStorage.setItem(cacheKey, JSON.stringify({ text: insightText, tags: tags, generatedAt: generatedAt })); } catch(e) {}
+
+  } catch(e) {
+    // Fallback: rule-based narrative
+    var fallback = buildFallbackInsight(items);
+    textEl.style.opacity = '1';
+    textEl.textContent = fallback;
+  }
+}
+
+function buildInsightContext(items) {
+  if (!items.length) return '';
+  var lines = [];
+  items.forEach(function(it) {
+    var line = (it.t || '') + ' ' + (it.lbl || '').replace(/^[^\w\u4e00-\u9fff]+/, '');
+    if (it.with_people) line += ' (和' + it.with_people + ')';
+    if (it.thumb) line += ' [有照片]';
+    if (it.sub && it.sub.includes('位置')) line += ' [有定位]';
+    if (line.trim()) lines.push(line.trim());
+  });
+  var weather = document.getElementById('weatherTemp');
+  var loc = document.getElementById('weatherLocation');
+  if (weather && weather.textContent !== '--°C') lines.push('天气: ' + weather.textContent + ', ' + (document.getElementById('weatherDesc')||{}).textContent);
+  if (loc) lines.push('位置: ' + loc.textContent.replace('📍 ',''));
+  return lines.join('\n');
+}
+
+function buildFallbackInsight(items) {
+  var n = items.length;
+  var people = {};
+  items.forEach(function(it){ if(it.with_people) people[it.with_people]=1; });
+  var ps = Object.keys(people);
+  var hasPhoto = items.some(function(it){ return it.thumb; });
+  var txt = '今天留下了 ' + n + ' 条印记';
+  if (ps.length) txt += '，和' + ps[0] + '一起';
+  if (hasPhoto) txt += '，还用镜头记住了某个瞬间';
+  txt += '。每一天都值得被好好记住。';
+  return txt;
+}
+
+function renderInsightTags(el, tags) {
+  if (!tags || !tags.length) return;
+  var colors = ['rgba(56,189,248,0.12)','rgba(52,211,153,0.12)','rgba(251,191,36,0.12)'];
+  var textColors = ['rgba(56,189,248,0.8)','rgba(52,211,153,0.8)','rgba(251,191,36,0.8)'];
+  el.innerHTML = tags.slice(0,3).map(function(tag, i){
+    return '<span style="font-size:9px;padding:2px 9px;border-radius:20px;background:'+colors[i%3]+';color:'+textColors[i%3]+';border:0.5px solid '+textColors[i%3].replace('0.8','0.2')+'">'+esc(tag)+'</span>';
+  }).join('');
+}
+
+function typewriterEffect(el, text, speed) {
+  el.textContent = '';
+  var i = 0;
+  var iv = setInterval(function(){
+    if (i >= text.length) { clearInterval(iv); return; }
+    el.textContent += text[i++];
+  }, speed || 20);
+}
+
+function openAIInsightFull() {
+  window.location.href = 'ai.html';
+}
+
+
 
 
 
