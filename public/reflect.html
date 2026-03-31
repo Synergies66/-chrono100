@@ -783,7 +783,7 @@ ${momentList}
     res = await fetch(AI_FN, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: prompt }),
+      body: JSON.stringify({ messages: [{ role: 'user', content: prompt }] }),
     })
     if (!res.ok) throw new Error(`AI ${res.status}`)
     data = await res.json()
