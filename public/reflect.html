@@ -746,9 +746,9 @@ async function generateInsights(profile, moments, weekData) {
   const name = profile.real_name || profile.username || '你'
 
   const momentList = moments.map((m,i) => {
-    const t = typeInfo(m.category)
-    const ai = m.ai_insight ? `[AI:${m.ai_insight.slice(0,60)}]` : ''
-    return `${i+1}.[${t.label}] ${(m.content||'').slice(0,80)} ${ai}`
+    const t = typeInfo(m.mood)
+    const ai = m.ai_insight ? `[AI:${String(m.ai_insight).slice(0,60)}]` : ''
+    return `${i+1}.[${t.label}] ${(m.title||'').slice(0,80)} ${ai}`
   }).join('\n') || '（今天还没有记录）'
 
   const weekSummary = weekData.map(d => `${d.label}:${d.count}条`).join(' ')
@@ -817,7 +817,7 @@ async function fetchData() {
 
   // Today's moments
   STATE.todayMoments = await supa(
-    `moments?user_id=eq.${uid}&created_at=gte.${todayISO()}&order=created_at.asc&select=id,content,category,image_url,ai_insight,created_at`
+    `moments?user_id=eq.${uid}&created_at=gte.${todayISO()}&order=created_at.asc&select=id,title,mood,image_urls,ai_insight,created_at`
   )
 
   // Week data (last 7 days)
@@ -942,12 +942,12 @@ function renderMain() {
 
   // ── moments list ──
   const momentItems = ms.length ? ms.map((m,i) => {
-    const t   = typeInfo(m.category)
+    const t   = typeInfo(m.mood)
     const delay = (i*0.07).toFixed(2)
     return `<div class="moment-item" style="animation-delay:${delay}s">
       <div class="moment-dot">${t.icon}</div>
       <div class="moment-body">
-        <p class="moment-content">${esc(m.content || '（照片记录）')}</p>
+        <p class="moment-content">${esc(m.title || '（照片记录）')}</p>
         <div class="moment-meta">
           <span class="moment-time">${timeLabel(m.created_at)}</span>
           <span class="moment-tag">${t.label}</span>
