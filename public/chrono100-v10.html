@@ -1064,23 +1064,6 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
         </div>
       </div>
 
-      <!-- 🔮 每日复盘入口卡片 -->
-      <div onclick="window.location.href='reflect.html'" style="margin:10px 16px 0;cursor:pointer;-webkit-tap-highlight-color:transparent">
-        <div style="background:linear-gradient(135deg,rgba(0,229,195,0.10),rgba(77,184,255,0.07));border-radius:18px;border:1px solid rgba(0,229,195,0.22);padding:14px 16px;display:flex;align-items:center;gap:12px;position:relative;overflow:hidden;box-shadow:0 4px 20px rgba(0,229,195,0.08)">
-          <!-- glow -->
-          <div style="position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;background:rgba(0,229,195,0.07);pointer-events:none"></div>
-          <!-- icon -->
-          <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,rgba(0,229,195,0.18),rgba(77,184,255,0.12));border:0.5px solid rgba(0,229,195,0.3);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🔮</div>
-          <!-- text -->
-          <div style="flex:1;min-width:0">
-            <div style="font-size:13px;font-weight:600;color:rgba(0,229,195,0.95);margin-bottom:2px">今日复盘</div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.45);line-height:1.5">AI 分析情绪 · 成长轨迹 · 晚间感悟</div>
-          </div>
-          <!-- arrow -->
-          <div style="font-size:16px;color:rgba(0,229,195,0.5)">›</div>
-        </div>
-      </div>
-
       <!-- 天气 + K1980 合并一行 -->
       <div style="margin:10px 16px 0;display:flex;gap:10px;align-items:stretch;min-height:88px">
         <!-- 天气卡片（常驻显示） -->
@@ -1913,33 +1896,50 @@ function sb() {
           detectSessionInUrl: true,
           persistSession: true,
           autoRefreshToken: true,
-          storageKey: 'chrono100_auth'
+          storageKey: 'chrono100_auth',
+          persistSession: true
       } }
     );
     // Listen for auth changes immediately
     _sbClient.auth.onAuthStateChange(function(event, session) {
       if (event === 'SIGNED_OUT') {
-        // 多次重试确认，避免网络抖动/token刷新中途误退出
+        // 网络抖动/token刷新时会误触发SIGNED_OUT，大量重试避免误退出
         var retries = 0;
-        var maxRetries = 5;
+        var maxRetries = 12; // 最多重试12次 = 60秒
         var checkInterval = setInterval(async function() {
           retries++;
           try {
             var cl = sb();
             if (!cl) { clearInterval(checkInterval); return; }
+            // 先尝试刷新token
+            try { await cl.auth.refreshSession(); } catch(re) {}
             var check = await cl.auth.getSession();
             var stillLoggedIn = check && check.data && check.data.session && check.data.session.user;
             if (stillLoggedIn) {
-              clearInterval(checkInterval); // session 还在，忽略
+              clearInterval(checkInterval); // session 还在，忽略这次SIGNED_OUT
               return;
             }
           } catch(e) {
-            // 网络错误，继续等待
+            // 网络错误，继续等待，不要退出
             if (retries < maxRetries) return;
           }
           if (retries >= maxRetries) {
             clearInterval(checkInterval);
-            // 最终确认退出了
+            // 最后再检查一次localStorage里有没有token
+            var hasLocalToken = false;
+            var tokenKeys = ['chrono100_auth', 'sb-flerfkkbzrnxreszxmcd-auth-token'];
+            for (var k of tokenKeys) {
+              try {
+                var raw = localStorage.getItem(k);
+                if (raw) {
+                  var p = JSON.parse(raw);
+                  var t = p.access_token || (p.currentSession && p.currentSession.access_token) || '';
+                  if (t) { hasLocalToken = true; break; }
+                }
+              } catch(e2) {}
+            }
+            if (hasLocalToken) return; // token还在，不退出
+            // 真的退出了才显示登录页
             var loginEl = document.getElementById('login');
             var appEl = document.getElementById('app');
             if (appEl && appEl.style.display !== 'none') {
@@ -1947,7 +1947,7 @@ function sb() {
               if (appEl) appEl.style.display = 'none';
             }
           }
-        }, 3000); // 每3秒检查一次，最多检查5次（15秒）
+        }, 5000); // 每5秒检查一次，最多60秒
         return;
       }
       // TOKEN_REFRESHED — session renewed silently, stay in app
