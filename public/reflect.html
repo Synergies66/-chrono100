@@ -782,7 +782,17 @@ ${momentList}
   try {
     res = await fetch(AI_FN, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + (() => {
+          const keys = ['chrono100_auth','sb-flerfkkbzrnxreszxmcd-auth-token','chrono_session']
+          for (const k of keys) {
+            try { const p = JSON.parse(localStorage.getItem(k)||'{}'); const t = p.access_token||(p.currentSession&&p.currentSession.access_token)||''; if(t) return t } catch(e){}
+          }
+          return ANON_KEY
+        })(),
+        'apikey': ANON_KEY,
+      },
       body: JSON.stringify({ messages: [{ role: 'user', content: prompt }], max_tokens: 1000 }),
     })
     if (!res.ok) throw new Error(`AI ${res.status}`)
