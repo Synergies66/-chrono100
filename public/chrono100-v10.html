@@ -1884,10 +1884,35 @@ function sb() {
     // Listen for auth changes immediately
     _sbClient.auth.onAuthStateChange(function(event, session) {
       if (event === 'SIGNED_OUT') {
-        var loginEl = document.getElementById('login');
-        var appEl = document.getElementById('app');
-        if (loginEl) loginEl.style.display = 'flex';
-        if (appEl) appEl.style.display = 'none';
+        // 多次重试确认，避免网络抖动/token刷新中途误退出
+        var retries = 0;
+        var maxRetries = 5;
+        var checkInterval = setInterval(async function() {
+          retries++;
+          try {
+            var cl = sb();
+            if (!cl) { clearInterval(checkInterval); return; }
+            var check = await cl.auth.getSession();
+            var stillLoggedIn = check && check.data && check.data.session && check.data.session.user;
+            if (stillLoggedIn) {
+              clearInterval(checkInterval); // session 还在，忽略
+              return;
+            }
+          } catch(e) {
+            // 网络错误，继续等待
+            if (retries < maxRetries) return;
+          }
+          if (retries >= maxRetries) {
+            clearInterval(checkInterval);
+            // 最终确认退出了
+            var loginEl = document.getElementById('login');
+            var appEl = document.getElementById('app');
+            if (appEl && appEl.style.display !== 'none') {
+              if (loginEl) loginEl.style.display = 'flex';
+              if (appEl) appEl.style.display = 'none';
+            }
+          }
+        }, 3000); // 每3秒检查一次，最多检查5次（15秒）
         return;
       }
       // TOKEN_REFRESHED — session renewed silently, stay in app
@@ -4483,31 +4508,70 @@ async function restoreProfileFromDB() {
   var uid = await getUid();
   if (!uid) return;
   try {
-    var res = await client.from('profiles').select('display_name,emoji,bio,invite_code,avatar_url').eq('id', uid).maybeSingle();
+    var res = await client.from('profiles')
+      .select('display_name,emoji,bio,avatar_url,phone,email,role,city,invite_code,real_name')
+      .eq('id', uid).maybeSingle();
     if (res.data) {
       var p = res.data;
-      // Only update if DB has richer data than what we have
-      if (p.display_name && p.display_name !== '用户' && p.display_name !== userName) {
+      var changed = false;
+      // 只要DB有值就覆盖本地（DB是权威来源）
+      if (p.display_name && p.display_name !== '用户') {
         userName = p.display_name;
         try { localStorage.setItem('c100_name', userName); } catch(e) {}
+        changed = true;
       }
-      if (p.emoji && p.emoji !== '😊') {
+      if (p.emoji) {
         userEmoji = p.emoji;
         try { localStorage.setItem('c100_emoji', userEmoji); } catch(e) {}
       }
+      if (p.bio) {
+        userBio = p.bio;
+        try { localStorage.setItem('c100_bio', userBio); } catch(e) {}
+      }
+      if (p.role) {
+        userRole = p.role;
+        try { localStorage.setItem('c100_role', userRole); } catch(e) {}
+      }
+      if (p.city) {
+        userCity = p.city;
+        try { localStorage.setItem('c100_city', userCity); } catch(e) {}
+      }
+      if (p.real_name) {
+        userRealName = p.real_name;
+        try { localStorage.setItem('c100_realname', userRealName); } catch(e) {}
+      }
+      if (p.phone) {
+        // phone might be stored as +64xxxxxxx
+        var ph = p.phone.replace(/^\+\d{1,3}/, '');
+        userPhone = ph;
+        try { localStorage.setItem('c100_phone', ph); } catch(e) {}
+      }
+      if (p.email) {
+        userEmail = p.email;
+        try { localStorage.setItem('c100_email', userEmail); } catch(e) {}
+      }
       if (p.avatar_url) {
-        // Store clean URL, add cache-bust only for display
         var cleanUrl = p.avatar_url.split('?')[0];
         userAvatarUrl = cleanUrl + '?t=' + Date.now();
         try { localStorage.setItem('c100_avatar', userAvatarUrl); } catch(e) {}
       }
       updateUI();
-    } else if (userName && userName !== '用户') {
-      // Save current profile to DB so it persists across devices
-      await client.from('profiles').upsert({
-        id: uid, display_name: userName, emoji: userEmoji || '😊',
-        invite_code: getInviteCode()
-      }, { onConflict: 'id' });
+    } else {
+      // 数据库没有记录 → 把本地数据写进去
+      if (userName && userName !== '用户') {
+        var fullPhone = userPhone ? ((userPhoneCC||'') + userPhone) : null;
+        await client.from('profiles').upsert({
+          id: uid,
+          display_name: userName,
+          emoji: userEmoji || '😊',
+          bio: userBio || null,
+          role: userRole || null,
+          city: userCity || null,
+          phone: fullPhone || null,
+          email: userEmail || null,
+          invite_code: getInviteCode()
+        }, { onConflict: 'id' });
+      }
     }
   } catch(e) { console.warn('restoreProfileFromDB:', e); }
 }
@@ -10002,15 +10066,19 @@ async function saveProfile() {
       id: uid,
       display_name: userName,
       emoji: userEmoji,
-      bio: userBio,
+      bio: userBio || null,
       phone: fullPhone || null,
       email: userEmail || null,
       city: userCity || null,
       role: userRole || null,
+      real_name: userRealName || null,
       invite_code: getInviteCode()
     };
     var pr = await client.from('profiles').upsert(profileRow, { onConflict: 'id' });
-    if (pr.error) console.warn('saveProfile error:', pr.error.message);
+    if (pr.error) {
+      console.warn('saveProfile DB error:', pr.error.message);
+      toast('⚠️ 云端同步失败，资料已保存到本地');
+    }
   }
 
   closeEditProfile();
@@ -13839,6 +13907,22 @@ loadSavedTheme();
 document.addEventListener('visibilitychange', function() {
   if (document.visibilityState === 'visible') {
     try { refreshBadge(); } catch(e) {}
+    // 重新进入前台：静默检查 session，有效则刷新资料
+    // 绝对不做 reload()，避免网络抖动误退出
+    setTimeout(async function() {
+      try {
+        var cl = sb(); if (!cl) return;
+        var appEl = document.getElementById('app');
+        if (!appEl || appEl.style.display === 'none') return;
+        var sess = await cl.auth.getSession();
+        var u = sess && sess.data && sess.data.session && sess.data.session.user;
+        if (u) {
+          // session 有效，静默刷新资料
+          try { restoreProfileFromDB(); } catch(e) {}
+        }
+        // session 无效时不操作，交给 onAuthStateChange 的多次重试机制处理
+      } catch(e) {}
+    }, 1000);
   }
 });
 // Migrate old anon_ UID to proper UUID format
