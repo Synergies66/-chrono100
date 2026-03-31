@@ -1896,50 +1896,33 @@ function sb() {
           detectSessionInUrl: true,
           persistSession: true,
           autoRefreshToken: true,
-          storageKey: 'chrono100_auth',
-          persistSession: true
+          storageKey: 'chrono100_auth'
       } }
     );
     // Listen for auth changes immediately
     _sbClient.auth.onAuthStateChange(function(event, session) {
       if (event === 'SIGNED_OUT') {
-        // 网络抖动/token刷新时会误触发SIGNED_OUT，大量重试避免误退出
+        // 多次重试确认，避免网络抖动/token刷新中途误退出
         var retries = 0;
-        var maxRetries = 12; // 最多重试12次 = 60秒
+        var maxRetries = 5;
         var checkInterval = setInterval(async function() {
           retries++;
           try {
             var cl = sb();
             if (!cl) { clearInterval(checkInterval); return; }
-            // 先尝试刷新token
-            try { await cl.auth.refreshSession(); } catch(re) {}
             var check = await cl.auth.getSession();
             var stillLoggedIn = check && check.data && check.data.session && check.data.session.user;
             if (stillLoggedIn) {
-              clearInterval(checkInterval); // session 还在，忽略这次SIGNED_OUT
+              clearInterval(checkInterval); // session 还在，忽略
               return;
             }
           } catch(e) {
-            // 网络错误，继续等待，不要退出
+            // 网络错误，继续等待
             if (retries < maxRetries) return;
           }
           if (retries >= maxRetries) {
             clearInterval(checkInterval);
-            // 最后再检查一次localStorage里有没有token
-            var hasLocalToken = false;
-            var tokenKeys = ['chrono100_auth', 'sb-flerfkkbzrnxreszxmcd-auth-token'];
-            for (var k of tokenKeys) {
-              try {
-                var raw = localStorage.getItem(k);
-                if (raw) {
-                  var p = JSON.parse(raw);
-                  var t = p.access_token || (p.currentSession && p.currentSession.access_token) || '';
-                  if (t) { hasLocalToken = true; break; }
-                }
-              } catch(e2) {}
-            }
-            if (hasLocalToken) return; // token还在，不退出
-            // 真的退出了才显示登录页
+            // 最终确认退出了
             var loginEl = document.getElementById('login');
             var appEl = document.getElementById('app');
             if (appEl && appEl.style.display !== 'none') {
@@ -1947,7 +1930,7 @@ function sb() {
               if (appEl) appEl.style.display = 'none';
             }
           }
-        }, 5000); // 每5秒检查一次，最多60秒
+        }, 3000); // 每3秒检查一次，最多检查5次（15秒）
         return;
       }
       // TOKEN_REFRESHED — session renewed silently, stay in app
@@ -4553,6 +4536,13 @@ async function restoreProfileFromDB() {
       if (p.display_name && p.display_name !== '用户') {
         userName = p.display_name;
         try { localStorage.setItem('c100_name', userName); } catch(e) {}
+        // 数据库有名字 = 已完成设置，不再弹出首次设置
+        try { localStorage.setItem('c100_setup_done', '1'); } catch(e) {}
+        // 关闭首次设置弹窗（如果还在显示）
+        try {
+          var frOv = document.getElementById('firstRunOv');
+          if (frOv) { frOv.style.opacity='0'; frOv.style.pointerEvents='none'; }
+        } catch(e2) {}
         changed = true;
       }
       if (p.emoji) {
@@ -10287,6 +10277,12 @@ function showFirstRunIfNeeded() {
     if (done || hasName) return;
   } catch(e) { return; }
   setTimeout(function() {
+    // 预填已保存的名字
+    try {
+      var savedName = localStorage.getItem('c100_name');
+      var nameInput = document.getElementById('fr-name');
+      if (savedName && savedName !== '用户' && nameInput) nameInput.value = savedName;
+    } catch(e) {}
     // Init role picker
     var rp = document.getElementById('fr-role-picker');
     if (rp) rp.innerHTML = ROLES.map(function(r) {
@@ -10744,10 +10740,12 @@ function _doLogout() {
   var client = sb();
   if (client) client.auth.signOut().catch(function(){});
 
-  // 保留 c100_uid 和 c100_name，这样访客重新进入还能找到自己
-  // 只清除登录状态相关的内容
-  var _storedName = localStorage.getItem('c100_name'); userName = (_storedName && _storedName !== 'undefined') ? _storedName : '用户';
+  // 保留用户设置数据，退出后重新登录不需要重填
+  var _storedName = localStorage.getItem('c100_name');
+  userName = (_storedName && _storedName !== 'undefined') ? _storedName : '用户';
   userEmoji = localStorage.getItem('c100_emoji') || '😊';
+  // 保留 setup_done，退出后重新登录不弹设置引导
+  // （只有用户手动清除浏览器数据才会重置）
   userBio = ''; userAvatarUrl = '';
 
   document.getElementById('login').style.display = 'flex';
