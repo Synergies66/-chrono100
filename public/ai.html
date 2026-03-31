@@ -237,6 +237,12 @@ var _photos = [], _busy = false, _hist = [], _last = null;
 try { _hist = JSON.parse(localStorage.getItem('c100_ai_v2')||'[]'); } catch(x) {}
 
 function goBack(){ if(document.referrer && !document.referrer.includes('ai.html')){ history.back(); } else { location.href='chrono100-v10.html'; } }
+  // PWA 返回键拦截 — 防止退出App
+  history.pushState({page:'here'}, '')
+  window.addEventListener('popstate', function() {
+    location.href = 'chrono100-v10.html'
+  })
+
 
 function toast(msg, ms){
   var el=document.getElementById('toast');

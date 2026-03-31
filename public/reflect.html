@@ -1151,6 +1151,12 @@ async function boot() {
 }
 
 boot()
+
+  // PWA 返回键拦截 — 防止退出App
+  history.pushState({page:'here'}, '')
+  window.addEventListener('popstate', function() {
+    location.href = 'chrono100-v10.html'
+  })
 </script>
 </body>
 </html>
