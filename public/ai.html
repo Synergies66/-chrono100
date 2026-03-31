@@ -42,8 +42,19 @@ input,textarea{font-size:16px!important}
 .cz-title{font-size:16px;font-weight:600;letter-spacing:-0.02em}
 .cz-sub{font-size:12px;color:var(--ink3);text-align:center;line-height:1.7;max-width:260px}
 .cz-pills{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
-.cz-pill{font-size:9px;font-weight:500;padding:4px 10px;border-radius:20px;background:var(--card2);color:var(--ink3);border:0.5px solid var(--border2)}
+.cz-pill{font-size:12px;font-weight:500;padding:7px 14px;border-radius:20px;background:var(--card2);color:var(--ink2);border:0.5px solid var(--border2)}
 input[type=file]{display:none}
+
+.input-toggle{display:flex;gap:0;background:var(--card2);border-radius:14px;padding:3px;border:0.5px solid var(--border2);margin-bottom:2px}
+.it-btn{flex:1;padding:9px 0;text-align:center;font-size:13px;font-weight:500;border-radius:11px;cursor:pointer;transition:all .2s;color:var(--ink3)}
+.it-btn.active{background:var(--blue-d);color:#fff}
+.text-input-zone{display:none;flex-direction:column;gap:10px}
+.text-input-zone.show{display:flex}
+.txt-area{width:100%;min-height:120px;padding:14px;background:var(--card2);border:0.5px solid var(--border2);border-radius:16px;font-size:15px;color:var(--ink);resize:none;line-height:1.7}
+.txt-area:focus{border-color:rgba(56,189,248,0.4);outline:none}
+.txt-area::placeholder{color:var(--ink4)}
+.txt-hint{font-size:11px;color:var(--ink4);text-align:center;line-height:1.6}
+
 .photo-header{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:0.5px solid var(--border)}
 .photo-grid{display:flex;gap:6px;padding:10px;overflow-x:auto}
 .pg-item{width:72px;height:72px;border-radius:12px;flex-shrink:0;position:relative;overflow:hidden;border:1.5px solid var(--blue)}
@@ -210,7 +221,20 @@ input[type=file]{display:none}
       </div>
     </div>
 
-    <button class="analyze-btn ab-ready" id="analyzeBtn" style="display:none" onclick="startAnalysis()">
+    
+    <!-- 输入方式切换 -->
+    <div class="input-toggle" id="inputToggle">
+      <div class="it-btn active" id="btnPhoto" onclick="switchInput('photo')">📷 拍照/图片</div>
+      <div class="it-btn" id="btnText" onclick="switchInput('text')">✏️ 文字输入</div>
+    </div>
+
+    <!-- 文字输入区 -->
+    <div class="text-input-zone" id="textInputZone">
+      <textarea class="txt-area" id="textInput" placeholder="粘贴文字、输入内容，或描述你想分析的场景...&#10;&#10;例如：今天开了个项目启动会，讨论了Q2的目标..."></textarea>
+      <div class="txt-hint">支持：会议记录 · 文章总结 · 工作文件 · 日记内容 · 任何想深度分析的文字</div>
+    </div>
+
+<button class="analyze-btn ab-ready" id="analyzeBtn" style="display:none" onclick="startAnalysis()">
       <span style="font-size:16px">&#10024;</span> 开始深度分析
     </button>
 
@@ -236,13 +260,7 @@ var _photos = [], _busy = false, _hist = [], _last = null;
 
 try { _hist = JSON.parse(localStorage.getItem('c100_ai_v2')||'[]'); } catch(x) {}
 
-function goBack(){ if(document.referrer && !document.referrer.includes('ai.html')){ history.back(); } else { location.href='chrono100-v10.html'; } }
-  // PWA 返回键拦截 — 防止退出App
-  history.pushState({page:'here'}, '')
-  window.addEventListener('popstate', function() {
-    location.href = 'chrono100-v10.html'
-  })
-
+function goBack(){ if(document.referrer&&!document.referrer.includes('ai.html')){history.back();}else{location.href='chrono100-v10.html';} }
 
 function toast(msg, ms){
   var el=document.getElementById('toast');
@@ -347,8 +365,26 @@ var PROMPT = '你是世界级的多场景智能分析专家，同时具备商业
   +'"parentNote":"（作业/课堂时）给家长的建议",'
   +'"childNote":"（作业/课堂时）给孩子的鼓励"}';
 
+
+function switchInput(mode){
+  var isPhoto = mode==='photo';
+  document.getElementById('btnPhoto').className='it-btn'+(isPhoto?' active':'');
+  document.getElementById('btnText').className='it-btn'+(isPhoto?'':' active');
+  document.getElementById('captureZone').style.display = isPhoto?'':'none';
+  document.getElementById('textInputZone').className='text-input-zone'+(isPhoto?'':' show');
+  // Show analyze btn if text has content
+  if(!isPhoto){
+    var ta=document.getElementById('textInput');
+    document.getElementById('analyzeBtn').style.display = ta.value.trim()?'flex':'none';
+    ta.oninput = function(){ document.getElementById('analyzeBtn').style.display=this.value.trim()?'flex':'none'; };
+  } else {
+    if(!_photos.length) document.getElementById('analyzeBtn').style.display='none';
+  }
+}
+
 async function startAnalysis(){
-  if(_busy||!_photos.length)return;
+  var _txtMode=document.getElementById("textInputZone")&&document.getElementById("textInputZone").classList.contains("show");
+if(_busy||(!_photos.length&&!_txtMode))return;
   _busy=true;
   var btn=document.getElementById('analyzeBtn');
   btn.className='analyze-btn ab-loading';
@@ -361,12 +397,21 @@ async function startAnalysis(){
   await animateScan();
 
   var content=[];
-  _photos.slice(0,4).forEach(function(p){
-    var b64=p.b64.split(',')[1];
-    var mm=p.b64.match(/data:([^;]+);/);
-    content.push({type:'image',source:{type:'base64',media_type:mm?mm[1]:'image/jpeg',data:b64}});
-  });
-  content.push({type:'text',text:PROMPT});
+  var textZone=document.getElementById('textInputZone');
+  var isTextMode = textZone && textZone.classList.contains('show');
+  if(isTextMode){
+    var userText=(document.getElementById('textInput').value||'').trim();
+    if(!userText){toast('请输入文字内容');_busy=false;return;}
+    content.push({type:'text',text:'请分析以下文字内容：\n\n'+userText+'\n\n'+PROMPT});
+  } else {
+    if(!_photos.length){toast('请先上传图片');_busy=false;return;}
+    _photos.slice(0,4).forEach(function(p){
+      var b64=p.b64.split(',')[1];
+      var mm=p.b64.match(/data:([^;]+);/);
+      content.push({type:'image',source:{type:'base64',media_type:mm?mm[1]:'image/jpeg',data:b64}});
+    });
+    content.push({type:'text',text:PROMPT});
+  }
 
   try{
     var raw=await callAI(content);
@@ -612,6 +657,10 @@ function loadHist(i){
   resetZone();
   renderResult(item.data);
 }
+
+// PWA 返回键 — 不退出App
+history.pushState({page:'here'},'');
+window.addEventListener('popstate',function(){ location.href='chrono100-v10.html'; });
 
 // Drag & drop
 document.addEventListener('dragover',function(e){e.preventDefault();document.getElementById('captureZone').classList.add('drag-over');});
