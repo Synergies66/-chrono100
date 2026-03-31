@@ -783,7 +783,7 @@ ${momentList}
     res = await fetch(AI_FN, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: [{ role: 'user', content: prompt }] }),
+      body: JSON.stringify({ messages: [{ role: 'user', content: prompt }], max_tokens: 1000 }),
     })
     if (!res.ok) throw new Error(`AI ${res.status}`)
     data = await res.json()
@@ -793,7 +793,7 @@ ${momentList}
   }
 
   const raw = (
-    data.reply || data.content || data.message ||
+    data.text  || data.content || data.reply   || data.message ||
     (Array.isArray(data.content) ? data.content.map(b=>b.text||'').join('') : '') ||
     ''
   ).replace(/```json|```/g,'').trim()
