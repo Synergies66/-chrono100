@@ -778,13 +778,19 @@ ${momentList}
   "reflection": "今日感悟（55-80字）：像写给未来自己的一句话，深刻但不鸡汤，真实而有温度。"
 }`
 
-  const res = await fetch(AI_FN, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message: prompt }),
-  })
-  if (!res.ok) throw new Error(`AI ${res.status}`)
-  const data = await res.json()
+  let res, data
+  try {
+    res = await fetch(AI_FN, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: prompt }),
+    })
+    if (!res.ok) throw new Error(`AI ${res.status}`)
+    data = await res.json()
+  } catch(aiErr) {
+    console.warn('[reflect] AI call failed, showing data without insights:', aiErr.message)
+    return null
+  }
 
   const raw = (
     data.reply || data.content || data.message ||
@@ -855,8 +861,15 @@ async function fetchData() {
   }
 
   if (STATE.todayMoments.length > 0) {
-    STATE.aiData = await generateInsights(STATE.profile, STATE.todayMoments, STATE.weekData)
-    localStorage.setItem(cacheK, JSON.stringify(STATE.aiData))
+    try {
+      STATE.aiData = await generateInsights(STATE.profile, STATE.todayMoments, STATE.weekData)
+      if (STATE.aiData) {
+        localStorage.setItem(cacheK, JSON.stringify(STATE.aiData))
+      }
+    } catch(e) {
+      console.warn('[reflect] AI insights skipped:', e.message)
+      STATE.aiData = null
+    }
   }
 }
 
