@@ -231,6 +231,7 @@ input[type=file]{display:none}
 <script>
 var EDGE = 'https://flerfkkbzrnxreszxmcd.supabase.co/functions/v1';
 var AKEY = 'sb_publishable_9ipOnX_DwgqDi1-z8Im4qA_EeAs7MEn';
+var FUNC = 'clever-task'; // actual Edge Function slug
 var _photos = [], _busy = false, _hist = [], _last = null;
 
 try { _hist = JSON.parse(localStorage.getItem('c100_ai_v2')||'[]'); } catch(x) {}
@@ -249,10 +250,35 @@ function handleFiles(files){
   if(!files||!files.length)return;
   Array.from(files).forEach(function(f){
     if(_photos.length>=6){toast('最多6张');return;}
-    var r=new FileReader();
-    r.onload=function(e){ _photos.push({b64:e.target.result,name:f.name}); renderPhotos(); };
-    r.readAsDataURL(f);
+    // Compress image before storing
+    compressImage(f, function(b64){
+      _photos.push({b64:b64,name:f.name});
+      renderPhotos();
+    });
   });
+}
+
+function compressImage(file, callback){
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var img = new Image();
+    img.onload = function(){
+      var canvas = document.createElement('canvas');
+      var MAX = 1024;
+      var w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+        else { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      canvas.width = w; canvas.height = h;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      var compressed = canvas.toDataURL('image/jpeg', 0.7);
+      callback(compressed);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
 function removePhoto(i){ _photos.splice(i,1); renderPhotos(); }
@@ -384,12 +410,31 @@ async function animateScan(){
 async function callAI(content){
   var token='';
   try{var ls=localStorage.getItem('chrono100_auth');if(ls){var s=JSON.parse(ls);token=s.access_token||'';}}catch(x){}
-  var res=await fetch(EDGE+'/ai-proxy',{
+  
+  // Try to get token from Supabase session stored under different keys
+  if (!token) {
+    var keys = ['chrono100_auth', 'sb-flerfkkbzrnxreszxmcd-auth-token', 'supabase.auth.token'];
+    for (var i = 0; i < keys.length; i++) {
+      try {
+        var raw = localStorage.getItem(keys[i]);
+        if (raw) {
+          var parsed = JSON.parse(raw);
+          token = (parsed.access_token) || (parsed.currentSession && parsed.currentSession.access_token) || '';
+          if (token) break;
+        }
+      } catch(x) {}
+    }
+  }
+
+  var res=await fetch(EDGE+'/'+FUNC,{
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+(token||AKEY),'apikey':AKEY},
     body:JSON.stringify({messages:[{role:'user',content:content}],max_tokens:2000})
   });
-  if(!res.ok){var e=await res.text();throw new Error('HTTP '+res.status+': '+e.slice(0,80));}
+  if(!res.ok){
+    var errText=await res.text();
+    throw new Error('HTTP '+res.status+': '+errText.slice(0,200));
+  }
   var d=await res.json();
   return d.text||d.content||'';
 }
