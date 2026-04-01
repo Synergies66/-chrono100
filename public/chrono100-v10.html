@@ -853,12 +853,88 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
 .pp-footer { text-align:center; padding:20px; color:#6E769E; font-size:11px; }
 [data-lang] { display: none; }
 
+
+/* ── 骨架屏动画 ── */
+@keyframes skPulse {
+  0%,100% { opacity:0.4; }
+  50%      { opacity:0.9; }
+}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
   <!-- OneSignal Push Notification SDK -->
   <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
   <script>
+
+// ============================================================
+// ⚡ 缓存层 v1 — stale-while-revalidate
+// 用户切换tab立刻看到数据，后台静默刷新
+// ============================================================
+var _CACHE_TTL = {
+  today:    60 * 1000,        // 今日动态：1分钟
+  contacts: 5  * 60 * 1000,   // 联系人：5分钟
+  circle:   30 * 1000,        // 家人位置：30秒
+  feed:     2  * 60 * 1000,   // 朋友圈动态：2分钟
+  messages: 60 * 1000,        // 消息列表：1分钟
+  weather:  10 * 60 * 1000,   // 天气：10分钟
+};
+
+// 写缓存
+function cacheSet(key, data) {
+  try {
+    localStorage.setItem('_cache_' + key, JSON.stringify({
+      ts: Date.now(),
+      data: data
+    }));
+  } catch(e) {}
+}
+
+// 读缓存（返回数据或null）
+function cacheGet(key, ttl) {
+  try {
+    var raw = localStorage.getItem('_cache_' + key);
+    if (!raw) return null;
+    var obj = JSON.parse(raw);
+    if (Date.now() - obj.ts > (ttl || 5 * 60 * 1000)) return null; // 过期
+    return obj.data;
+  } catch(e) { return null; }
+}
+
+// 强制清除某个缓存（数据更新时调用）
+function cacheClear(key) {
+  try { localStorage.removeItem('_cache_' + key); } catch(e) {}
+}
+
+// 清除所有缓存（退出登录时调用）
+function cacheClearAll() {
+  try {
+    Object.keys(localStorage)
+      .filter(function(k){ return k.startsWith('_cache_'); })
+      .forEach(function(k){ localStorage.removeItem(k); });
+  } catch(e) {}
+}
+
+// 骨架屏HTML — 数据加载中的占位
+function skeletonHtml(rows, type) {
+  var rowH = type === 'chat' ? 64 : type === 'map' ? 0 : 52;
+  var html = '';
+  for (var i = 0; i < (rows || 3); i++) {
+    if (type === 'chat') {
+      html += '<div style="display:flex;align-items:center;gap:12px;padding:11px 14px;opacity:'+(0.7-i*0.15)+'">'
+        + '<div style="width:44px;height:44px;border-radius:50%;background:var(--border);flex-shrink:0;animation:skPulse 1.4s ease-in-out '+(i*0.15)+'s infinite"></div>'
+        + '<div style="flex:1"><div style="height:13px;background:var(--border);border-radius:6px;width:60%;margin-bottom:6px;animation:skPulse 1.4s ease-in-out '+(i*0.15)+'s infinite"></div>'
+        + '<div style="height:11px;background:var(--border);border-radius:6px;width:85%;animation:skPulse 1.4s ease-in-out '+(i*0.2)+'s infinite"></div></div></div>';
+    } else {
+      html += '<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;opacity:'+(0.7-i*0.15)+'">'
+        + '<div style="width:38px;height:38px;border-radius:10px;background:var(--border);flex-shrink:0;animation:skPulse 1.4s ease-in-out '+(i*0.15)+'s infinite"></div>'
+        + '<div style="flex:1"><div style="height:12px;background:var(--border);border-radius:6px;width:70%;margin-bottom:5px;animation:skPulse 1.4s ease-in-out '+(i*0.15)+'s infinite"></div>'
+        + '<div style="height:10px;background:var(--border);border-radius:6px;width:45%;animation:skPulse 1.4s ease-in-out '+(i*0.2)+'s infinite"></div></div></div>';
+    }
+  }
+  return html;
+}
+
+
     window.OneSignalDeferred = window.OneSignalDeferred || [];
     OneSignalDeferred.push(async function(OneSignal) {
       await OneSignal.init({
@@ -1915,27 +1991,32 @@ function sb() {
     // Listen for auth changes immediately
     _sbClient.auth.onAuthStateChange(function(event, session) {
       if (event === 'SIGNED_OUT') {
-        // 多次重试确认，避免网络抖动/token刷新中途误退出
+        // Token刷新期间会短暂触发SIGNED_OUT，用全局flag取消
+        if (window._tokenRefreshing) return;
         var retries = 0;
-        var maxRetries = 5;
-        var checkInterval = setInterval(async function() {
+        var maxRetries = 12; // 60秒
+        var _signoutInterval = setInterval(async function() {
+          // 如果TOKEN_REFRESHED已触发，立即取消
+          if (window._tokenRefreshing) { clearInterval(_signoutInterval); return; }
           retries++;
           try {
-            var cl = sb();
-            if (!cl) { clearInterval(checkInterval); return; }
+            var cl = sb(); if (!cl) { clearInterval(_signoutInterval); return; }
+            try { await cl.auth.refreshSession(); } catch(re) {}
             var check = await cl.auth.getSession();
             var stillLoggedIn = check && check.data && check.data.session && check.data.session.user;
-            if (stillLoggedIn) {
-              clearInterval(checkInterval); // session 还在，忽略
-              return;
-            }
-          } catch(e) {
-            // 网络错误，继续等待
-            if (retries < maxRetries) return;
-          }
+            if (stillLoggedIn) { clearInterval(_signoutInterval); return; }
+          } catch(e) { if (retries < maxRetries) return; }
           if (retries >= maxRetries) {
-            clearInterval(checkInterval);
-            // 最终确认退出了
+            clearInterval(_signoutInterval);
+            // 最后检查localStorage还有没有token
+            var hasToken = false;
+            ['chrono100_auth','sb-flerfkkbzrnxreszxmcd-auth-token'].forEach(function(k){
+              try { var p=JSON.parse(localStorage.getItem(k)||'{}');
+                if(p.access_token||(p.currentSession&&p.currentSession.access_token)) hasToken=true;
+              } catch(e2){}
+            });
+            if (hasToken) return;
+            // 确认真的退出
             var loginEl = document.getElementById('login');
             var appEl = document.getElementById('app');
             if (appEl && appEl.style.display !== 'none') {
@@ -1943,11 +2024,15 @@ function sb() {
               if (appEl) appEl.style.display = 'none';
             }
           }
-        }, 3000); // 每3秒检查一次，最多检查5次（15秒）
+        }, 5000);
         return;
       }
-      // TOKEN_REFRESHED — session renewed silently, stay in app
-      if (event === 'TOKEN_REFRESHED') return;
+      // TOKEN_REFRESHED — 标记正在刷新，防止SIGNED_OUT误退出
+      if (event === 'TOKEN_REFRESHED') {
+        window._tokenRefreshing = true;
+        setTimeout(function(){ window._tokenRefreshing = false; }, 10000);
+        return;
+      }
       if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session && session.user) {
         var u = session.user;
         var isAnon = u.is_anonymous === true
@@ -1955,8 +2040,7 @@ function sb() {
               && !(u.app_metadata && u.app_metadata.provider && u.app_metadata.provider !== 'anonymous')
               && !(u.identities && u.identities.length > 0));
         if (isAnon) return;
-        userName = (u.user_metadata && u.user_metadata.full_name && u.user_metadata.full_name !== "undefined" ? u.user_metadata.full_name : null)
-          || (u.email ? u.email.split('@')[0] : '用户');
+        _setUserName(u);
         var loginEl = document.getElementById('login');
         if (loginEl && loginEl.style.display !== 'none') enterApp();
       }
@@ -1998,8 +2082,7 @@ window.addEventListener('DOMContentLoaded', function() {
       // 有有效 session → 静默进入 App
       var loginEl = document.getElementById('login');
       if (loginEl && loginEl.style.display !== 'none') {
-        userName = (u.user_metadata && u.user_metadata.full_name && u.user_metadata.full_name !== 'undefined'
-          ? u.user_metadata.full_name : null) || (u.email ? u.email.split('@')[0] : '用户');
+        _setUserName(u);
         enterApp();
       }
     } catch(e) {}
@@ -4263,7 +4346,7 @@ async function doEmailLogin() {
       return;
     }
     if (res.data && res.data.user) {
-      userName = (res.data.user.user_metadata && res.data.user.user_metadata.full_name && res.data.user.user_metadata.full_name !== "undefined" ? res.data.user.user_metadata.full_name : null) || email.split('@')[0];
+      _setUserName(res.data.user);
       try { localStorage.setItem('c100_uid', res.data.user.id); } catch(e) {}
     }
     enterApp();
@@ -4298,7 +4381,7 @@ async function doEmailRegister() {
     }
     if (res.data && res.data.user && res.data.user.email_confirmed_at) {
       toast('✅ 注册成功！正在登录…');
-      userName = email.split('@')[0];
+      _setUserName({email: email});
       try { localStorage.setItem('c100_uid', res.data.user.id); } catch(e) {}
       setTimeout(enterApp, 800);
     } else {
@@ -4475,6 +4558,26 @@ function doGoogleLogin() {
 }
 
 
+// ── 统一设置用户名（唯一入口，优先localStorage）──
+function _setUserName(fromAuth) {
+  var saved = '';
+  try { saved = localStorage.getItem('c100_name') || ''; } catch(e) {}
+  if (saved && saved !== '用户' && saved !== 'undefined') {
+    userName = saved; return;
+  }
+  if (fromAuth) {
+    var meta = (fromAuth.user_metadata && fromAuth.user_metadata.full_name
+                && fromAuth.user_metadata.full_name !== 'undefined')
+               ? fromAuth.user_metadata.full_name : '';
+    var emailPart = fromAuth.email ? fromAuth.email.split('@')[0] : '';
+    var phonePart = fromAuth.phone ? fromAuth.phone.slice(-4) : '';
+    userName = meta || emailPart || phonePart || '用户';
+  }
+  if (userName && userName !== '用户') {
+    try { localStorage.setItem('c100_name', userName); } catch(e) {}
+  }
+}
+
 async function enterApp() {
   // 初始化OneSignal推送
   setTimeout(initOneSignal, 1500);
@@ -4498,6 +4601,30 @@ async function enterApp() {
   } catch(e) {}
   document.getElementById('login').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
+  // 进入App后立即从DB同步真实名字（800ms后，不阻塞进入）
+  setTimeout(async function() {
+    try {
+      var cl = sb(); if (!cl) return;
+      var uid = await getUid(); if (!uid) return;
+      var res = await cl.from('profiles')
+        .select('display_name,emoji,avatar_url').eq('id', uid).maybeSingle();
+      if (res.data) {
+        if (res.data.display_name && res.data.display_name !== '用户') {
+          userName = res.data.display_name;
+          try { localStorage.setItem('c100_name', userName); localStorage.setItem('c100_setup_done','1'); } catch(e) {}
+        }
+        if (res.data.emoji) {
+          userEmoji = res.data.emoji;
+          try { localStorage.setItem('c100_emoji', userEmoji); } catch(e) {}
+        }
+        if (res.data.avatar_url) {
+          userAvatarUrl = res.data.avatar_url.split('?')[0]+'?t='+Date.now();
+          try { localStorage.setItem('c100_avatar', userAvatarUrl); } catch(e) {}
+        }
+        updateUI();
+      }
+    } catch(e) {}
+  }, 800);
   // Save email for biometric auto-login next time
   try {
     var cl2 = sb();
@@ -4515,7 +4642,7 @@ async function enterApp() {
   buildGrandpaBattery();
   showFirstRunIfNeeded();
   setTimeout(function() {
-    try { loadTodayActivity(); } catch(e) {}
+    try { cacheClear('today'); loadTodayActivity(); } catch(e) {}
     try { loadMomentsFromDB(); } catch(e) {}
     // 天气：先读缓存，再异步刷新
     try { if (!loadWeatherFromCache()) loadWeather(); else setTimeout(loadWeather, 3000); } catch(e) {}
@@ -4548,14 +4675,15 @@ async function restoreProfileFromDB() {
       // 只要DB有值就覆盖本地（DB是权威来源）
       if (p.display_name && p.display_name !== '用户') {
         userName = p.display_name;
-        try { localStorage.setItem('c100_name', userName); } catch(e) {}
-        // 数据库有名字 = 已完成设置，不再弹出首次设置
-        try { localStorage.setItem('c100_setup_done', '1'); } catch(e) {}
-        // 关闭首次设置弹窗（如果还在显示）
         try {
+          localStorage.setItem('c100_name', userName);
+          localStorage.setItem('c100_setup_done', '1'); // DB有名字=已设置完成
+          // 关掉首次设置弹窗（如果还开着）
           var frOv = document.getElementById('firstRunOv');
-          if (frOv) { frOv.style.opacity='0'; frOv.style.pointerEvents='none'; }
-        } catch(e2) {}
+          if (frOv && frOv.style.opacity !== '0') {
+            frOv.style.opacity='0'; frOv.style.pointerEvents='none';
+          }
+        } catch(e) {}
         changed = true;
       }
       if (p.emoji) {
@@ -4722,9 +4850,7 @@ function checkExistingSession() {
     var loginEl = document.getElementById('login');
     if (!loginEl || loginEl.style.display === 'none') return;
     var u = session.user;
-    userName = (u.user_metadata && u.user_metadata.full_name && u.user_metadata.full_name !== "undefined" ? u.user_metadata.full_name : null)
-      || (u.email ? u.email.split('@')[0] : '用户');
-    // Ensure localStorage uid matches real uid
+    _setUserName(u);
     localStorage.setItem('c100_uid', u.id);
     enterApp();
   }).catch(function() {});
@@ -4994,6 +5120,18 @@ var CHATS = []; // empty by default — loaded from circles table
 async function loadRealContacts() {
   var client = sb();
   if (!client) { buildChatList(); return; }
+
+  // ⚡ 先显示缓存联系人（0ms）
+  var cachedContacts = cacheGet('contacts', _CACHE_TTL.contacts);
+  if (cachedContacts) {
+    CHATS = cachedContacts;
+    buildChatList();
+    buildContactsList();
+    // 缓存未过期一半就不请求
+    var cacheAge = Date.now() - (JSON.parse(localStorage.getItem('_cache_contacts')||'{}').ts||0);
+    if (cacheAge < _CACHE_TTL.contacts / 2) return;
+  }
+
   try {
     var uid = await getUid();
     if (!uid) { buildChatList(); return; }
@@ -5031,6 +5169,8 @@ async function loadRealContacts() {
       CHATS = [];
     }
   } catch(e) { console.warn('loadRealContacts error:', e); }
+  // ⚡ 保存联系人缓存
+  cacheSet('contacts', CHATS);
   buildChatList();
   buildContactsList();
   refreshChatPreviews();
@@ -5339,6 +5479,7 @@ function buildChatList() {
   }
 
   list.innerHTML = html;
+    cacheSet('messages', html);
 }
 var _cpt=null;
 function chatTouchStart(e,i){_cpt=setTimeout(function(){chatLongPress(null,i);},600);}
@@ -6813,6 +6954,16 @@ async function shareMoment(id, txt) {
 async function loadRealMoments_feed() {
   var client = sb();
   if (!client) { buildMomentsFeed(); return; }
+
+  // ⚡ 先显示缓存动态（0ms）
+  var cachedFeed = cacheGet('feed', _CACHE_TTL.feed);
+  if (cachedFeed) {
+    window._momentsFeedData = cachedFeed;
+    buildMomentsFeed();
+    var cacheAge = Date.now() - (JSON.parse(localStorage.getItem('_cache_feed')||'{}').ts||0);
+    if (cacheAge < _CACHE_TTL.feed / 2) return;
+  }
+
   try {
     var uid = await getUid();
 
@@ -6846,6 +6997,9 @@ async function loadRealMoments_feed() {
       .limit(60);
 
     if (res.data && res.data.length > 0) {
+      // ⚡ 保存动态缓存
+      cacheSet('feed', res.data);
+      window._momentsFeedData = res.data;
       var feedData = res.data.filter(function(m) {
         // Case 1: visibility column exists and has a value → user explicitly shared
         if (m.visibility !== undefined && m.visibility !== null && m.visibility !== '') {
@@ -7955,7 +8109,7 @@ async function saveEvent() {
     toast('📅 已切换到 ' + lifeYear + ' 年查看记录');
   }
 
-  await loadTodayActivity();
+  await cacheClear('today'); loadTodayActivity();
   loadMomentsFromDB();
   _allYearsMomentsCache = []; // force refresh of all-years cache
 
@@ -8200,6 +8354,15 @@ async function uploadMyLocation() {
 async function loadRealCircle_impl() {
   var client = sb();
   if (!client) { showEmptyCircle(); return; }
+
+  // ⚡ 先显示缓存的家人位置（0ms）
+  var cachedCircle = cacheGet('circle', _CACHE_TTL.circle);
+  if (cachedCircle) {
+    initSafetyMap(cachedCircle.myLoc, cachedCircle.circles, cachedCircle.locs, cachedCircle.profiles);
+    var cacheAge = Date.now() - (JSON.parse(localStorage.getItem('_cache_circle')||'{}').ts||0);
+    if (cacheAge < _CACHE_TTL.circle / 2) return; // 15秒内不重复请求
+  }
+
   try {
     var uid = await getUid();
     if (!uid) { showEmptyCircle(); initSafetyMap(null, [], {}); return; }
@@ -8310,6 +8473,7 @@ async function loadRealCircle_impl() {
       list.innerHTML = html;
     }
 
+    cacheSet('circle', {myLoc: myLoc, circles: circles, locs: locs, profiles: profiles}); // ⚡ 缓存家人位置
     initSafetyMap(myLoc, circles, locs, profiles);
 
   } catch(e) { console.warn('loadRealCircle_impl error:', e); showEmptyCircle(); }
@@ -8595,7 +8759,16 @@ async function loadTodayActivity() {
   var safetyBar = document.getElementById('safetyBar');
   var noBar = document.getElementById('noContactBar');
   var list = document.getElementById('todayList');
-  if (list) list.innerHTML = ''; // clear loading immediately
+
+  // ⚡ 先显示缓存（0ms）
+  var cached = cacheGet('today', _CACHE_TTL.today);
+  if (cached && list) {
+    list.innerHTML = cached;
+    // 缓存有效期内不重新请求
+    if (Date.now() - (JSON.parse(localStorage.getItem('_cache_today')||'{}').ts||0) < _CACHE_TTL.today / 2) return;
+  } else if (list) {
+    list.innerHTML = skeletonHtml(3, 'today');
+  }
 
   var uid = await getUid();
 
@@ -8749,6 +8922,7 @@ async function loadTodayActivity() {
     } else {
       if(count)count.textContent=items.length+' 条';
       window._todayItemsCache=items;
+      cacheSet('today_items', items); // ⚡ 缓存今日动态
       window._lastTodayLoad = Date.now(); // cache timestamp
       renderTodayList();
     }
@@ -10287,15 +10461,15 @@ function showFirstRunIfNeeded() {
   try {
     var done = localStorage.getItem('c100_setup_done');
     var hasName = localStorage.getItem('c100_name');
-    if (done || hasName) return;
+    // 有名字或已完成设置，不弹
+    if (done || (hasName && hasName !== '用户' && hasName !== 'undefined')) return;
+    // 如果内存里userName已经有了，也不弹，并保存
+    if (userName && userName !== '用户') {
+      try { localStorage.setItem('c100_name', userName); localStorage.setItem('c100_setup_done','1'); } catch(e) {}
+      return;
+    }
   } catch(e) { return; }
   setTimeout(function() {
-    // 预填已保存的名字
-    try {
-      var savedName = localStorage.getItem('c100_name');
-      var nameInput = document.getElementById('fr-name');
-      if (savedName && savedName !== '用户' && nameInput) nameInput.value = savedName;
-    } catch(e) {}
     // Init role picker
     var rp = document.getElementById('fr-role-picker');
     if (rp) rp.innerHTML = ROLES.map(function(r) {
@@ -10752,13 +10926,12 @@ function confirmLogout() {
 function _doLogout() {
   var client = sb();
   if (client) client.auth.signOut().catch(function(){});
-
-  // 保留用户设置数据，退出后重新登录不需要重填
+  cacheClearAll(); // 退出时清除所有缓存
+  // 保留名字、头像emoji、setup标记 — 重新登录后不需要重填
   var _storedName = localStorage.getItem('c100_name');
   userName = (_storedName && _storedName !== 'undefined') ? _storedName : '用户';
   userEmoji = localStorage.getItem('c100_emoji') || '😊';
-  // 保留 setup_done，退出后重新登录不弹设置引导
-  // （只有用户手动清除浏览器数据才会重置）
+  // 注意：不清除 c100_setup_done，避免重登后再弹设置引导
   userBio = ''; userAvatarUrl = '';
 
   document.getElementById('login').style.display = 'flex';
@@ -11220,7 +11393,7 @@ async function _doDeleteTrajItem(id, el) {
   window._todayItemsCache = [];
   if (row && row.parentNode) row.parentNode.removeChild(row);
   toast('已删除');
-  await loadTodayActivity();
+  await cacheClear('today'); loadTodayActivity();
 
   // Refresh summary stats if visible
   var summaryModule = document.getElementById('lifeSummaryModule');
@@ -11285,7 +11458,7 @@ async function _doDeleteTodayItem(id) {
   }
 
   // Refresh all views
-  await loadTodayActivity();
+  await cacheClear('today'); loadTodayActivity();
   renderTrajList();
   renderLifeMap(_momentsCache);
   buildMomentsFeed();
@@ -12470,7 +12643,7 @@ async function uploadToFolder(file) {
 
 async function deleteTodayByIndex(idx) {
   var items = window._todayItemsCache||[];
-  var it = items[idx]; if(!it) { loadTodayActivity(); return; }
+  var it = items[idx]; if(!it) { cacheClear('today'); loadTodayActivity(); return; }
   var id = it.momentId, lbl = it.lbl||'';
   window._todayItemsCache = items.filter(function(_,i){return i!==idx;});
   renderTodayList();
@@ -12492,7 +12665,7 @@ async function deleteTodayByIndex(idx) {
     }
     toast('已删除');
   } catch(e) { toast('已从列表移除'); }
-  setTimeout(function(){loadTodayActivity();},1000);
+  setTimeout(function(){cacheClear('today'); loadTodayActivity();},1000);
 }
 
 function openChangePwdSheet() {
@@ -13382,8 +13555,7 @@ async function enforceLoginWall() {
       if (isReal) {
         // 真实用户：记录访问日志，进入App
         logAccess('app_open', { provider: u.app_metadata && u.app_metadata.provider });
-        userName = (u.user_metadata && u.user_metadata.full_name && u.user_metadata.full_name !== "undefined" ? u.user_metadata.full_name : null)
-                 || (u.email ? u.email.split('@')[0] : '用户');
+        _setUserName(u);
         enterApp();
         return;
       }
@@ -14473,7 +14645,7 @@ function switchToArchive(archive) {
   _activeArchive = archive;
   try { localStorage.setItem('c100_active_archive', JSON.stringify(archive)); } catch(e) {}
   updateArchiveUI();
-  try { loadTodayActivity(); } catch(e) {}
+  try { cacheClear('today'); loadTodayActivity(); } catch(e) {}
   try { loadMomentsFromDB(); } catch(e) {}
   toast('已切换到「' + archive.name + '」的档案');
 }
@@ -14482,7 +14654,7 @@ function switchToMain() {
   _activeArchive = null;
   try { localStorage.removeItem('c100_active_archive'); } catch(e) {}
   updateArchiveUI();
-  try { loadTodayActivity(); } catch(e) {}
+  try { cacheClear('today'); loadTodayActivity(); } catch(e) {}
   try { loadMomentsFromDB(); } catch(e) {}
   toast('已切换回主账户');
 }
