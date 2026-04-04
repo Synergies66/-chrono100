@@ -853,88 +853,12 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
 .pp-footer { text-align:center; padding:20px; color:#6E769E; font-size:11px; }
 [data-lang] { display: none; }
 
-
-/* ── 骨架屏动画 ── */
-@keyframes skPulse {
-  0%,100% { opacity:0.4; }
-  50%      { opacity:0.9; }
-}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
   <!-- OneSignal Push Notification SDK -->
   <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
   <script>
-
-// ============================================================
-// ⚡ 缓存层 v1 — stale-while-revalidate
-// 用户切换tab立刻看到数据，后台静默刷新
-// ============================================================
-var _CACHE_TTL = {
-  today:    60 * 1000,        // 今日动态：1分钟
-  contacts: 5  * 60 * 1000,   // 联系人：5分钟
-  circle:   30 * 1000,        // 家人位置：30秒
-  feed:     2  * 60 * 1000,   // 朋友圈动态：2分钟
-  messages: 60 * 1000,        // 消息列表：1分钟
-  weather:  10 * 60 * 1000,   // 天气：10分钟
-};
-
-// 写缓存
-function cacheSet(key, data) {
-  try {
-    localStorage.setItem('_cache_' + key, JSON.stringify({
-      ts: Date.now(),
-      data: data
-    }));
-  } catch(e) {}
-}
-
-// 读缓存（返回数据或null）
-function cacheGet(key, ttl) {
-  try {
-    var raw = localStorage.getItem('_cache_' + key);
-    if (!raw) return null;
-    var obj = JSON.parse(raw);
-    if (Date.now() - obj.ts > (ttl || 5 * 60 * 1000)) return null; // 过期
-    return obj.data;
-  } catch(e) { return null; }
-}
-
-// 强制清除某个缓存（数据更新时调用）
-function cacheClear(key) {
-  try { localStorage.removeItem('_cache_' + key); } catch(e) {}
-}
-
-// 清除所有缓存（退出登录时调用）
-function cacheClearAll() {
-  try {
-    Object.keys(localStorage)
-      .filter(function(k){ return k.startsWith('_cache_'); })
-      .forEach(function(k){ localStorage.removeItem(k); });
-  } catch(e) {}
-}
-
-// 骨架屏HTML — 数据加载中的占位
-function skeletonHtml(rows, type) {
-  var rowH = type === 'chat' ? 64 : type === 'map' ? 0 : 52;
-  var html = '';
-  for (var i = 0; i < (rows || 3); i++) {
-    if (type === 'chat') {
-      html += '<div style="display:flex;align-items:center;gap:12px;padding:11px 14px;opacity:'+(0.7-i*0.15)+'">'
-        + '<div style="width:44px;height:44px;border-radius:50%;background:var(--border);flex-shrink:0;animation:skPulse 1.4s ease-in-out '+(i*0.15)+'s infinite"></div>'
-        + '<div style="flex:1"><div style="height:13px;background:var(--border);border-radius:6px;width:60%;margin-bottom:6px;animation:skPulse 1.4s ease-in-out '+(i*0.15)+'s infinite"></div>'
-        + '<div style="height:11px;background:var(--border);border-radius:6px;width:85%;animation:skPulse 1.4s ease-in-out '+(i*0.2)+'s infinite"></div></div></div>';
-    } else {
-      html += '<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;opacity:'+(0.7-i*0.15)+'">'
-        + '<div style="width:38px;height:38px;border-radius:10px;background:var(--border);flex-shrink:0;animation:skPulse 1.4s ease-in-out '+(i*0.15)+'s infinite"></div>'
-        + '<div style="flex:1"><div style="height:12px;background:var(--border);border-radius:6px;width:70%;margin-bottom:5px;animation:skPulse 1.4s ease-in-out '+(i*0.15)+'s infinite"></div>'
-        + '<div style="height:10px;background:var(--border);border-radius:6px;width:45%;animation:skPulse 1.4s ease-in-out '+(i*0.2)+'s infinite"></div></div></div>';
-    }
-  }
-  return html;
-}
-
-
     window.OneSignalDeferred = window.OneSignalDeferred || [];
     OneSignalDeferred.push(async function(OneSignal) {
       await OneSignal.init({
@@ -1176,6 +1100,62 @@ function skeletonHtml(rows, type) {
           </div>
           <div style="font-size:14px;color:var(--ink4);flex-shrink:0">›</div>
         </a>
+      </div>
+
+      <!-- ═══ AI 超级模块入口 ═══ -->
+      <div style="margin:12px 14px 0">
+        <div style="font-size:10px;font-weight:700;color:var(--ink3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px">✦ AI 智能助手</div>
+        <div style="display:flex;flex-direction:column;gap:9px">
+
+          <!-- 出行规划 -->
+          <div onclick="openAiTravel()" style="position:relative;overflow:hidden;background:rgba(255,255,255,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:18px;border:1.5px solid rgba(255,255,255,.95);box-shadow:0 6px 24px rgba(74,143,168,.13),0 2px 8px rgba(74,143,168,.08);cursor:pointer">
+            <div style="position:absolute;top:0;left:0;right:0;height:2.5px;background:linear-gradient(90deg,#4a8fa8,rgba(74,143,168,.05));border-radius:18px 18px 0 0"></div>
+            <div style="display:flex;align-items:center;gap:12px;padding:13px 14px">
+              <div style="width:46px;height:46px;border-radius:13px;background:rgba(74,143,168,.12);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🗺️</div>
+              <div style="flex:1;min-width:0">
+                <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">
+                  <div style="font-size:15px;font-weight:700;color:var(--ink)">出行规划</div>
+                  <div style="font-size:9px;padding:2px 8px;border-radius:8px;background:rgba(74,143,168,.12);color:#3a7f98;font-weight:600">AI 全流程</div>
+                </div>
+                <div style="font-size:11px;color:var(--ink3);line-height:1.5">一句话完成 地图 + 订票 + 订酒店</div>
+              </div>
+              <div style="font-size:18px;color:var(--ink4)">›</div>
+            </div>
+          </div>
+
+          <!-- 商业分析 -->
+          <div onclick="openAiBiz()" style="position:relative;overflow:hidden;background:rgba(255,255,255,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:18px;border:1.5px solid rgba(255,255,255,.95);box-shadow:0 6px 24px rgba(124,111,168,.13),0 2px 8px rgba(124,111,168,.08);cursor:pointer">
+            <div style="position:absolute;top:0;left:0;right:0;height:2.5px;background:linear-gradient(90deg,#7c6fa8,rgba(124,111,168,.05));border-radius:18px 18px 0 0"></div>
+            <div style="display:flex;align-items:center;gap:12px;padding:13px 14px">
+              <div style="width:46px;height:46px;border-radius:13px;background:rgba(124,111,168,.12);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">📊</div>
+              <div style="flex:1;min-width:0">
+                <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">
+                  <div style="font-size:15px;font-weight:700;color:var(--ink)">商业分析</div>
+                  <div style="font-size:9px;padding:2px 8px;border-radius:8px;background:rgba(124,111,168,.12);color:#6c5f98;font-weight:600">自动生成报告</div>
+                </div>
+                <div style="font-size:11px;color:var(--ink3);line-height:1.5">自动搜索 + 分析 + 生成 PPT</div>
+              </div>
+              <div style="font-size:18px;color:var(--ink4)">›</div>
+            </div>
+          </div>
+
+          <!-- 个人助理 -->
+          <div onclick="openAiAssist()" style="position:relative;overflow:hidden;background:rgba(255,255,255,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:18px;border:1.5px solid rgba(255,255,255,.95);box-shadow:0 6px 24px rgba(74,152,112,.13),0 2px 8px rgba(74,152,112,.08);cursor:pointer">
+            <div style="position:absolute;top:0;left:0;right:0;height:2.5px;background:linear-gradient(90deg,#4a9870,rgba(74,152,112,.05));border-radius:18px 18px 0 0"></div>
+            <div style="display:flex;align-items:center;gap:12px;padding:13px 14px">
+              <div style="width:46px;height:46px;border-radius:13px;background:rgba(74,152,112,.12);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🗓️</div>
+              <div style="flex:1;min-width:0">
+                <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">
+                  <div style="font-size:15px;font-weight:700;color:var(--ink)">个人助理</div>
+                  <div style="font-size:9px;padding:2px 8px;border-radius:8px;background:rgba(74,152,112,.12);color:#3a8860;font-weight:600">统一入口</div>
+                </div>
+                <div style="font-size:11px;color:var(--ink3);line-height:1.5">日程 / 邮件 / 任务  一处管理，告别切换</div>
+              </div>
+              <div style="font-size:18px;color:var(--ink4)">›</div>
+            </div>
+          </div>
+
+        </div>
       </div>
 
       <!-- 人生轨迹 section — compact card layout -->
@@ -1599,6 +1579,113 @@ function skeletonHtml(rows, type) {
     </button>
   </div>
 </div><!-- /app -->
+
+<!-- ════ AI MODULE OVERLAYS ════ -->
+
+<!-- 出行规划 sheet -->
+<div class="overlay" id="aiTravelOv" onclick="if(event.target===this)closeAiTravel()">
+  <div class="sheet" style="padding-bottom:28px">
+    <div class="sheet-handle"><div class="sheet-bar"></div></div>
+    <div style="padding:4px 18px 10px;display:flex;align-items:center;gap:10px">
+      <div style="width:40px;height:40px;border-radius:12px;background:rgba(74,143,168,.15);display:flex;align-items:center;justify-content:center;font-size:20px">🗺️</div>
+      <div>
+        <div style="font-size:17px;font-weight:700;color:var(--ink)">出行规划</div>
+        <div style="font-size:11px;color:var(--ink3);margin-top:2px">一句话完成全流程</div>
+      </div>
+    </div>
+    <div id="travelMsgs" style="padding:0 18px 4px;display:flex;flex-direction:column;gap:10px;max-height:240px;overflow-y:auto;min-height:120px">
+      <div style="display:flex;gap:9px">
+        <div style="width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,#dceeff,#c8e4ff);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">✦</div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:10px 13px;font-size:12.5px;line-height:1.65;color:var(--ink);max-width:85%">你好！告诉我想去哪里、几天、喜欢什么风格，我来规划完整行程，帮你查地图、订票和酒店。</div>
+      </div>
+    </div>
+    <div style="padding:10px 16px 10px;display:flex;gap:7px;flex-wrap:wrap">
+      <div onclick="sendAiChip('travel',this)" style="font-size:11px;padding:6px 12px;border-radius:16px;border:1px solid var(--border);background:var(--bg);color:var(--ink3);cursor:pointer">下周去成都3天，美食+历史</div>
+      <div onclick="sendAiChip('travel',this)" style="font-size:11px;padding:6px 12px;border-radius:16px;border:1px solid var(--border);background:var(--bg);color:var(--ink3);cursor:pointer">奥克兰周末亲子游</div>
+      <div onclick="sendAiChip('travel',this)" style="font-size:11px;padding:6px 12px;border-radius:16px;border:1px solid var(--border);background:var(--bg);color:var(--ink3);cursor:pointer">东京5天深度游</div>
+    </div>
+    <div style="margin:0 16px;display:flex;gap:9px;align-items:flex-end">
+      <div style="flex:1;background:var(--bg);border:1.5px solid var(--border);border-radius:14px;padding:10px 13px;display:flex;align-items:center;gap:8px;transition:border-color .2s" onfocus="this.style.borderColor='var(--blue2)'" onblur="this.style.borderColor='var(--border)'">
+        <textarea id="travelInput" rows="1" placeholder="描述你的出行需求…" style="flex:1;background:transparent;border:none;outline:none;font-family:inherit;font-size:13px;color:var(--ink);resize:none;line-height:1.4;max-height:80px" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAiMsg('travel')}" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px'"></textarea>
+      </div>
+      <div onclick="sendAiMsg('travel')" style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#4a8fa8,#5bafc8);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;color:#fff;flex-shrink:0;box-shadow:0 4px 12px rgba(74,143,168,.3)">➤</div>
+    </div>
+  </div>
+</div>
+
+<!-- 商业分析 sheet -->
+<div class="overlay" id="aiBizOv" onclick="if(event.target===this)closeAiBiz()">
+  <div class="sheet" style="padding-bottom:28px">
+    <div class="sheet-handle"><div class="sheet-bar"></div></div>
+    <div style="padding:4px 18px 10px;display:flex;align-items:center;gap:10px">
+      <div style="width:40px;height:40px;border-radius:12px;background:rgba(124,111,168,.15);display:flex;align-items:center;justify-content:center;font-size:20px">📊</div>
+      <div>
+        <div style="font-size:17px;font-weight:700;color:var(--ink)">商业分析</div>
+        <div style="font-size:11px;color:var(--ink3);margin-top:2px">自动搜索 · 分析 · 生成 PPT</div>
+      </div>
+    </div>
+    <div id="bizMsgs" style="padding:0 18px 4px;display:flex;flex-direction:column;gap:10px;max-height:240px;overflow-y:auto;min-height:120px">
+      <div style="display:flex;gap:9px">
+        <div style="width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,#ece8ff,#ddd6ff);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">✦</div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:10px 13px;font-size:12.5px;line-height:1.65;color:var(--ink);max-width:85%">你好！描述你想分析的行业或问题，我自动搜索数据、生成分析报告，并整理成可下载的 PPT。</div>
+      </div>
+    </div>
+    <div style="padding:10px 16px 10px;display:flex;gap:7px;flex-wrap:wrap">
+      <div onclick="sendAiChip('biz',this)" style="font-size:11px;padding:6px 12px;border-radius:16px;border:1px solid var(--border);background:var(--bg);color:var(--ink3);cursor:pointer">新西兰房地产市场2025</div>
+      <div onclick="sendAiChip('biz',this)" style="font-size:11px;padding:6px 12px;border-radius:16px;border:1px solid var(--border);background:var(--bg);color:var(--ink3);cursor:pointer">海外华人餐饮行业分析</div>
+      <div onclick="sendAiChip('biz',this)" style="font-size:11px;padding:6px 12px;border-radius:16px;border:1px solid var(--border);background:var(--bg);color:var(--ink3);cursor:pointer">AI产品竞品对比</div>
+    </div>
+    <div style="margin:0 16px;display:flex;gap:9px;align-items:flex-end">
+      <div style="flex:1;background:var(--bg);border:1.5px solid var(--border);border-radius:14px;padding:10px 13px;display:flex;align-items:center;gap:8px">
+        <textarea id="bizInput" rows="1" placeholder="描述你的分析需求…" style="flex:1;background:transparent;border:none;outline:none;font-family:inherit;font-size:13px;color:var(--ink);resize:none;line-height:1.4;max-height:80px" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAiMsg('biz')}" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px'"></textarea>
+      </div>
+      <div onclick="sendAiMsg('biz')" style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#7c6fa8,#9080c0);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;color:#fff;flex-shrink:0;box-shadow:0 4px 12px rgba(124,111,168,.3)">➤</div>
+    </div>
+  </div>
+</div>
+
+<!-- 个人助理 sheet -->
+<div class="overlay" id="aiAssistOv" onclick="if(event.target===this)closeAiAssist()">
+  <div class="sheet" style="padding-bottom:28px">
+    <div class="sheet-handle"><div class="sheet-bar"></div></div>
+    <div style="padding:4px 18px 10px;display:flex;align-items:center;gap:10px">
+      <div style="width:40px;height:40px;border-radius:12px;background:rgba(74,152,112,.15);display:flex;align-items:center;justify-content:center;font-size:20px">🗓️</div>
+      <div>
+        <div style="font-size:17px;font-weight:700;color:var(--ink)">个人助理</div>
+        <div style="font-size:11px;color:var(--ink3);margin-top:2px">日程 / 邮件 / 任务 · 统一管理</div>
+      </div>
+    </div>
+    <div style="padding:4px 18px 10px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+      <div onclick="sendAiChip('assist',this)" style="background:var(--bg);border:1px solid var(--border);border-radius:13px;padding:12px 8px;text-align:center;cursor:pointer">
+        <div style="font-size:22px;margin-bottom:5px">📅</div>
+        <div style="font-size:11px;font-weight:600;color:var(--ink)">日程</div>
+        <div style="font-size:9px;color:var(--ink3);margin-top:2px">查看/新增</div>
+      </div>
+      <div onclick="sendAiChip('assist',this)" style="background:var(--bg);border:1px solid var(--border);border-radius:13px;padding:12px 8px;text-align:center;cursor:pointer">
+        <div style="font-size:22px;margin-bottom:5px">📧</div>
+        <div style="font-size:11px;font-weight:600;color:var(--ink)">邮件</div>
+        <div style="font-size:9px;color:var(--ink3);margin-top:2px">摘要/回复</div>
+      </div>
+      <div onclick="sendAiChip('assist',this)" style="background:var(--bg);border:1px solid var(--border);border-radius:13px;padding:12px 8px;text-align:center;cursor:pointer">
+        <div style="font-size:22px;margin-bottom:5px">✅</div>
+        <div style="font-size:11px;font-weight:600;color:var(--ink)">任务</div>
+        <div style="font-size:9px;color:var(--ink3);margin-top:2px">待办清单</div>
+      </div>
+    </div>
+    <div id="assistMsgs" style="padding:0 18px 4px;display:flex;flex-direction:column;gap:10px;max-height:180px;overflow-y:auto;min-height:80px">
+      <div style="display:flex;gap:9px">
+        <div style="width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,#dcffe8,#c8f0d8);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">✦</div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:10px 13px;font-size:12.5px;line-height:1.65;color:var(--ink);max-width:85%">你好！告诉我今天的日程、要回复的邮件，或者需要整理的任务，我来统一帮你处理。</div>
+      </div>
+    </div>
+    <div style="margin:0 16px;display:flex;gap:9px;align-items:flex-end">
+      <div style="flex:1;background:var(--bg);border:1.5px solid var(--border);border-radius:14px;padding:10px 13px;display:flex;align-items:center;gap:8px">
+        <textarea id="assistInput" rows="1" placeholder="输入你的需求或粘贴内容…" style="flex:1;background:transparent;border:none;outline:none;font-family:inherit;font-size:13px;color:var(--ink);resize:none;line-height:1.4;max-height:80px" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAiMsg('assist')}" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px'"></textarea>
+      </div>
+      <div onclick="sendAiMsg('assist')" style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#4a9870,#5ab888);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;color:#fff;flex-shrink:0;box-shadow:0 4px 12px rgba(74,152,112,.3)">➤</div>
+    </div>
+  </div>
+</div>
 
 <!-- ════ CHAT ROOM ════ -->
 <div class="chat-room" id="chatRoom">
@@ -4642,7 +4729,7 @@ async function enterApp() {
   buildGrandpaBattery();
   showFirstRunIfNeeded();
   setTimeout(function() {
-    try { cacheClear('today'); loadTodayActivity(); } catch(e) {}
+    try { loadTodayActivity(); } catch(e) {}
     try { loadMomentsFromDB(); } catch(e) {}
     // 天气：先读缓存，再异步刷新
     try { if (!loadWeatherFromCache()) loadWeather(); else setTimeout(loadWeather, 3000); } catch(e) {}
@@ -5120,18 +5207,6 @@ var CHATS = []; // empty by default — loaded from circles table
 async function loadRealContacts() {
   var client = sb();
   if (!client) { buildChatList(); return; }
-
-  // ⚡ 先显示缓存联系人（0ms）
-  var cachedContacts = cacheGet('contacts', _CACHE_TTL.contacts);
-  if (cachedContacts) {
-    CHATS = cachedContacts;
-    buildChatList();
-    buildContactsList();
-    // 缓存未过期一半就不请求
-    var cacheAge = Date.now() - (JSON.parse(localStorage.getItem('_cache_contacts')||'{}').ts||0);
-    if (cacheAge < _CACHE_TTL.contacts / 2) return;
-  }
-
   try {
     var uid = await getUid();
     if (!uid) { buildChatList(); return; }
@@ -5169,8 +5244,6 @@ async function loadRealContacts() {
       CHATS = [];
     }
   } catch(e) { console.warn('loadRealContacts error:', e); }
-  // ⚡ 保存联系人缓存
-  cacheSet('contacts', CHATS);
   buildChatList();
   buildContactsList();
   refreshChatPreviews();
@@ -5479,7 +5552,6 @@ function buildChatList() {
   }
 
   list.innerHTML = html;
-    cacheSet('messages', html);
 }
 var _cpt=null;
 function chatTouchStart(e,i){_cpt=setTimeout(function(){chatLongPress(null,i);},600);}
@@ -6954,16 +7026,6 @@ async function shareMoment(id, txt) {
 async function loadRealMoments_feed() {
   var client = sb();
   if (!client) { buildMomentsFeed(); return; }
-
-  // ⚡ 先显示缓存动态（0ms）
-  var cachedFeed = cacheGet('feed', _CACHE_TTL.feed);
-  if (cachedFeed) {
-    window._momentsFeedData = cachedFeed;
-    buildMomentsFeed();
-    var cacheAge = Date.now() - (JSON.parse(localStorage.getItem('_cache_feed')||'{}').ts||0);
-    if (cacheAge < _CACHE_TTL.feed / 2) return;
-  }
-
   try {
     var uid = await getUid();
 
@@ -6997,9 +7059,6 @@ async function loadRealMoments_feed() {
       .limit(60);
 
     if (res.data && res.data.length > 0) {
-      // ⚡ 保存动态缓存
-      cacheSet('feed', res.data);
-      window._momentsFeedData = res.data;
       var feedData = res.data.filter(function(m) {
         // Case 1: visibility column exists and has a value → user explicitly shared
         if (m.visibility !== undefined && m.visibility !== null && m.visibility !== '') {
@@ -8109,7 +8168,7 @@ async function saveEvent() {
     toast('📅 已切换到 ' + lifeYear + ' 年查看记录');
   }
 
-  await cacheClear('today'); loadTodayActivity();
+  await loadTodayActivity();
   loadMomentsFromDB();
   _allYearsMomentsCache = []; // force refresh of all-years cache
 
@@ -8354,15 +8413,6 @@ async function uploadMyLocation() {
 async function loadRealCircle_impl() {
   var client = sb();
   if (!client) { showEmptyCircle(); return; }
-
-  // ⚡ 先显示缓存的家人位置（0ms）
-  var cachedCircle = cacheGet('circle', _CACHE_TTL.circle);
-  if (cachedCircle) {
-    initSafetyMap(cachedCircle.myLoc, cachedCircle.circles, cachedCircle.locs, cachedCircle.profiles);
-    var cacheAge = Date.now() - (JSON.parse(localStorage.getItem('_cache_circle')||'{}').ts||0);
-    if (cacheAge < _CACHE_TTL.circle / 2) return; // 15秒内不重复请求
-  }
-
   try {
     var uid = await getUid();
     if (!uid) { showEmptyCircle(); initSafetyMap(null, [], {}); return; }
@@ -8473,7 +8523,6 @@ async function loadRealCircle_impl() {
       list.innerHTML = html;
     }
 
-    cacheSet('circle', {myLoc: myLoc, circles: circles, locs: locs, profiles: profiles}); // ⚡ 缓存家人位置
     initSafetyMap(myLoc, circles, locs, profiles);
 
   } catch(e) { console.warn('loadRealCircle_impl error:', e); showEmptyCircle(); }
@@ -8759,16 +8808,7 @@ async function loadTodayActivity() {
   var safetyBar = document.getElementById('safetyBar');
   var noBar = document.getElementById('noContactBar');
   var list = document.getElementById('todayList');
-
-  // ⚡ 先显示缓存（0ms）
-  var cached = cacheGet('today', _CACHE_TTL.today);
-  if (cached && list) {
-    list.innerHTML = cached;
-    // 缓存有效期内不重新请求
-    if (Date.now() - (JSON.parse(localStorage.getItem('_cache_today')||'{}').ts||0) < _CACHE_TTL.today / 2) return;
-  } else if (list) {
-    list.innerHTML = skeletonHtml(3, 'today');
-  }
+  if (list) list.innerHTML = ''; // clear loading immediately
 
   var uid = await getUid();
 
@@ -8922,7 +8962,6 @@ async function loadTodayActivity() {
     } else {
       if(count)count.textContent=items.length+' 条';
       window._todayItemsCache=items;
-      cacheSet('today_items', items); // ⚡ 缓存今日动态
       window._lastTodayLoad = Date.now(); // cache timestamp
       renderTodayList();
     }
@@ -10926,7 +10965,6 @@ function confirmLogout() {
 function _doLogout() {
   var client = sb();
   if (client) client.auth.signOut().catch(function(){});
-  cacheClearAll(); // 退出时清除所有缓存
   // 保留名字、头像emoji、setup标记 — 重新登录后不需要重填
   var _storedName = localStorage.getItem('c100_name');
   userName = (_storedName && _storedName !== 'undefined') ? _storedName : '用户';
@@ -11393,7 +11431,7 @@ async function _doDeleteTrajItem(id, el) {
   window._todayItemsCache = [];
   if (row && row.parentNode) row.parentNode.removeChild(row);
   toast('已删除');
-  await cacheClear('today'); loadTodayActivity();
+  await loadTodayActivity();
 
   // Refresh summary stats if visible
   var summaryModule = document.getElementById('lifeSummaryModule');
@@ -11458,7 +11496,7 @@ async function _doDeleteTodayItem(id) {
   }
 
   // Refresh all views
-  await cacheClear('today'); loadTodayActivity();
+  await loadTodayActivity();
   renderTrajList();
   renderLifeMap(_momentsCache);
   buildMomentsFeed();
@@ -12643,7 +12681,7 @@ async function uploadToFolder(file) {
 
 async function deleteTodayByIndex(idx) {
   var items = window._todayItemsCache||[];
-  var it = items[idx]; if(!it) { cacheClear('today'); loadTodayActivity(); return; }
+  var it = items[idx]; if(!it) { loadTodayActivity(); return; }
   var id = it.momentId, lbl = it.lbl||'';
   window._todayItemsCache = items.filter(function(_,i){return i!==idx;});
   renderTodayList();
@@ -12665,7 +12703,7 @@ async function deleteTodayByIndex(idx) {
     }
     toast('已删除');
   } catch(e) { toast('已从列表移除'); }
-  setTimeout(function(){cacheClear('today'); loadTodayActivity();},1000);
+  setTimeout(function(){loadTodayActivity();},1000);
 }
 
 function openChangePwdSheet() {
@@ -14645,7 +14683,7 @@ function switchToArchive(archive) {
   _activeArchive = archive;
   try { localStorage.setItem('c100_active_archive', JSON.stringify(archive)); } catch(e) {}
   updateArchiveUI();
-  try { cacheClear('today'); loadTodayActivity(); } catch(e) {}
+  try { loadTodayActivity(); } catch(e) {}
   try { loadMomentsFromDB(); } catch(e) {}
   toast('已切换到「' + archive.name + '」的档案');
 }
@@ -14654,7 +14692,7 @@ function switchToMain() {
   _activeArchive = null;
   try { localStorage.removeItem('c100_active_archive'); } catch(e) {}
   updateArchiveUI();
-  try { cacheClear('today'); loadTodayActivity(); } catch(e) {}
+  try { loadTodayActivity(); } catch(e) {}
   try { loadMomentsFromDB(); } catch(e) {}
   toast('已切换回主账户');
 }
@@ -15720,5 +15758,89 @@ create policy "all_access" on reunions
   </div>
 </div>
 
+
+<!-- ════ AI MODULE SCRIPTS ════ -->
+<script>
+var _aiData = {
+  travel: {
+    inputId: 'travelInput', msgsId: 'travelMsgs',
+    color: 'linear-gradient(135deg,#4a8fa8,#5bafc8)',
+    replies: [
+      '好的！正在为你规划行程 ✈️<br><br><strong>示例方案（成都3天）：</strong><br>· Day1：宽窄巷子 → 锦里古街<br>· Day2：都江堰 → 青城山<br>· Day3：武侯祠 → 杜甫草堂<br><br>🍜 推荐：赵老三火锅、龙抄手<br>🏨 酒店：锦江区精品民宿 约¥380/晚<br>🎫 高铁票：已帮你查询，点击查看 →',
+      '奥克兰周末亲子好去处 🌿<br><br>· 奥克兰动物园（3-12岁最爱）<br>· Mission Bay 海滩野餐<br>· Rainbow's End 游乐园<br><br>🚗 建议自驾，停车方便<br>🏨 推荐住 Takapuna Beach 附近',
+      '东京5天深度游 🏯<br><br>· Day1-2：浅草 → 上野 → 秋叶原<br>· Day3：镰仓日归<br>· Day4：新宿 → 涩谷<br>· Day5：银座 → 羽田出发<br><br>✈️ AKL-NRT 约 NZD$1,200起<br>🏨 推荐区域：新宿 / 浅草'
+    ], idx: 0
+  },
+  biz: {
+    inputId: 'bizInput', msgsId: 'bizMsgs',
+    color: 'linear-gradient(135deg,#7c6fa8,#9080c0)',
+    replies: [
+      '正在分析 📊<br><br><strong>新西兰房地产市场 2025</strong><br>· 全国中位房价：约 NZD $780K（↓4.2% YoY）<br>· 奥克兰供给增加，市场趋稳<br>· OCR 维持 5.25%，按揭约 6.8%<br><br>📑 <strong>报告生成中…</strong><br>含趋势图表 + 区域对比 + 投资建议<br>PPT 已就绪 ↓',
+      '海外华人餐饮行业洞察 🍜<br><br>· 市场规模：东南亚+澳洲+新西兰约 USD$42B<br>· 增速：年均 8.3%，川菜/粤菜最受欢迎<br>· 痛点：人力成本高、食材供应链不稳<br><br>📑 竞品分析报告生成中…',
+      'AI 产品竞品矩阵 🤖<br><br>· Claude — 推理/安全，$20/月<br>· GPT-4o — 多模态，$20/月<br>· Gemini — Google生态，免费起<br><br>📊 完整对比报告 + PPT 已生成'
+    ], idx: 0
+  },
+  assist: {
+    inputId: 'assistInput', msgsId: 'assistMsgs',
+    color: 'linear-gradient(135deg,#4a9870,#5ab888)',
+    replies: {
+      '日程': '📅 <strong>今日日程</strong><br>· 10:00 团队周会（Zoom）<br>· 14:30 客户通话 – John Smith<br>· 18:00 健身<br><br>明天：9:00 跑步 · 11:00 医生复诊<br><br>需要帮你添加新事项吗？',
+      '邮件': '📧 <strong>邮件摘要</strong><br>· 未读 12 封，重要 3 封<br>· Smith & Co：合同签署（待回复）<br>· 房东：续租通知（需确认）<br>· 银行：账单到期提醒<br><br>需要帮你起草回复吗？',
+      '任务': '✅ <strong>待办清单</strong><br><br>🔴 紧急：提交项目报告（今日截止）<br>🟡 重要：续签医疗保险<br>🟢 一般：整理照片备份<br><br>要帮你按优先级重新排序吗？',
+      default: '明白！正在处理中 🗓️<br><br>请告诉我更多细节，我来帮你整理日程、摘要邮件或整理任务清单。所有内容仅在本次会话中处理。'
+    }, idx: 0
+  }
+};
+
+function _aiMsg(containerId, role, html) {
+  var c = document.getElementById(containerId);
+  if (!c) return;
+  var isAi = role === 'ai';
+  var div = document.createElement('div');
+  div.style.cssText = 'display:flex;gap:9px;' + (isAi ? '' : 'flex-direction:row-reverse');
+  var avBg = isAi ? 'linear-gradient(135deg,#dceeff,#c8e4ff)' : 'linear-gradient(135deg,var(--blue),var(--blue2))';
+  div.innerHTML = '<div style="width:28px;height:28px;border-radius:9px;background:' + avBg + ';display:flex;align-items:center;justify-content:center;font-size:' + (isAi?'13':'10') + 'px;flex-shrink:0;color:' + (isAi?'var(--ink)':'#fff') + ';font-weight:700">' + (isAi?'✦':'我') + '</div>'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:10px 13px;font-size:12.5px;line-height:1.65;color:var(--ink);max-width:85%">' + html + '</div>';
+  c.appendChild(div);
+  c.scrollTop = c.scrollHeight;
+}
+
+function sendAiMsg(type) {
+  var cfg = _aiData[type]; if (!cfg) return;
+  var inp = document.getElementById(cfg.inputId);
+  var text = inp ? inp.value.trim() : ''; if (!text) return;
+  _aiMsg(cfg.msgsId, 'user', text);
+  if (inp) { inp.value = ''; inp.style.height = 'auto'; }
+  var replies = cfg.replies;
+  var reply;
+  if (Array.isArray(replies)) {
+    reply = replies[cfg.idx % replies.length]; cfg.idx++;
+  } else {
+    reply = replies[text] || replies.default;
+  }
+  setTimeout(function() { _aiMsg(cfg.msgsId, 'ai', reply); }, 700);
+}
+
+function sendAiChip(type, el) {
+  var cfg = _aiData[type]; if (!cfg) return;
+  var inp = document.getElementById(cfg.inputId);
+  var text = el.textContent.trim();
+  if (type === 'assist') {
+    _aiMsg(cfg.msgsId, 'user', text);
+    var reply = cfg.replies[text] || cfg.replies.default;
+    setTimeout(function() { _aiMsg(cfg.msgsId, 'ai', reply); }, 600);
+  } else {
+    if (inp) inp.value = text;
+    sendAiMsg(type);
+  }
+}
+
+function openAiTravel()  { var o=document.getElementById('aiTravelOv');  if(o) o.classList.add('open'); }
+function closeAiTravel() { var o=document.getElementById('aiTravelOv');  if(o) o.classList.remove('open'); }
+function openAiBiz()     { var o=document.getElementById('aiBizOv');     if(o) o.classList.add('open'); }
+function closeAiBiz()    { var o=document.getElementById('aiBizOv');     if(o) o.classList.remove('open'); }
+function openAiAssist()  { var o=document.getElementById('aiAssistOv'); if(o) o.classList.add('open'); }
+function closeAiAssist() { var o=document.getElementById('aiAssistOv'); if(o) o.classList.remove('open'); }
+</script>
 </body>
 </html>
