@@ -5717,6 +5717,8 @@ function subscribeRoom(roomId) {
       var mFull = Object.assign({}, m, { content: plainContent });
       box.insertAdjacentHTML('beforeend', buildMsgHTML(mFull, false));
       box.scrollTop = box.scrollHeight;
+      // ✨ Smart reminder: analyze received message for commitments
+      setTimeout(function() { smartReminderCheck('received', plainContent); }, 1000);
     }).subscribe();
 }
 
@@ -5871,6 +5873,8 @@ async function sendMessage() {
     );
     box.scrollTop = box.scrollHeight;
   }
+  // ✨ Smart reminder: analyze sent message for commitments
+  setTimeout(function() { smartReminderCheck('sent', txt); }, 800);
   var client = sb();
   var c = CHATS[activeChatIdx] || null;
   if (c) {
@@ -15721,6 +15725,232 @@ create policy "all_access" on reunions
     </div>
   </div>
 </div>
+
+<!-- ════ SMART REMINDER SYSTEM ════ -->
+<script>
+/* ══════════════════════════════════════════════════════════════
+   聊天 → 提醒 智能关联系统
+   逻辑：预检词 → callClaude提取 → 聊天内卡片确认 → 写入事件
+══════════════════════════════════════════════════════════════ */
+
+// 防抖：同一房间 30 秒内只分析一次
+var _srLastCheck = 0;
+var _srCooldown  = 30000;
+
+// 触发词：有这些词才值得送给 AI 分析
+var _srTriggerWords = [
+  '周一','周二','周三','周四','周五','周六','周日',
+  '明天','后天','下周','下午','上午','晚上','早上',
+  '约','见','饭','吃','聚','会','见面','过来','去',
+  '几点','点钟','提醒','记得','不要忘','好的','行','没问题',
+  'ok','OK','好','可以','安排','定了','确定'
+];
+
+// 确认词：说明用户已同意（好的/行/etc），这时才触发分析
+var _srConfirmWords = [
+  '好的','行','没问题','ok','OK','好','可以','安排好了',
+  '定了','确定','我去','我来','我会','我记着'
+];
+
+function _srHasWords(txt, list) {
+  var lower = txt.toLowerCase();
+  return list.some(function(w) { return lower.indexOf(w) >= 0; });
+}
+
+// 从聊天 DOM 里收集最近 N 条消息文本
+function _srGetRecentMessages(n) {
+  var box = document.getElementById('crMessages');
+  if (!box) return '';
+  var bubbles = box.querySelectorAll('.bubble');
+  var last = Array.from(bubbles).slice(-n);
+  return last.map(function(b) {
+    var isMe = b.classList.contains('me');
+    var textNode = b.childNodes[0];
+    var txt = textNode ? (textNode.textContent || textNode.innerText || '') : b.textContent;
+    return (isMe ? '我：' : '对方：') + txt.trim();
+  }).filter(function(s) { return s.length > 3; }).join(' | ');
+}
+
+// 主分析函数
+async function smartReminderCheck(direction, newMsg) {
+  if (!newMsg || newMsg.length < 2) return;
+  // 只在有触发词时继续
+  if (!_srHasWords(newMsg, _srTriggerWords)) return;
+  // 如果是发出的消息，必须包含确认词才触发
+  if (direction === 'sent' && !_srHasWords(newMsg, _srConfirmWords)) return;
+  // 冷却期
+  var now = Date.now();
+  if (now - _srLastCheck < _srCooldown) return;
+  _srLastCheck = now;
+
+  // 收集最近 6 条对话
+  var context = _srGetRecentMessages(6);
+  if (!context) return;
+
+  var prompt = '你是一个智能提醒助手。分析以下聊天记录，判断是否存在明确的约定或计划（如约饭、见面、打电话等有具体时间的事情）。' +
+    '如果存在，用JSON格式返回：{"has":true,"title":"事件简述，20字内","when":"时间描述，如周六下午/明天9点","who":"对象，如妈妈/朋友","note":"备注"}。' +
+    '如果不存在明确约定，返回：{"has":false}。只返回JSON，不要其他文字。' +
+    '聊天记录：' + context;
+
+  try {
+    var reply = await callClaude(prompt, 200);
+    if (!reply) return;
+    // Parse JSON
+    var clean = reply.trim().replace(/```json|```/g, '').trim();
+    var result = JSON.parse(clean);
+    if (!result.has) return;
+    // Show reminder card in chat
+    _srShowCard(result);
+  } catch(e) {
+    // Silent fail — don't bother user on error
+  }
+}
+
+// 在聊天室里显示一个小卡片
+function _srShowCard(info) {
+  var box = document.getElementById('crMessages');
+  if (!box) return;
+  // Avoid duplicate cards
+  if (document.getElementById('srCard')) { document.getElementById('srCard').remove(); }
+
+  var cardId = 'srCard';
+  var title   = (info.title || '约定') + (info.who ? ' · ' + info.who : '');
+  var when    = info.when  || '待确认';
+  var note    = info.note  || '';
+
+  var div = document.createElement('div');
+  div.id = cardId;
+  div.style.cssText = 'margin:10px 0;padding:12px 14px;background:linear-gradient(135deg,rgba(255,248,230,.95),rgba(255,252,240,.9));border:1.5px solid rgba(201,168,76,.35);border-radius:16px;animation:srFadeIn .35s ease';
+
+  div.innerHTML =
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">' +
+      '<div style="font-size:16px">🔔</div>' +
+      '<div style="font-size:12px;font-weight:700;color:#8a6e30;letter-spacing:.04em">检测到约定</div>' +
+      '<div style="margin-left:auto;font-size:18px;cursor:pointer;color:var(--ink3);line-height:1" onclick="document.getElementById('srCard').remove()">✕</div>' +
+    '</div>' +
+    '<div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:3px">' + title + '</div>' +
+    '<div style="font-size:12px;color:var(--ink3);margin-bottom:' + (note ? '3px' : '12px') + '">⏰ ' + when + '</div>' +
+    (note ? '<div style="font-size:11px;color:var(--ink3);margin-bottom:12px;line-height:1.5">' + note + '</div>' : '') +
+    '<div style="display:flex;gap:8px">' +
+      '<button onclick="srSaveReminder(' + JSON.stringify(JSON.stringify(info)) + ')" ' +
+        'style="flex:1;padding:9px;border-radius:11px;background:linear-gradient(135deg,#c9a84c,#e0c060);border:none;color:#4a3a10;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">✓ 加入提醒计划</button>' +
+      '<button onclick="document.getElementById('srCard').remove()" ' +
+        'style="padding:9px 16px;border-radius:11px;background:var(--bg);border:1.5px solid var(--border);color:var(--ink3);font-size:13px;cursor:pointer;font-family:inherit">忽略</button>' +
+    '</div>';
+
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+
+  // Auto-dismiss after 30s
+  setTimeout(function() {
+    var c = document.getElementById(cardId);
+    if (c) { c.style.opacity='0'; c.style.transition='opacity .4s'; setTimeout(function(){ if(c.parentNode) c.remove(); }, 400); }
+  }, 30000);
+}
+
+// 保存提醒到事件系统
+async function srSaveReminder(infoJson) {
+  var info;
+  try { info = JSON.parse(infoJson); } catch(e) { return; }
+
+  var card = document.getElementById('srCard');
+  if (card) {
+    card.innerHTML = '<div style="text-align:center;padding:14px;color:var(--green);font-size:14px;font-weight:600">✅ 已加入提醒计划</div>';
+    setTimeout(function() { if(card.parentNode) card.remove(); }, 2000);
+  }
+
+  // Build event title
+  var fullTitle = '🔔 ' + (info.title || '约定') + (info.who ? ' · ' + info.who : '');
+
+  // Parse date: try to figure out takenAt from info.when
+  var takenAt = _srParseWhen(info.when);
+
+  // Save locally (same structure as _localEvents)
+  var uid = localStorage.getItem('c100_uid') || '';
+  var localEntry = {
+    user_id: uid,
+    title: fullTitle,
+    taken_at: takenAt,
+    lat: null, lng: null,
+    photo_url: '',
+    with_people: info.who || null,
+    mood: '🔔',
+    created_at: new Date().toISOString(),
+    _is_reminder: true
+  };
+
+  try {
+    var events = JSON.parse(localStorage.getItem('c100_local_events') || '[]');
+    events.push(localEntry);
+    localStorage.setItem('c100_local_events', JSON.stringify(events));
+    if (typeof _localEvents !== 'undefined') _localEvents.push(localEntry);
+  } catch(e) {}
+
+  // Save to DB
+  try {
+    var client = sb();
+    if (client) {
+      var dbRow = { user_id: uid, title: fullTitle, taken_at: takenAt, photo_url: '' };
+      if (info.who) dbRow.with_people = info.who;
+      dbRow.mood = '🔔';
+      await client.from('moments').insert(dbRow);
+    }
+  } catch(e) {}
+
+  // Refresh life page
+  try { if (typeof loadMomentsFromDB === 'function') setTimeout(loadMomentsFromDB, 500); } catch(e) {}
+  try { if (typeof loadTodayActivity === 'function') setTimeout(loadTodayActivity, 600); } catch(e) {}
+
+  toast('🔔 已加入提醒：' + (info.title || '约定'));
+}
+
+// 把 "周六下午" 之类的描述转成 ISO 日期
+function _srParseWhen(whenStr) {
+  if (!whenStr) return new Date().toISOString();
+  var now = new Date();
+  var day = now.getDay(); // 0=Sun
+  var target = new Date(now);
+  target.setHours(12, 0, 0, 0);
+
+  var map = { '周一':1,'周二':2,'周三':3,'周四':4,'周五':5,'周六':6,'周日':0,'星期一':1,'星期二':2,'星期三':3,'星期四':4,'星期五':5,'星期六':6,'星期日':0 };
+  var found = false;
+  Object.keys(map).forEach(function(k) {
+    if (!found && whenStr.indexOf(k) >= 0) {
+      var targetDay = map[k];
+      var diff = (targetDay - day + 7) % 7 || 7;
+      target.setDate(now.getDate() + diff);
+      found = true;
+    }
+  });
+  if (!found) {
+    if (whenStr.indexOf('明天') >= 0) target.setDate(now.getDate() + 1);
+    else if (whenStr.indexOf('后天') >= 0) target.setDate(now.getDate() + 2);
+    else if (whenStr.indexOf('下周') >= 0) target.setDate(now.getDate() + 7);
+  }
+
+  // Time hints
+  if (whenStr.indexOf('上午') >= 0 || whenStr.indexOf('早上') >= 0) target.setHours(9);
+  else if (whenStr.indexOf('中午') >= 0) target.setHours(12);
+  else if (whenStr.indexOf('下午') >= 0) target.setHours(15);
+  else if (whenStr.indexOf('晚上') >= 0 || whenStr.indexOf('晚') >= 0) target.setHours(19);
+
+  // Specific hour like "3点" or "15:00"
+  var hm = whenStr.match(/(\d{1,2})[点:：](\d{0,2})/);
+  if (hm) {
+    var h = parseInt(hm[1]);
+    var m = parseInt(hm[2] || '0');
+    if (h < 8) h += 12; // 3点 → 15点 (afternoon bias)
+    target.setHours(h, m, 0, 0);
+  }
+
+  return target.toISOString();
+}
+
+// CSS animation for card
+var srStyle = document.createElement('style');
+srStyle.textContent = '@keyframes srFadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}';
+document.head.appendChild(srStyle);
+</script>
 
 <!-- ════ AI + COLLAPSE SCRIPTS ════ -->
 <script>
