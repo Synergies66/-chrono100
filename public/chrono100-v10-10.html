@@ -1027,12 +1027,13 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
 
       <!-- 今日动态 -->
       <div style="margin:10px 16px 0;background:rgba(255,255,255,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:20px;border:1.5px solid rgba(255,255,255,.92);box-shadow:0 8px 32px rgba(74,159,212,.14);animation:cloudFloat1 6s ease-in-out infinite" id="todayArc">
-        <div style="display:flex;align-items:center;gap:7px;padding:12px 14px 10px;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:7px;padding:12px 14px 10px;border-bottom:1px solid var(--border);cursor:pointer" onclick="toggleSection('todayBody','todayChevron')">
           <div class="pulse-dot"></div>
           <div style="font-size:13px;font-weight:600;color:var(--ink);flex:1" data-i18n-key="todayActivity">今日动态</div>
           <div style="font-size:11px;color:var(--ink3)" id="todayCount"></div>
+          <div id="todayChevron" style="font-size:13px;color:var(--ink3);transition:transform .25s;margin-left:4px">▾</div>
         </div>
-        <div class="scroll-list-wrap" style="border-radius:0 0 0 0;overflow:hidden">
+        <div id="todayBody" class="scroll-list-wrap" style="border-radius:0 0 0 0;overflow:hidden">
           <div class="scroll-list-inner" id="todayListScroll" onscroll="onListScroll(this,'todayFade','todayBadge')">
             <div id="todayList">
               <div style="text-align:center;padding:16px;color:var(--ink3);font-size:12px">加载中…</div>
@@ -1044,6 +1045,7 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
         <div style="display:flex;align-items:center;justify-content:center;gap:5px;padding:10px;border-top:1px solid var(--border);color:var(--blue2);font-size:12px;font-weight:500;cursor:pointer" onclick="openAddEvent()">
           <span data-i18n-key="addRecord">＋ 添加今日记录（显示在上方列表）</span>
         </div>
+        </div><!-- /todayBody -->
       </div>
 
       <!-- ✨ AI 每日感知卡 -->
@@ -1204,10 +1206,13 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
 
       <!-- Timeline - real data -->
       <div style="display:none;align-items:center;justify-content:space-between;margin:10px 14px 0 14px" id="trajTitleRow">
-        <div class="section-title" id="trajTitle" style="padding:0;font-size:14px;font-weight:700;color:var(--ink)">本年记录</div>
+        <div style="display:flex;align-items:center;gap:6px;flex:1;cursor:pointer" onclick="toggleSection('trajBody','trajChevron')">
+          <div class="section-title" id="trajTitle" style="padding:0;font-size:14px;font-weight:700;color:var(--ink)">本年记录</div>
+          <div id="trajChevron" style="font-size:13px;color:var(--ink3);transition:transform .25s">▾</div>
+        </div>
         <div id="trajLoadMoreBtn" onclick="loadMomentsFromDB(true)" style="display:none;font-size:11px;color:var(--green);font-weight:600;cursor:pointer;padding:4px 10px;border-radius:99px;border:1px solid rgba(39,174,114,.3)">⬇ 加载更多</div>
       </div>
-      <div class="scroll-list-wrap" style="margin:6px 14px 0">
+      <div id="trajBody" class="scroll-list-wrap" style="margin:6px 14px 0">
         <div class="scroll-list-inner" id="trajListScroll" onscroll="onListScroll(this,'trajFade','trajBadge')">
           <div class="tl-wrap" id="trajectoryList">
             <div style="text-align:center;padding:28px 20px;color:var(--ink3)">
@@ -1219,7 +1224,7 @@ body.dark .login-card,body.dark .cr-bar,body.dark .bottom-tabs{background:var(--
         </div>
         <div class="scroll-fade" id="trajFade"></div>
         <div class="scroll-badge" id="trajBadge">↕ 滑动查看</div>
-      </div>
+      </div><!-- /trajBody -->
 
 <!-- lifeSummaryModule shell (needed by JS) -->
       <div id="lifeSummaryModule" style="display:none"></div>
@@ -13153,14 +13158,14 @@ var _origRenderTodayList = renderTodayList;
 renderTodayList = function() {
   _origRenderTodayList.apply(this, arguments);
   try { buildDailySummary(); } catch(e) {}
-  try { generateAIInsight(); } catch(e) {}
+  // AI感知已关闭 // try { generateAIInsight(); } catch(e) {}
 };
 
 // ════════════════════════════════════════
 // ✨ AI 每日感知卡 — 首页核心差异化功能
 // 把今日数据转化为有温度的个人洞察
 // ════════════════════════════════════════
-async function generateAIInsight() {
+async function generateAIInsight_DISABLED() {
   var card = document.getElementById('aiInsightCard');
   var textEl = document.getElementById('aiInsightText');
   var tagsEl = document.getElementById('aiInsightTags');
@@ -15761,86 +15766,111 @@ create policy "all_access" on reunions
 
 <!-- ════ AI MODULE SCRIPTS ════ -->
 <script>
-var _aiData = {
-  travel: {
-    inputId: 'travelInput', msgsId: 'travelMsgs',
-    color: 'linear-gradient(135deg,#4a8fa8,#5bafc8)',
-    replies: [
-      '好的！正在为你规划行程 ✈️<br><br><strong>示例方案（成都3天）：</strong><br>· Day1：宽窄巷子 → 锦里古街<br>· Day2：都江堰 → 青城山<br>· Day3：武侯祠 → 杜甫草堂<br><br>🍜 推荐：赵老三火锅、龙抄手<br>🏨 酒店：锦江区精品民宿 约¥380/晚<br>🎫 高铁票：已帮你查询，点击查看 →',
-      '奥克兰周末亲子好去处 🌿<br><br>· 奥克兰动物园（3-12岁最爱）<br>· Mission Bay 海滩野餐<br>· Rainbow's End 游乐园<br><br>🚗 建议自驾，停车方便<br>🏨 推荐住 Takapuna Beach 附近',
-      '东京5天深度游 🏯<br><br>· Day1-2：浅草 → 上野 → 秋叶原<br>· Day3：镰仓日归<br>· Day4：新宿 → 涩谷<br>· Day5：银座 → 羽田出发<br><br>✈️ AKL-NRT 约 NZD$1,200起<br>🏨 推荐区域：新宿 / 浅草'
-    ], idx: 0
-  },
-  biz: {
-    inputId: 'bizInput', msgsId: 'bizMsgs',
-    color: 'linear-gradient(135deg,#7c6fa8,#9080c0)',
-    replies: [
-      '正在分析 📊<br><br><strong>新西兰房地产市场 2025</strong><br>· 全国中位房价：约 NZD $780K（↓4.2% YoY）<br>· 奥克兰供给增加，市场趋稳<br>· OCR 维持 5.25%，按揭约 6.8%<br><br>📑 <strong>报告生成中…</strong><br>含趋势图表 + 区域对比 + 投资建议<br>PPT 已就绪 ↓',
-      '海外华人餐饮行业洞察 🍜<br><br>· 市场规模：东南亚+澳洲+新西兰约 USD$42B<br>· 增速：年均 8.3%，川菜/粤菜最受欢迎<br>· 痛点：人力成本高、食材供应链不稳<br><br>📑 竞品分析报告生成中…',
-      'AI 产品竞品矩阵 🤖<br><br>· Claude — 推理/安全，$20/月<br>· GPT-4o — 多模态，$20/月<br>· Gemini — Google生态，免费起<br><br>📊 完整对比报告 + PPT 已生成'
-    ], idx: 0
-  },
-  assist: {
-    inputId: 'assistInput', msgsId: 'assistMsgs',
-    color: 'linear-gradient(135deg,#4a9870,#5ab888)',
-    replies: {
-      '日程': '📅 <strong>今日日程</strong><br>· 10:00 团队周会（Zoom）<br>· 14:30 客户通话 – John Smith<br>· 18:00 健身<br><br>明天：9:00 跑步 · 11:00 医生复诊<br><br>需要帮你添加新事项吗？',
-      '邮件': '📧 <strong>邮件摘要</strong><br>· 未读 12 封，重要 3 封<br>· Smith & Co：合同签署（待回复）<br>· 房东：续租通知（需确认）<br>· 银行：账单到期提醒<br><br>需要帮你起草回复吗？',
-      '任务': '✅ <strong>待办清单</strong><br><br>🔴 紧急：提交项目报告（今日截止）<br>🟡 重要：续签医疗保险<br>🟢 一般：整理照片备份<br><br>要帮你按优先级重新排序吗？',
-      default: '明白！正在处理中 🗓️<br><br>请告诉我更多细节，我来帮你整理日程、摘要邮件或整理任务清单。所有内容仅在本次会话中处理。'
-    }, idx: 0
+/* shared toggle for collapsible sections */
+function toggleSection(bodyId, chevronId) {
+  var body = document.getElementById(bodyId);
+  var chev = document.getElementById(chevronId);
+  if (!body) return;
+  var collapsed = body.getAttribute('data-collapsed') === '1';
+  if (collapsed) {
+    body.style.display = '';
+    body.removeAttribute('data-collapsed');
+    if (chev) chev.style.transform = 'rotate(0deg)';
+  } else {
+    body.style.display = 'none';
+    body.setAttribute('data-collapsed','1');
+    if (chev) chev.style.transform = 'rotate(-90deg)';
   }
-};
+}
 
+/* ── AI overlay open/close (double insurance: class + inline style) ── */
+function _aiOpen(id) {
+  var o = document.getElementById(id);
+  if (!o) return;
+  o.classList.add('open');
+  o.style.opacity = '1';
+  o.style.pointerEvents = 'all';
+  var s = o.querySelector('.sheet');
+  if (s) { s.style.transform = 'translateY(0)'; }
+}
+function _aiClose(id) {
+  var o = document.getElementById(id);
+  if (!o) return;
+  o.classList.remove('open');
+  o.style.opacity = '0';
+  o.style.pointerEvents = 'none';
+  var s = o.querySelector('.sheet');
+  if (s) { s.style.transform = 'translateY(100%)'; }
+}
+function openAiTravel()  { _aiOpen('aiTravelOv'); }
+function closeAiTravel() { _aiClose('aiTravelOv'); }
+function openAiBiz()     { _aiOpen('aiBizOv'); }
+function closeAiBiz()    { _aiClose('aiBizOv'); }
+function openAiAssist()  { _aiOpen('aiAssistOv'); }
+function closeAiAssist() { _aiClose('aiAssistOv'); }
+
+/* ── message renderer ── */
 function _aiMsg(containerId, role, html) {
   var c = document.getElementById(containerId);
   if (!c) return;
-  var isAi = role === 'ai';
+  var isAi = (role === 'ai');
   var div = document.createElement('div');
-  div.style.cssText = 'display:flex;gap:9px;' + (isAi ? '' : 'flex-direction:row-reverse');
-  var avBg = isAi ? 'linear-gradient(135deg,#dceeff,#c8e4ff)' : 'linear-gradient(135deg,var(--blue),var(--blue2))';
-  div.innerHTML = '<div style="width:28px;height:28px;border-radius:9px;background:' + avBg + ';display:flex;align-items:center;justify-content:center;font-size:' + (isAi?'13':'10') + 'px;flex-shrink:0;color:' + (isAi?'var(--ink)':'#fff') + ';font-weight:700">' + (isAi?'✦':'我') + '</div>'
-    + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:10px 13px;font-size:12.5px;line-height:1.65;color:var(--ink);max-width:85%">' + html + '</div>';
+  div.style.cssText = 'display:flex;gap:9px;margin-bottom:2px;' + (isAi ? '' : 'flex-direction:row-reverse');
+  var avColor = isAi ? 'linear-gradient(135deg,#dceeff,#c8e4ff)' : 'linear-gradient(135deg,var(--blue),var(--blue2))';
+  div.innerHTML =
+    '<div style="width:28px;height:28px;border-radius:9px;background:' + avColor +
+    ';display:flex;align-items:center;justify-content:center;font-size:' + (isAi?'13':'10') +
+    'px;flex-shrink:0;color:' + (isAi?'var(--ink)':'#fff') + ';font-weight:700">' + (isAi?'✦':'我') + '</div>' +
+    '<div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:10px 13px;font-size:12.5px;line-height:1.65;color:var(--ink);max-width:85%">' + html + '</div>';
   c.appendChild(div);
   c.scrollTop = c.scrollHeight;
 }
 
+/* ── reply banks ── */
+var _travelReplies = [
+  '好的！正在为你规划行程 ✈️<br><br><strong>示例方案（成都3天）：</strong><br>· Day1：宽窄巷子 → 锦里古街<br>· Day2：都江堰 → 青城山<br>· Day3：武侯祠 → 杜甫草堂<br><br>🍜 推荐：赵老三火锅、龙抄手<br>🏨 精品民宿 约¥380/晚<br>🎫 高铁票已查询，点击查看 →',
+  '奥克兰周末亲子好去处 🌿<br><br>· 奥克兰动物园（3–12岁最爱）<br>· Mission Bay 海滩野餐<br>· Rainbow End 游乐园<br><br>🚗 建议自驾，停车方便<br>🏨 推荐住 Takapuna Beach 附近',
+  '东京5天深度游 🏯<br><br>· Day1–2：浅草 → 上野 → 秋叶原<br>· Day3：镰仓日归<br>· Day4：新宿 → 涩谷<br>· Day5：银座 → 羽田出发<br><br>✈️ AKL–NRT 约 NZD$1,200起<br>🏨 推荐：新宿 / 浅草区域'
+];
+var _bizReplies = [
+  '正在分析 📊<br><br><strong>新西兰房地产市场 2025</strong><br>· 全国中位房价：约 NZD $780K（↓4.2% YoY）<br>· 奥克兰供给增加，市场趋稳<br>· OCR 维持 5.25%，按揭约 6.8%<br><br>📑 趋势图表 + 区域对比 + 投资建议<br><strong>PPT 已就绪，点击下载 ↓</strong>',
+  '海外华人餐饮行业洞察 🍜<br><br>· 市场规模：东南亚+澳洲+新西兰约 USD$42B<br>· 增速：年均 8.3%，川菜/粤菜领跑<br>· 痛点：人力成本高、供应链不稳<br><br>📑 竞品分析报告生成中…',
+  'AI 产品竞品矩阵 🤖<br><br>· Claude — 推理/安全，$20/月<br>· GPT-4o — 多模态，$20/月<br>· Gemini — Google生态，免费起<br><br>📊 完整对比报告 + PPT 已生成'
+];
+var _assistReplies = {
+  '日程': '📅 <strong>今日日程</strong><br>· 10:00 团队周会（Zoom）<br>· 14:30 客户通话<br>· 18:00 健身<br><br>明天：9:00 跑步 · 11:00 医生复诊<br><br>需要帮你添加新事项吗？',
+  '邮件': '📧 <strong>邮件摘要</strong><br>· 未读 12 封，重要 3 封<br>· 合同签署提醒（待回复）<br>· 续租通知（需确认）<br>· 银行账单到期提醒<br><br>需要帮你起草回复吗？',
+  '任务': '✅ <strong>待办清单</strong><br><br>🔴 紧急：提交项目报告（今日截止）<br>🟡 重要：续签医疗保险<br>🟢 一般：整理照片备份<br><br>要帮你按优先级排序吗？'
+};
+var _travelIdx = 0, _bizIdx = 0;
+
 function sendAiMsg(type) {
-  var cfg = _aiData[type]; if (!cfg) return;
-  var inp = document.getElementById(cfg.inputId);
-  var text = inp ? inp.value.trim() : ''; if (!text) return;
-  _aiMsg(cfg.msgsId, 'user', text);
+  var inputId = {travel:'travelInput', biz:'bizInput', assist:'assistInput'}[type];
+  var msgsId  = {travel:'travelMsgs', biz:'bizMsgs', assist:'assistMsgs'}[type];
+  var inp = document.getElementById(inputId);
+  var text = inp ? inp.value.trim() : '';
+  if (!text) return;
+  _aiMsg(msgsId, 'user', text);
   if (inp) { inp.value = ''; inp.style.height = 'auto'; }
-  var replies = cfg.replies;
   var reply;
-  if (Array.isArray(replies)) {
-    reply = replies[cfg.idx % replies.length]; cfg.idx++;
-  } else {
-    reply = replies[text] || replies.default;
-  }
-  setTimeout(function() { _aiMsg(cfg.msgsId, 'ai', reply); }, 700);
+  if (type === 'travel') { reply = _travelReplies[_travelIdx % _travelReplies.length]; _travelIdx++; }
+  else if (type === 'biz') { reply = _bizReplies[_bizIdx % _bizReplies.length]; _bizIdx++; }
+  else { reply = _assistReplies[text] || '明白！正在为你整理 🗓️<br><br>请告诉我更多细节，我来帮你统一处理日程、邮件或任务清单。'; }
+  setTimeout(function() { _aiMsg(msgsId, 'ai', reply); }, 650);
 }
 
 function sendAiChip(type, el) {
-  var cfg = _aiData[type]; if (!cfg) return;
-  var inp = document.getElementById(cfg.inputId);
   var text = el.textContent.trim();
   if (type === 'assist') {
-    _aiMsg(cfg.msgsId, 'user', text);
-    var reply = cfg.replies[text] || cfg.replies.default;
-    setTimeout(function() { _aiMsg(cfg.msgsId, 'ai', reply); }, 600);
+    var reply = _assistReplies[text] || '明白！正在处理…';
+    _aiMsg('assistMsgs', 'user', text);
+    setTimeout(function() { _aiMsg('assistMsgs', 'ai', reply); }, 600);
   } else {
+    var inputId = type === 'travel' ? 'travelInput' : 'bizInput';
+    var inp = document.getElementById(inputId);
     if (inp) inp.value = text;
     sendAiMsg(type);
   }
 }
-
-function openAiTravel()  { var o=document.getElementById('aiTravelOv');  if(o) o.classList.add('open'); }
-function closeAiTravel() { var o=document.getElementById('aiTravelOv');  if(o) o.classList.remove('open'); }
-function openAiBiz()     { var o=document.getElementById('aiBizOv');     if(o) o.classList.add('open'); }
-function closeAiBiz()    { var o=document.getElementById('aiBizOv');     if(o) o.classList.remove('open'); }
-function openAiAssist()  { var o=document.getElementById('aiAssistOv'); if(o) o.classList.add('open'); }
-function closeAiAssist() { var o=document.getElementById('aiAssistOv'); if(o) o.classList.remove('open'); }
 </script>
 </body>
-</html>
